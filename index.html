@@ -1,0 +1,1589 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>KLARIO — Din kliniske lommehjælper</title>
+<meta name="description" content="KLARIO – klinisk lommehjælper til danske sundhedselever og sundhedspersonale." />
+<style>
+  html, body { margin: 0; padding: 0; background: #D7DEE4; }
+  #loading { font-family: system-ui, sans-serif; color: #15212B; text-align: center; padding: 80px 20px; }
+  #loading .k { display:inline-block; width:54px; height:54px; border-radius:16px;
+    background:linear-gradient(145deg,#1B4868,#0E2A40); margin-bottom:16px; }
+</style>
+
+<!-- Resolve bare module imports from CDN (single React instance shared with lucide-react) -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.383.0?external=react"
+  }
+}
+</script>
+
+<!-- Babel transpiles the JSX in the browser; data-type="module" enables the imports above -->
+<script src="https://unpkg.com/@babel/standalone@7.24.7/babel.min.js"></script>
+</head>
+<body>
+<div id="root"><div id="loading"><div class="k"></div><div>Indlæser KLARIO…</div></div></div>
+
+<script type="text/babel" data-type="module" data-presets="react">
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import {
+  Home, Search, LayoutGrid, Star, MoreHorizontal,
+  Activity, Droplets, Heart, Microscope, ClipboardList,
+  MessageCircle, Siren, ChevronDown, ChevronLeft, ChevronRight,
+  Clock, Plus, Info, ShieldCheck, X,
+  Gauge, Scale, Stethoscope, Utensils, Puzzle, Pill, Brain, Calculator,
+} from "lucide-react";
+import { createRoot } from "react-dom/client";
+
+/* ================================================================== *
+ *  KLARIO — Din kliniske lommehjælper  ·  KLARIO HEALTHCARE
+ *  Et moderne, roligt klinisk dashboard til danske sundhedselever
+ *  og sundhedspersonale. Alt indhold er lokalt i koden.
+ * ================================================================== */
+
+const DISCLAIMER =
+  "KLARIO er et lærings- og støtteværktøj. Følg altid lokale retningslinjer og kontakt relevant sundhedsfaglig person ved tvivl.";
+
+/* ----------------------------- DATA ------------------------------- */
+
+const DATA = [
+  {
+    id: "observationer",
+    title: "Observationer",
+    subtitle: "Systematisk vurdering af borgerens tilstand",
+    color: "#2E68E0", g1: "#4F86F4", g2: "#2257D8",
+    Icon: Activity,
+    cards: [
+      { id: "obs-respiration", title: "Respiration", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Frekvens (antal vejrtrækninger pr. minut), dybde, rytme og om borgeren bruger ekstra muskler. Lyt efter hvæsen, rallen eller hoste." },
+        { label: "Normale tegn", body: "Voksen i hvile: ca. 12–20 vejrtrækninger pr. minut. Rolig, regelmæssig og ubesværet vejrtrækning. Normal hudfarve." },
+        { label: "Advarselstegn", body: ["Under 8 eller over 24–25 pr. minut", "Anstrengt vejrtrækning og brug af hjælpemuskler", "Blålige læber (cyanose)", "Uro, forvirring eller hvæsende lyde"] },
+        { label: "Hvornår skal du reagere?", body: "Ved tydeligt besvær, høj/lav frekvens, cyanose eller ændret bevidsthed. Tilkald straks sygeplejerske/læge ved akut åndenød." },
+      ]},
+      { id: "obs-puls", title: "Puls", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Frekvens, rytme (regelmæssig/uregelmæssig) og fyldighed (kraftig/svag). Mål typisk på håndleddet (a. radialis)." },
+        { label: "Normale tegn", body: "Voksen i hvile: ca. 60–100 slag pr. minut, regelmæssig." },
+        { label: "Advarselstegn", body: ["Under 50 eller over 100–110 i hvile", "Meget uregelmæssig puls", "Svag/tynd puls", "Samtidig svimmelhed eller brystsmerter"] },
+        { label: "Hvornår skal du reagere?", body: "Ved markant høj/lav puls, uregelmæssighed med symptomer, eller hvis borgeren føler sig dårlig. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-blodtryk", title: "Blodtryk", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Systolisk (øvre) og diastolisk (nedre) tryk. Notér også om borgeren bliver svimmel ved at rejse sig." },
+        { label: "Normale tegn", body: "Ca. 120/80 mmHg er typisk normalt for en voksen. Lidt variation er normalt." },
+        { label: "Advarselstegn", body: ["Systolisk under 90 (lavt)", "Meget højt tryk (fx over 180/110)", "Svimmelhed, bleghed, hovedpine eller sløret syn"] },
+        { label: "Hvornår skal du reagere?", body: "Ved meget lavt/højt tryk med symptomer. Lavt tryk + svimmelhed/bleghed kan tyde på væskemangel eller akut tilstand — kontakt sygeplejerske." },
+      ]},
+      { id: "obs-temperatur", title: "Temperatur", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Mål med termometer (øre, pande eller rektalt efter lokal retningslinje). Notér hvor og hvordan der er målt." },
+        { label: "Normale tegn", body: "Ca. 36,5–37,5 °C." },
+        { label: "Advarselstegn", body: ["Feber over 38 °C", "Høj feber over 39–40 °C", "Lav temperatur under 35 °C (hypotermi)", "Kulderystelser og klam hud"] },
+        { label: "Hvornår skal du reagere?", body: "Ved feber + dårlig almentilstand, meget høj/lav temperatur eller mistanke om infektion. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-bevidsthed", title: "Bevidsthedsniveau", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Er borgeren vågen, kontaktbar og orienteret i tid, sted og egne data? Brug evt. AVPU (Alert, Voice, Pain, Unresponsive)." },
+        { label: "Normale tegn", body: "Vågen, klar, svarer relevant og er orienteret." },
+        { label: "Advarselstegn", body: ["Sløvhed eller svær at vække", "Forvirring", "Reagerer kun på tiltale eller smerte", "Pludselig ændring fra det vante"] },
+        { label: "Hvornår skal du reagere?", body: "Ved pludselig ændring i bevidsthed reagér straks — det kan være akut. Kontakt sygeplejerske/læge. Ring 1-1-2 ved bevidstløshed." },
+      ]},
+      { id: "obs-hudfarve", title: "Hudfarve", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Farve (bleg, rød, gul, blålig), temperatur (varm/kold), fugt (tør/klam) og evt. marmorering." },
+        { label: "Normale tegn", body: "Jævn, naturlig farve for borgeren. Varm og tør hud." },
+        { label: "Advarselstegn", body: ["Bleghed eller klam/kold sved", "Blålige læber/negle (cyanose)", "Gulfarvning (ikterus)", "Marmoreret hud"] },
+        { label: "Hvornår skal du reagere?", body: "Cyanose, marmorering eller pludselig bleghed med klam hud kræver hurtig handling. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-smerter", title: "Smerter", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Hvor, hvor længe, hvilken type (jagende, trykkende, brændende) og styrke på skala 0–10 (VAS/NRS)." },
+        { label: "Normale tegn", body: "Smertefri eller velkendte, stabile smerter der er under kontrol." },
+        { label: "Advarselstegn", body: ["Nye, kraftige eller pludselige smerter", "Smerter der ændrer karakter", "Brystsmerter", "Mavesmerter med påvirket almentilstand"] },
+        { label: "Hvornår skal du reagere?", body: "Ved nye stærke smerter, brystsmerter eller smerter der ikke lindres. Kontakt sygeplejerske; brystsmerter kan være akut." },
+      ]},
+      { id: "obs-vaeske", title: "Væskeindtag", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Hvor meget borgeren drikker over døgnet. Før evt. væskeskema. Vurder tørst og mundtørhed." },
+        { label: "Normale tegn", body: "Voksen ca. 1,5–2 liter i døgnet, medmindre andet er ordineret." },
+        { label: "Advarselstegn", body: ["Lavt indtag", "Tørre slimhinder og tørst", "Nedsat urinmængde", "Træthed eller forvirring (tegn på dehydrering)"] },
+        { label: "Hvornår skal du reagere?", body: "Ved vedvarende lavt indtag eller tegn på dehydrering — særligt hos ældre. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-urin", title: "Urin", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Mængde, farve, lugt, klarhed og om det svier ved vandladning. Notér toilet-/blebesøg." },
+        { label: "Normale tegn", body: "Lysegul, klar, uden stærk lugt og i normal mængde." },
+        { label: "Advarselstegn", body: ["Mørk/koncentreret urin", "Blod i urinen", "Uklar eller ildelugtende urin", "Svie, hyppig vandladning eller meget lille/ingen urin"] },
+        { label: "Hvornår skal du reagere?", body: "Ved ingen vandladning, blod eller tegn på urinvejsinfektion. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-affoering", title: "Afføring", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Hyppighed, konsistens (brug evt. Bristol-skala), farve og evt. blod eller slim." },
+        { label: "Normale tegn", body: "Regelmæssig for borgeren, blød og formet, brun." },
+        { label: "Advarselstegn", body: ["Diarré", "Forstoppelse over flere dage", "Sort/tjæreagtig eller blodig afføring", "Kraftig, unormal lugt"] },
+        { label: "Hvornår skal du reagere?", body: "Ved blod, sort afføring, vedvarende diarré (væsketab) eller langvarig forstoppelse. Kontakt sygeplejerske." },
+      ]},
+      { id: "obs-ernaering", title: "Ernæring", sections: [
+        { label: "Hvad skal du kigge efter?", body: "Appetit, hvor meget der spises, vægt, tygge-/synkebesvær og evt. utilsigtet vægttab." },
+        { label: "Normale tegn", body: "Spiser tilstrækkeligt, stabil vægt og ingen synkeproblemer." },
+        { label: "Advarselstegn", body: ["Nedsat appetit", "Utilsigtet vægttab", "Synkebesvær", "Hoste under måltid (fejlsynkning)"] },
+        { label: "Hvornår skal du reagere?", body: "Ved vægttab, dårlig appetit over tid eller synkeproblemer. Kontakt sygeplejerske; overvej ernæringsscreening." },
+      ]},
+    ],
+  },
+
+  {
+    id: "hygiejne",
+    title: "Hygiejne",
+    subtitle: "Bryd smittekæden i hverdagen",
+    color: "#0FAE9E", g1: "#2BCBB8", g2: "#0B9488",
+    Icon: Droplets,
+    cards: [
+      { id: "hyg-hand", title: "Håndhygiejne", sections: [
+        { label: "Hvornår?", body: ["Før og efter borgerkontakt", "Før rene opgaver og efter urene opgaver", "Efter handsker", "Før/efter måltider og toilet"] },
+        { label: "Hvordan?", body: "Hånddesinfektion med sprit på synligt rene hænder — minimum 30 sekunder til hænderne er tørre. Håndvask med vand og sæbe ved synligt snavs eller efter toiletbesøg." },
+        { label: "Husk", body: "Korte negle, ingen ringe/ure/smykker og ingen kunstige negle. Sprit alle flader: fingerspidser, tommelfinger og mellem fingrene." },
+        { label: "Hvorfor?", body: "Hænder er den hyppigste smittevej. God håndhygiejne er det vigtigste tiltag mod smittespredning." },
+      ]},
+      { id: "hyg-smittekaede", title: "Smittekæden", sections: [
+        { label: "Hvad er det?", body: "En model med 6 led der alle skal være til stede for at smitte spredes: mikroorganisme, smittekilde/reservoir, udgangsport, smittevej, indgangsport og modtagelig vært." },
+        { label: "Sådan brydes den", body: "Bryd bare ét led, så stopper smitten. Fx håndhygiejne (smittevej), rengøring (reservoir) eller værnemidler (ind-/udgangsport)." },
+        { label: "I praksis", body: "Tænk over hvor smitten kan komme fra, og hvordan den spredes — og sæt ind dér." },
+      ]},
+      { id: "hyg-vaernemidler", title: "Værnemidler", sections: [
+        { label: "Hvad?", body: "Handsker, forklæde/overtrækskittel, maske og evt. øjenværn. Vælges ud fra opgaven og smitterisikoen." },
+        { label: "Handsker", body: "Engangs, skiftes mellem opgaver og borgere. Erstatter ikke håndhygiejne." },
+        { label: "Rækkefølge", body: ["Tag på: forklæde → maske → øjenværn → handsker", "Tag af: handsker → øjenværn → forklæde → maske", "Hånddesinfektion til sidst"] },
+        { label: "Husk", body: "Skift værnemidler mellem ren og uren opgave og mellem borgere." },
+      ]},
+      { id: "hyg-ren-uren", title: "Ren/uren procedure", sections: [
+        { label: "Princip", body: "Arbejd altid fra rent mod urent — aldrig tilbage. Hold rene og urene ting adskilt." },
+        { label: "Eksempel", body: "Ved sårpleje og personlig pleje arbejdes fra det reneste område mod det mest urene, så smitte ikke flyttes." },
+        { label: "Husk", body: "Skift handsker og udfør håndhygiejne ved overgang fra uren til ren opgave." },
+      ]},
+      { id: "hyg-isolation", title: "Isolation", sections: [
+        { label: "Hvad?", body: "Tiltag der beskytter mod smittespredning ved fx resistente bakterier eller smitsom sygdom." },
+        { label: "Typer", body: ["Kontaktsmitte (handsker/forklæde)", "Dråbesmitte (maske)", "Luftsmitte (særlig maske/rum)"] },
+        { label: "I praksis", body: "Eget rum/toilet hvis muligt, dedikeret udstyr, ekstra fokus på håndhygiejne og rengøring samt korrekt af-/påklædning af værnemidler. Følg lokal retningslinje." },
+      ]},
+      { id: "hyg-desinfektion", title: "Desinfektion", sections: [
+        { label: "Hvad?", body: "At nedbringe antallet af mikroorganismer på hud, flader eller udstyr." },
+        { label: "Hud", body: "Hånddesinfektion med 70–85 % sprit på rene, tørre hænder." },
+        { label: "Flader", body: "Rengør først for synligt snavs, derefter desinfektion. Lad det virke (kontakttid) — følg produktets anvisning." },
+        { label: "Forskel", body: "Rengøring fjerner snavs; desinfektion dræber/inaktiverer mikroorganismer; sterilisation fjerner alt." },
+      ]},
+      { id: "hyg-basale", title: "Basale infektionshygiejniske retningslinjer", sections: [
+        { label: "Hvad?", body: "Grundreglerne der altid gælder uanset borger og diagnose (de basale forholdsregler)." },
+        { label: "Indhold", body: ["Håndhygiejne", "Værnemidler efter behov", "Host-/nyseetikette", "Sikker håndtering af affald, snavsetøj og skarpe genstande", "Rengøring"] },
+        { label: "Hvorfor?", body: "Beskytter både borger og personale og forhindrer smittespredning i hverdagen." },
+      ]},
+    ],
+  },
+
+  {
+    id: "saarpleje",
+    title: "Sårpleje",
+    subtitle: "Observation, dokumentation og handling",
+    color: "#F2557E", g1: "#FF7E9C", g2: "#E23E6B",
+    Icon: Heart,
+    cards: [
+      { id: "saar-rene", title: "Rene sår", sections: [
+        { label: "Hvad ser du?", body: "Et sår uden tegn på infektion. Ren sårrand, lyserødt/rødt væv (granulationsvæv) og evt. let, klar væske." },
+        { label: "Hvad dokumenterer du?", body: "Placering, størrelse, udseende, mængde og type væske, sårrand, forbinding og hvornår der er skiftet." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Ved tegn på infektion (rødme, varme, hævelse, pus, øget smerte, lugt) eller hvis såret ikke heler." },
+      ]},
+      { id: "saar-inficerede", title: "Inficerede sår", sections: [
+        { label: "Hvad ser du?", body: "Rødme omkring såret, varme, hævelse, øget smerte, pus/gul-grøn væske, dårlig lugt og evt. feber." },
+        { label: "Hvad dokumenterer du?", body: "Infektionstegn, mængde/farve/lugt af væske, hudens tilstand omkring såret, temperatur og borgerens almentilstand." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Altid ved mistanke om infektion. Ved feber og påvirket almentilstand: hurtigt." },
+      ]},
+      { id: "saar-tryksaar", title: "Tryksår", sections: [
+        { label: "Hvad ser du?", body: "Hudforandring over knoglefremspring (hæl, hofte, haleben). Fra vedvarende rødme (kategori 1) til åbent sår og dybt vævstab (kategori 2–4)." },
+        { label: "Hvad dokumenterer du?", body: "Placering, kategori/dybde, størrelse, hudens farve, om rødmen forsvinder ved tryk, og forebyggende tiltag." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Ved nyopstået tryksår eller forværring. Forebyggelse med lejring og trykaflastning er afgørende." },
+      ]},
+      { id: "saar-venoese", title: "Venøse sår", sections: [
+        { label: "Hvad ser du?", body: "Typisk på underben/ankel, ofte væskende, med uregelmæssige render, hævede ben og misfarvet hud omkring." },
+        { label: "Hvad dokumenterer du?", body: "Placering, størrelse, væske, hudens tilstand, hævelse (ødem) og om der bruges kompression." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Ved forværring, infektionstegn eller smerter. Kompressionsbehandling skal følges nøje — kontakt ved tvivl." },
+      ]},
+      { id: "saar-diabetiske", title: "Diabetiske sår", sections: [
+        { label: "Hvad ser du?", body: "Ofte under foden/tæer. Kan være dybe og smertefri pga. nedsat følesans. Høj risiko for infektion." },
+        { label: "Hvad dokumenterer du?", body: "Placering, dybde, infektionstegn, følesans, fodstatus og blodsukkerkontrol hvis relevant." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Hurtigt ved alle fodsår hos diabetikere — selv små sår kan blive alvorlige." },
+      ]},
+      { id: "saar-observation", title: "Observation af sår", sections: [
+        { label: "Hvad ser du?", body: "Vurder størrelse, dybde, sårbund (farve), sårrand, væske (mængde/farve/lugt), hud omkring og smerte." },
+        { label: "Hvad dokumenterer du?", body: "Alle observationer, ændringer over tid, forbindingstype og borgerens oplevelse. Brug evt. foto efter lokal retningslinje." },
+        { label: "Hvornår kontakter du sygeplejerske/læge?", body: "Ved infektionstegn, manglende heling eller forværring." },
+      ]},
+    ],
+  },
+
+  {
+    id: "mikrobiologi",
+    title: "Bakterier & virus",
+    subtitle: "Det vigtigste — enkelt forklaret",
+    color: "#7A5AF5", g1: "#9B82FF", g2: "#6743EE",
+    Icon: Microscope,
+    cards: [
+      { id: "mik-bakterier", title: "Hvad er bakterier?", sections: [
+        { label: "Forklaring", body: "Bakterier er små levende encellede organismer. De findes overalt — mange er harmløse eller gavnlige (fx i tarmen), men nogle kan gøre os syge." },
+        { label: "Vigtigt", body: "Bakterieinfektioner kan ofte behandles med antibiotika. Bakterier kan dele sig hurtigt og spredes via fx hænder og overflader." },
+      ]},
+      { id: "mik-virus", title: "Hvad er virus?", sections: [
+        { label: "Forklaring", body: "Virus er meget mindre end bakterier og kan kun formere sig inde i kroppens celler. De står bag fx forkølelse, influenza og COVID-19." },
+        { label: "Vigtigt", body: "Antibiotika virker IKKE mod virus. Kroppens immunforsvar bekæmper typisk virus selv; behandling er ofte lindrende." },
+      ]},
+      { id: "mik-forskel", title: "Forskellen på bakterier og virus", sections: [
+        { label: "Størrelse", body: "Bakterier er større og lever selv. Virus er meget mindre og skal bruge en værtscelle." },
+        { label: "Behandling", body: "Bakterier → evt. antibiotika. Virus → antibiotika hjælper ikke." },
+        { label: "Fælles", body: "Begge kan smitte og give infektion, og god hygiejne forebygger begge." },
+      ]},
+      { id: "mik-infektionstegn", title: "Typiske infektionstegn", sections: [
+        { label: "Lokalt", body: "Rødme, varme, hævelse, smerte og nedsat funktion i området." },
+        { label: "Almene", body: "Feber, træthed, utilpashed, nedsat appetit og evt. forhøjet puls og respiration." },
+        { label: "Husk", body: "Hos ældre kan tegnene være utydelige — fx forvirring eller faldtendens kan være eneste tegn på infektion." },
+      ]},
+      { id: "mik-feber", title: "Feber", sections: [
+        { label: "Hvad?", body: "Forhøjet kropstemperatur (over 38 °C), oftest kroppens reaktion på infektion." },
+        { label: "Observation", body: "Mål temperatur og vurder almentilstand, væskeindtag og evt. kulderystelser eller klam hud." },
+        { label: "Husk", body: "Feber + dårlig almentilstand, åndenød eller forvirring skal tages alvorligt. Sørg for væske og kontakt sygeplejerske ved tvivl." },
+      ]},
+      { id: "mik-crp", title: "CRP kort forklaret", sections: [
+        { label: "Hvad?", body: "CRP (C-reaktivt protein) er et stof i blodet der stiger ved infektion og betændelse. Måles via blodprøve." },
+        { label: "Brug", body: "Hjælper med at vurdere om der er en (ofte bakteriel) infektion, og hvor kraftig. Lav CRP taler imod alvorlig bakteriel infektion." },
+        { label: "Husk", body: "CRP vurderes altid sammen med symptomer og andre fund — ikke alene." },
+      ]},
+      { id: "mik-antibiotika", title: "Antibiotika kort forklaret", sections: [
+        { label: "Hvad?", body: "Medicin der dræber eller hæmmer bakterier. Virker ikke mod virus." },
+        { label: "Vigtigt", body: "Skal tages som ordineret, og kuren skal gøres færdig. Forkert brug kan give resistente bakterier." },
+        { label: "Resistens", body: "Når bakterier bliver modstandsdygtige, virker antibiotika dårligere. Derfor bruges antibiotika kun når det er nødvendigt." },
+      ]},
+      { id: "mik-smitteveje", title: "Smitteveje", sections: [
+        { label: "Kontaktsmitte", body: "Via hænder, overflader og udstyr — den hyppigste vej. Brydes med håndhygiejne." },
+        { label: "Dråbesmitte", body: "Via dråber fra host/nys over kort afstand. Brydes med afstand og maske." },
+        { label: "Luftsmitte", body: "Via meget små partikler der svæver i luften. Kræver særlige tiltag." },
+        { label: "Andre", body: "Fækal-oral (mad/hænder) og blodsmitte. God hygiejne forebygger alle." },
+      ]},
+    ],
+  },
+
+  {
+    id: "dokumentation",
+    title: "Dokumentation",
+    subtitle: "Skriv korrekt, relevant og rettidigt",
+    color: "#EF9D2B", g1: "#FFBB54", g2: "#E5860F",
+    Icon: ClipboardList,
+    cards: [
+      { id: "dok-hvad", title: "Hvad skal dokumenteres?", sections: [
+        { label: "Indhold", body: ["Observationer og ændringer i tilstand", "Udført pleje og behandling", "Borgerens oplevelse", "Aftaler og hvad du har reageret på"] },
+        { label: "Princip", body: "Dokumentér det relevante, korrekte og rettidige — så kolleger kan følge forløbet, og borgeren får sikker pleje." },
+        { label: "Husk", body: "Skriv objektivt med dato/tid og dit navn/initialer. Det der ikke er dokumenteret, regnes ofte som ikke udført." },
+      ]},
+      { id: "dok-obj-subj", title: "Objektiv vs. subjektiv dokumentation", sections: [
+        { label: "Objektivt", body: "Det du måler og ser. Fx: \u201ETemperatur 38,7 °C. Rød, varm hud på højre læg.\u201C" },
+        { label: "Subjektivt", body: "Det borgeren selv fortæller. Fx: \u201EBorger angiver smerter 7/10 i højre ben.\u201C" },
+        { label: "Husk", body: "Skriv hvem der har sagt hvad. Undgå at skrive egne tolkninger som var de fakta." },
+      ]},
+      { id: "dok-eksempel", title: "Eksempel på god dokumentation", sections: [
+        { label: "Eksempel", body: "\u201EKl. 09.30: Borger klager over smerter i højre ben (7/10). Obs. rød, varm og hævet læg. Temp. 38,5 °C. Kontaktet sygeplejerske. Afventer vurdering. /AB\u201C" },
+        { label: "Hvorfor er den god?", body: "Tidspunkt, objektive + subjektive fund, handling, hvem der er kontaktet, og initialer. Kort, præcis og faktuel." },
+      ]},
+      { id: "dok-smart", title: "SMART-mål", sections: [
+        { label: "Hvad?", body: "En metode til at lave tydelige mål. SMART = Specifikt, Målbart, Attraktivt/accepteret, Realistisk, Tidsbestemt." },
+        { label: "Eksempel", body: "\u201EBorger kan gå 50 meter med rollator uden hvil inden 3 uger.\u201C" },
+        { label: "Hvorfor?", body: "Gør målet konkret, så indsatsen kan planlægges og evalueres." },
+      ]},
+      { id: "dok-process", title: "Sygeplejeprocessen", sections: [
+        { label: "Dataindsamling", body: "Saml oplysninger om borgeren — observationer, ressourcer og problemer." },
+        { label: "Analyse", body: "Vurder hvad data betyder, og identificér problemstillinger og behov." },
+        { label: "Mål", body: "Opstil tydelige (gerne SMART) mål sammen med borgeren." },
+        { label: "Handling", body: "Planlæg og udfør de konkrete indsatser." },
+        { label: "Evaluering", body: "Vurder om målet er nået, og justér om nødvendigt." },
+      ]},
+      { id: "dok-tavshed", title: "Tavshedspligt", sections: [
+        { label: "Hvad?", body: "Du må ikke videregive oplysninger om borgeren til uvedkommende. Gælder også uden for arbejdet og på sociale medier." },
+        { label: "I praksis", body: "Tal kun om borgeren med relevante kolleger og kun når det er nødvendigt for plejen. Pas på i offentlige rum." },
+        { label: "Husk", body: "Tavshedspligten gælder også efter ansættelsen er ophørt." },
+      ]},
+      { id: "dok-samtykke", title: "Samtykke", sections: [
+        { label: "Hvad?", body: "Borgeren skal som udgangspunkt give tilladelse til pleje, behandling og deling af oplysninger." },
+        { label: "I praksis", body: "Informér borgeren, og respektér et nej. Samtykke kan være mundtligt eller skriftligt." },
+        { label: "Husk", body: "Borgeren har ret til selvbestemmelse. Ved tvivl om habilitet eller i akutte situationer: følg lokal retningslinje og kontakt ansvarlig." },
+      ]},
+    ],
+  },
+
+  {
+    id: "kommunikation",
+    title: "Kommunikation",
+    subtitle: "Tryg og professionel kontakt",
+    color: "#1AA0E6", g1: "#46B8F2", g2: "#0C88D2",
+    Icon: MessageCircle,
+    cards: [
+      { id: "kom-borger", title: "Kommunikation med borger", sections: [
+        { label: "Sådan", body: "Tal tydeligt, i øjenhøjde og uden fagsprog. Giv tid, lyt og tjek at borgeren har forstået." },
+        { label: "Husk", body: "Respektér borgerens værdighed og selvbestemmelse. Tilpas til hørelse, syn, sprog og kognitiv tilstand." },
+      ]},
+      { id: "kom-paaroerende", title: "Kommunikation med pårørende", sections: [
+        { label: "Sådan", body: "Vær imødekommende og ærlig. Informér inden for rammerne af tavshedspligt og borgerens samtykke." },
+        { label: "Husk", body: "Pårørende kan være bekymrede — lyt, anerkend følelser og henvis til rette person ved spørgsmål du ikke må/kan svare på." },
+      ]},
+      { id: "kom-isbar", title: "ISBAR", sections: [
+        { label: "Hvad?", body: "En struktur til sikker mundtlig overlevering — særligt ved kontakt til sygeplejerske/læge." },
+        { label: "I-S-B-A-R", body: ["Identifikation: dig + borger", "Situation: hvad er problemet nu", "Baggrund: relevant historik", "Analyse: din vurdering", "Råd: hvad foreslår/ønsker du"] },
+        { label: "Hvorfor?", body: "Sikrer at vigtig information gives kort, struktureret og uden at glemme noget." },
+      ]},
+      { id: "kom-lytning", title: "Aktiv lytning", sections: [
+        { label: "Hvad?", body: "At lytte fuldt og vise det — uden at afbryde eller dømme." },
+        { label: "Sådan", body: "Øjenkontakt, nik, gentag/opsummer (\u201ESå du oplever…\u201C), still åbne spørgsmål og giv pauser." },
+        { label: "Hvorfor?", body: "Skaber tryghed, færre misforståelser og en bedre relation." },
+      ]},
+      { id: "kom-graenser", title: "Professionelle grænser", sections: [
+        { label: "Hvad?", body: "At holde en sund, faglig relation mellem dig og borgeren." },
+        { label: "Sådan", body: "Vær venlig men professionel, undgå private relationer og gaver, og hold fokus på borgerens behov — ikke dine egne." },
+        { label: "Husk", body: "Grænser beskytter både borger og dig. Ved tvivl: drøft med kolleger eller leder." },
+      ]},
+      { id: "kom-svaere", title: "Svære samtaler", sections: [
+        { label: "Sådan", body: "Find et roligt sted, vær nærværende, tal klart og ærligt, og giv plads til følelser og pauser." },
+        { label: "Husk", body: "Du behøver ikke have alle svar. Lyt, anerkend og henvis til rette fagperson. Dokumentér og overlevér det relevante." },
+      ]},
+    ],
+  },
+
+  {
+    id: "akut",
+    title: "Akut overblik",
+    subtitle: "Når det går stærkt — hold hovedet koldt",
+    color: "#FB3B43", g1: "#FF6F63", g2: "#ED1C46",
+    Icon: Siren,
+    cards: [
+      { id: "akut-abcde", title: "ABCDE", sections: [
+        { label: "Første observation", body: "Systematisk vurdering i rækkefølge: A Airway (luftvej), B Breathing (vejrtrækning), C Circulation (kredsløb), D Disability (bevidsthed), E Exposure (helkrop/temperatur/hud)." },
+        { label: "Handling og opfølgning", body: "Vurder ét punkt ad gangen og afhjælp problemer undervejs (frie luftveje, lejring, ilt efter retningslinje). Gå ikke videre før hvert punkt er håndteret." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske/læge straks ved påvirket ABCDE. Ring 1-1-2 ved livstruende tegn." },
+        { label: "Hvad dokumenterer du?", body: "Fund ved hvert bogstav, tiltag, tidspunkter og hvem der er kontaktet." },
+      ]},
+      { id: "akut-fald", title: "Fald", sections: [
+        { label: "Første observation", body: "Er borgeren ved bevidsthed? Smerter, synlige skader, hovedslag, kan de bevæge sig? Vurder ABCDE." },
+        { label: "Handling og opfølgning", body: "Flyt ikke ved mistanke om alvorlig skade eller nakkeskade. Skab ro, stop evt. blødning, hold borgeren varm og observér." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske. Ring 1-1-2 ved bevidstløshed, mistanke om brud/hovedskade eller kraftig blødning." },
+        { label: "Hvad dokumenterer du?", body: "Hvad der skete, fund, evt. hovedslag, smerter, tiltag, kontakt og efterfølgende observationer." },
+      ]},
+      { id: "akut-feber", title: "Feber", sections: [
+        { label: "Første observation", body: "Mål temperatur og vurder ABCDE, almentilstand, væske, hudfarve og bevidsthed." },
+        { label: "Handling og opfølgning", body: "Tilbyd væske, sørg for ro og komfort og observér hyppigere. Følg ordineret behandling." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske ved høj feber, dårlig almentilstand, forvirring eller åndenød." },
+        { label: "Hvad dokumenterer du?", body: "Temperatur, ledsagesymptomer, væskeindtag, tiltag og kontakt." },
+      ]},
+      { id: "akut-aandenoed", title: "Åndenød", sections: [
+        { label: "Første observation", body: "Respirationsfrekvens, anstrengt vejrtrækning, hudfarve (cyanose), lyde og bevidsthed (ABCDE — A og B)." },
+        { label: "Handling og opfølgning", body: "Skab ro, hjælp borgeren op i siddende stilling, løsn stramt tøj og giv ilt efter retningslinje." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske straks. Ring 1-1-2 ved svær åndenød, cyanose eller faldende bevidsthed." },
+        { label: "Hvad dokumenterer du?", body: "Respiration, hudfarve, stilling, tiltag, ilt, tidspunkt og kontakt." },
+      ]},
+      { id: "akut-bryst", title: "Brystsmerter", sections: [
+        { label: "Første observation", body: "Hvor og hvordan (trykkende/jagende), udstråling til arm/kæbe, åndenød, klam/bleg hud og kvalme. Vurder ABCDE." },
+        { label: "Handling og opfølgning", body: "Skab ro, lad borgeren hvile (ofte siddende), undgå anstrengelse og bliv hos borgeren." },
+        { label: "Hvem kontakter du?", body: "Ring 1-1-2 ved mistanke om hjertetilfælde. Kontakt sygeplejerske/læge straks." },
+        { label: "Hvad dokumenterer du?", body: "Smertens art, placering og styrke, ledsagesymptomer, tidspunkt, tiltag og kontakt." },
+      ]},
+      { id: "akut-forvirring", title: "Forvirring", sections: [
+        { label: "Første observation", body: "Er forvirringen ny/pludselig? Vurder bevidsthed, orientering, ABCDE, temperatur, væske og blodsukker hvis muligt." },
+        { label: "Handling og opfølgning", body: "Skab ro og tryghed, bliv hos borgeren, fjern farer og tilbyd væske. Ny forvirring kan skyldes infektion, dehydrering eller lavt blodsukker." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske ved akut/ny forvirring. Ring 1-1-2 ved faldende bevidsthed." },
+        { label: "Hvad dokumenterer du?", body: "Hvornår det startede, ændring fra det normale, mulige årsager, tiltag og kontakt." },
+      ]},
+      { id: "akut-dehydrering", title: "Mistanke om dehydrering", sections: [
+        { label: "Første observation", body: "Tørre slimhinder, tørst, nedsat/mørk urin, træthed, svimmelhed, evt. forvirring og lavt blodtryk." },
+        { label: "Handling og opfølgning", body: "Tilbyd væske ofte og i små mængder, registrér væskeindtag og urin, og observér tættere." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske ved tydelige tegn, manglende bedring eller hos svækkede ældre." },
+        { label: "Hvad dokumenterer du?", body: "Symptomer, væskeindtag/-skema, urin, tiltag og kontakt." },
+      ]},
+      { id: "akut-infektion", title: "Mistanke om infektion", sections: [
+        { label: "Første observation", body: "Feber, almen utilpashed, lokale tegn (rødme/varme/smerte), åndenød, ændret vandladning og hos ældre evt. forvirring/faldtendens." },
+        { label: "Handling og opfølgning", body: "Mål temperatur og øvrige værdier, observér tættere og sørg for væske. Vurder ABCDE." },
+        { label: "Hvem kontakter du?", body: "Sygeplejerske. Ved hurtig forværring, åndenød eller påvirket bevidsthed: hurtigt eller 1-1-2." },
+        { label: "Hvad dokumenterer du?", body: "Symptomer, temperatur og værdier, mulig infektionskilde, tiltag og kontakt." },
+      ]},
+    ],
+  },
+
+  {
+    id: "normalvaerdier",
+    title: "Normalværdier",
+    subtitle: "Vejledende referenceværdier",
+    color: "#1FA971", g1: "#41C98E", g2: "#128A5C",
+    Icon: Gauge,
+    banner: "Normalværdier er vejledende og skal altid vurderes sammen med borgerens normale niveau, symptomer og lokale retningslinjer.",
+    cards: [
+      { id: "nv-puls", title: "Puls", sections: [
+        { label: "Kort forklaret", body: "Normal hvilepuls hos voksen er ca. 60–100 slag pr. minut." },
+        { label: "Hvad skal du observere?", body: "Frekvens, rytme (regelmæssig/uregelmæssig) og fyldighed. Mål i hvile på a. radialis." },
+        { label: "Advarselstegn", body: ["Under 50 (bradykardi)", "Over 100 i hvile (takykardi)", "Uregelmæssig puls med symptomer"] },
+        { label: "Handling og opfølgning", body: "Sammenhold med borgerens vante værdi. Kontakt sygeplejerske ved afvigelse med symptomer." },
+        { label: "Hvad dokumenterer du?", body: "Værdi, måleforhold og evt. afvigelse." },
+      ]},
+      { id: "nv-bt", title: "Blodtryk", sections: [
+        { label: "Kort forklaret", body: "Vejledende normalt voksenblodtryk er ca. 120/80 mmHg." },
+        { label: "Hvad skal du observere?", body: "Begge værdier, korrekt manchet, samme arm og i hvile." },
+        { label: "Advarselstegn", body: ["Systolisk under 90", "Vedvarende højt (fx >140/90)", "Meget højt >180/110"] },
+        { label: "Handling og opfølgning", body: "Gentag målingen, sammenhold med vante værdier og kontakt ved tvivl." },
+        { label: "Hvad dokumenterer du?", body: "Værdier, arm/forhold og evt. symptomer." },
+      ]},
+      { id: "nv-resp", title: "Respiration", sections: [
+        { label: "Kort forklaret", body: "Normal voksenfrekvens i hvile er ca. 12–20 pr. minut." },
+        { label: "Hvad skal du observere?", body: "Tæl over et helt minut; vurder dybde og besvær." },
+        { label: "Advarselstegn", body: ["Under 8 eller over 24", "Anstrengt vejrtrækning", "Cyanose"] },
+        { label: "Handling og opfølgning", body: "Skab ro, ilt efter retningslinje og tilkald hjælp ved besvær." },
+        { label: "Hvad dokumenterer du?", body: "Frekvens og kvalitet." },
+      ]},
+      { id: "nv-sat", title: "Saturation", sections: [
+        { label: "Kort forklaret", body: "Iltmætning i blodet (SpO₂). Normalt ca. 95–100 %." },
+        { label: "Hvad skal du observere?", body: "Mål med pulsoximeter på ren, varm finger uden neglelak." },
+        { label: "Advarselstegn", body: ["Under 92 % (eller borgerens grænse)", "Fald sammen med åndenød", "KOL: følg individuel grænse"] },
+        { label: "Handling og opfølgning", body: "Tjek målingen, skab ro, ilt efter retningslinje og kontakt ved lav værdi." },
+        { label: "Hvad dokumenterer du?", body: "SpO₂, evt. ilttilskud og tiltag." },
+      ]},
+      { id: "nv-temp", title: "Temperatur", sections: [
+        { label: "Kort forklaret", body: "Normal kropstemperatur er ca. 36,5–37,5 °C." },
+        { label: "Hvad skal du observere?", body: "Notér målested (øre/pande/rektalt) — værdier varierer lidt." },
+        { label: "Advarselstegn", body: ["Over 38 °C (feber)", "Over 40 °C", "Under 35 °C (hypotermi)"] },
+        { label: "Handling og opfølgning", body: "Tilbyd væske, observér og kontakt ved høj feber med dårlig tilstand." },
+        { label: "Hvad dokumenterer du?", body: "Temperatur og målested." },
+      ]},
+      { id: "nv-bs", title: "Blodsukker", sections: [
+        { label: "Kort forklaret", body: "Vejledende fasteblodsukker er ca. 4–7 mmol/L (varierer). Følg ordineret plan." },
+        { label: "Hvad skal du observere?", body: "Mål korrekt; notér om borgeren har spist." },
+        { label: "Advarselstegn", body: ["Under 4 (hypoglykæmi)", "Højt vedvarende (fx >15)", "Sved, sløvhed eller forvirring"] },
+        { label: "Handling og opfølgning", body: "Følg lokal instruks og ordineret behandlingsplan." },
+        { label: "Hvad dokumenterer du?", body: "Værdi, tidspunkt, måltid og tiltag." },
+      ]},
+      { id: "nv-bmi", title: "BMI", sections: [
+        { label: "Kort forklaret", body: "BMI = vægt (kg) / højde² (m). Normalt ca. 18,5–24,9." },
+        { label: "Hvad skal du observere?", body: "Vej og mål korrekt; BMI er kun vejledende." },
+        { label: "Advarselstegn", body: ["Under 18,5 (undervægt)", "Over 30 (svær overvægt)", "Utilsigtet ændring"] },
+        { label: "Handling og opfølgning", body: "Sammenhold med ernæringstilstand; overvej screening ved lavt eller faldende BMI." },
+        { label: "Hvad dokumenterer du?", body: "Vægt, højde, BMI og udvikling." },
+      ]},
+      { id: "nv-vaeske", title: "Væskebehov", sections: [
+        { label: "Kort forklaret", body: "Vejledende behov hos voksen er ca. 30 ml/kg/døgn." },
+        { label: "Hvad skal du observere?", body: "Tilpas til vægt, feber, varme og tab (sved, diarré)." },
+        { label: "Advarselstegn", body: ["Tørst og tørre slimhinder", "Nedsat/mørk urin", "Forvirring eller træthed"] },
+        { label: "Handling og opfølgning", body: "Tilbyd væske jævnt over dagen, registrér og kontakt ved tegn på dehydrering." },
+        { label: "Hvad dokumenterer du?", body: "Beregnet behov, indtag og afvigelse." },
+      ]},
+    ],
+  },
+
+  {
+    id: "love",
+    title: "Love & regler",
+    subtitle: "Jura i klinisk hverdag",
+    color: "#475B8E", g1: "#6275B0", g2: "#374873",
+    Icon: Scale,
+    cards: [
+      { id: "lov-sundhed", title: "Sundhedsloven", sections: [
+        { label: "Kort forklaret", body: "Regulerer borgernes adgang til sundhedsydelser og deres rettigheder." },
+        { label: "Hvad betyder det i praksis?", body: "Sikrer bl.a. ret til behandling, information og selvbestemmelse." },
+        { label: "Eksempel", body: "Borgeren informeres og giver samtykke, før behandling sættes i gang." },
+        { label: "Husk", body: "Behandling kræver som udgangspunkt samtykke." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved tvivl om borgerens rettigheder, samtykke eller behandling." },
+      ]},
+      { id: "lov-service83", title: "Serviceloven §83", sections: [
+        { label: "Kort forklaret", body: "Kommunens pligt til personlig og praktisk hjælp samt pleje." },
+        { label: "Hvad betyder det i praksis?", body: "Hjælp tildeles ud fra en individuel behovsvurdering (visitation)." },
+        { label: "Eksempel", body: "Borger får hjælp til bad, måltider eller rengøring efter visitation." },
+        { label: "Husk", body: "Hjælpen skal støtte borgerens egne ressourcer." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved tvivl om hvad borgeren er visiteret til." },
+      ]},
+      { id: "lov-autorisation", title: "Autorisationsloven", sections: [
+        { label: "Kort forklaret", body: "Regulerer autoriserede sundhedspersoners ansvar og virksomhed." },
+        { label: "Hvad betyder det i praksis?", body: "Du arbejder inden for dit kompetenceområde og under ansvar." },
+        { label: "Eksempel", body: "En opgave uden for dine kompetencer skal delegeres korrekt." },
+        { label: "Husk", body: "Du må kun udføre opgaver, du er oplært og delegeret til." },
+        { label: "Hvornår spørger du din vejleder?", body: "Hvis du er i tvivl om dine kompetencer eller dit ansvar." },
+      ]},
+      { id: "lov-samtykke", title: "Samtykke", sections: [
+        { label: "Kort forklaret", body: "Borgerens tilladelse til pleje, behandling og deling af oplysninger." },
+        { label: "Hvad betyder det i praksis?", body: "Informér, og respektér et nej. Kan være mundtligt eller skriftligt." },
+        { label: "Eksempel", body: "Borger siger nej til medicin — det respekteres og dokumenteres." },
+        { label: "Husk", body: "Selvbestemmelse gælder; tvang kræver særlige regler." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved nej til nødvendig hjælp eller tvivl om habilitet." },
+      ]},
+      { id: "lov-tavshed", title: "Tavshedspligt", sections: [
+        { label: "Kort forklaret", body: "Pligt til ikke at videregive oplysninger til uvedkommende." },
+        { label: "Hvad betyder det i praksis?", body: "Tal kun om borgeren med relevante kolleger og kun ved behov." },
+        { label: "Eksempel", body: "Du må ikke fortælle naboen om en borgers sygdom." },
+        { label: "Husk", body: "Gælder også uden for arbejdet og efter ansættelsen." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved tvivl om hvad og til hvem du må videregive." },
+      ]},
+      { id: "lov-magt", title: "Magtanvendelse", sections: [
+        { label: "Kort forklaret", body: "Indgreb i selvbestemmelse — kun tilladt efter særlige regler." },
+        { label: "Hvad betyder det i praksis?", body: "Kræver hjemmel, dokumentation og indberetning." },
+        { label: "Eksempel", body: "Fastholdelse for at undgå skade skal registreres og indberettes." },
+        { label: "Husk", body: "Magt er sidste udvej — mindste indgreb i kortest tid." },
+        { label: "Hvornår spørger du din vejleder?", body: "ALTID før og efter enhver form for magtanvendelse." },
+      ]},
+      { id: "lov-uth", title: "Utilsigtede hændelser", sections: [
+        { label: "Kort forklaret", body: "Hændelser der skader eller kunne have skadet en borger." },
+        { label: "Hvad betyder det i praksis?", body: "Skal rapporteres for at lære og forebygge — ikke for at straffe." },
+        { label: "Eksempel", body: "Forkert medicindosis rapporteres som utilsigtet hændelse (UTH)." },
+        { label: "Husk", body: "Rapportering er fortrolig og handler om læring." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved tvivl om en hændelse skal rapporteres." },
+      ]},
+      { id: "lov-delegation", title: "Delegation", sections: [
+        { label: "Kort forklaret", body: "Overdragelse af en sundhedsfaglig opgave til en anden." },
+        { label: "Hvad betyder det i praksis?", body: "Du må kun udføre opgaver, du er oplært og delegeret til." },
+        { label: "Eksempel", body: "Sygeplejerske delegerer medicingivning til dig efter oplæring." },
+        { label: "Husk", body: "Ansvaret for korrekt delegation ligger hos den delegerende." },
+        { label: "Hvornår spørger du din vejleder?", body: "Hvis en opgave ikke er klart delegeret til dig." },
+      ]},
+      { id: "lov-patientsikkerhed", title: "Patientsikkerhed", sections: [
+        { label: "Kort forklaret", body: "Arbejdet med at forebygge skader i sundhedsvæsenet." },
+        { label: "Hvad betyder det i praksis?", body: "Sikker praksis, rapportering og læring af fejl." },
+        { label: "Eksempel", body: "Dobbelttjek af medicin øger patientsikkerheden." },
+        { label: "Husk", body: "En åben kultur uden skyld fremmer sikkerhed." },
+        { label: "Hvornår spørger du din vejleder?", body: "Ved tvivl om sikker praksis eller risiko for skade." },
+      ]},
+    ],
+  },
+
+  {
+    id: "diagnoser",
+    title: "Diagnoser",
+    subtitle: "Hyppige sygdomme kort forklaret",
+    color: "#D6336C", g1: "#F25C8E", g2: "#B81E55",
+    Icon: Stethoscope,
+    cards: [
+      { id: "diag-diabetes", title: "Diabetes", sections: [
+        { label: "Kort forklaret", body: "Forhøjet blodsukker pga. mangel på eller nedsat virkning af insulin." },
+        { label: "Hvad skal du observere?", body: "Blodsukker, kost og symptomer på højt eller lavt blodsukker." },
+        { label: "Advarselstegn", body: ["Lavt blodsukker: sved, sløvhed, forvirring", "Meget højt blodsukker", "Fodsår"] },
+        { label: "Hvad gør du?", body: "Støt kost og medicin efter plan, observér blodsukker og pas på fødderne." },
+        { label: "Hvad dokumenterer du?", body: "Blodsukker, symptomer, kost og tiltag." },
+      ]},
+      { id: "diag-kol", title: "KOL", sections: [
+        { label: "Kort forklaret", body: "Kronisk obstruktiv lungesygdom med vejrtrækningsbesvær." },
+        { label: "Hvad skal du observere?", body: "Respiration, saturation (individuel grænse!), hoste og slim." },
+        { label: "Advarselstegn", body: ["Forværret åndenød", "Ændret slim/farve", "Lav saturation for borgeren"] },
+        { label: "Hvad gør du?", body: "Skab ro, siddende stilling og ilt KUN efter individuel ordination." },
+        { label: "Hvad dokumenterer du?", body: "Respiration, saturation, symptomer og tiltag." },
+      ]},
+      { id: "diag-demens", title: "Demens", sections: [
+        { label: "Kort forklaret", body: "Samlebetegnelse for svigtende hukommelse og funktion." },
+        { label: "Hvad skal du observere?", body: "Hukommelse, orientering, adfærd og trivsel." },
+        { label: "Advarselstegn", body: ["Pludselig forværring (kan være infektion)", "Udadreagerende adfærd"] },
+        { label: "Hvad gør du?", body: "Skab ro og struktur, kommunikér enkelt og guid roligt." },
+        { label: "Hvad dokumenterer du?", body: "Adfærd, ændringer og trivsel." },
+      ]},
+      { id: "diag-apopleksi", title: "Apopleksi", sections: [
+        { label: "Kort forklaret", body: "Blodprop eller blødning i hjernen (slagtilfælde) — akut!" },
+        { label: "Hvad skal du observere?", body: "Pludselige symptomer: ansigt, arm, tale (FAST)." },
+        { label: "Advarselstegn", body: ["Pludseligt hængende ansigt", "Lammelse i arm", "Utydelig tale"] },
+        { label: "Hvad gør du?", body: "Ring 1-1-2 STRAKS ved mistanke; notér tidspunkt for symptomstart." },
+        { label: "Hvad dokumenterer du?", body: "Symptomer, tidspunkt og kontakt." },
+      ]},
+      { id: "diag-parkinson", title: "Parkinson", sections: [
+        { label: "Kort forklaret", body: "Sygdom med rysten, stivhed og langsomme bevægelser." },
+        { label: "Hvad skal du observere?", body: "Bevægelse, balance/faldrisiko og medicintidspunkter (vigtige!)." },
+        { label: "Advarselstegn", body: ["Øget faldrisiko", "Synkebesvær", "Forværring uden medicin til tiden"] },
+        { label: "Hvad gør du?", body: "Giv medicin præcist til tiden, støt mobilitet og forebyg fald." },
+        { label: "Hvad dokumenterer du?", body: "Funktion, fald, medicineffekt og tiltag." },
+      ]},
+      { id: "diag-hjertesvigt", title: "Hjertesvigt", sections: [
+        { label: "Kort forklaret", body: "Hjertet pumper ikke effektivt nok." },
+        { label: "Hvad skal du observere?", body: "Åndenød, hævede ben (ødem), vægt og træthed." },
+        { label: "Advarselstegn", body: ["Tiltagende åndenød", "Hurtig vægtøgning", "Øgede ødemer"] },
+        { label: "Hvad gør du?", body: "Observér vægt og ødem, støt hvile/aktivitet og kontakt ved forværring." },
+        { label: "Hvad dokumenterer du?", body: "Vægt, ødem, åndenød og tiltag." },
+      ]},
+      { id: "diag-uvi", title: "UVI", sections: [
+        { label: "Kort forklaret", body: "Urinvejsinfektion — hyppig, særligt hos ældre." },
+        { label: "Hvad skal du observere?", body: "Svie, hyppig vandladning, uklar/ildelugtende urin; hos ældre forvirring." },
+        { label: "Advarselstegn", body: ["Feber", "Forvirring/faldtendens", "Ryg- eller flankesmerter"] },
+        { label: "Hvad gør du?", body: "Tilbyd væske, observér og kontakt sygeplejerske; urinprøve efter ordination." },
+        { label: "Hvad dokumenterer du?", body: "Symptomer, urin og tiltag." },
+      ]},
+      { id: "diag-pneumoni", title: "Pneumoni", sections: [
+        { label: "Kort forklaret", body: "Lungebetændelse — infektion i lungerne." },
+        { label: "Hvad skal du observere?", body: "Hoste, åndenød, feber, saturation og almentilstand." },
+        { label: "Advarselstegn", body: ["Åndenød", "Lav saturation", "Forvirring eller dårlig tilstand"] },
+        { label: "Hvad gør du?", body: "Observér respiration og saturation, skab ro og kontakt sygeplejerske/læge." },
+        { label: "Hvad dokumenterer du?", body: "Respiration, saturation, temperatur og tiltag." },
+      ]},
+    ],
+  },
+
+  {
+    id: "ernaering",
+    title: "Ernæring & væske",
+    subtitle: "Mad, væske og trivsel",
+    color: "#0CA5BE", g1: "#2FC5DC", g2: "#0886A0",
+    Icon: Utensils,
+    cards: [
+      { id: "ern-dehydrering", title: "Dehydrering", sections: [
+        { label: "Kort forklaret", body: "Væskemangel i kroppen." },
+        { label: "Hvad skal du observere?", body: "Tørst, tørre slimhinder, nedsat/mørk urin og træthed." },
+        { label: "Advarselstegn", body: ["Forvirring", "Svimmelhed eller lavt blodtryk", "Meget lidt urin"] },
+        { label: "Hvad gør du?", body: "Tilbyd væske ofte i små mængder, registrér og kontakt ved tegn." },
+        { label: "Hvad dokumenterer du?", body: "Indtag, urin, symptomer og tiltag." },
+      ]},
+      { id: "ern-underernaering", title: "Underernæring", sections: [
+        { label: "Kort forklaret", body: "Utilstrækkeligt indtag af energi og næring." },
+        { label: "Hvad skal du observere?", body: "Vægt(tab), appetit, indtag og muskelmasse." },
+        { label: "Advarselstegn", body: ["Utilsigtet vægttab", "Lavt indtag over tid", "Træthed og svaghed"] },
+        { label: "Hvad gør du?", body: "Tilbyd energirig kost og mellemmåltider; lav ernæringsscreening." },
+        { label: "Hvad dokumenterer du?", body: "Vægt, indtag, screening og tiltag." },
+      ]},
+      { id: "ern-dysfagi", title: "Dysfagi", sections: [
+        { label: "Kort forklaret", body: "Synkebesvær med risiko for fejlsynkning." },
+        { label: "Hvad skal du observere?", body: "Hoste/harken ved måltid, savl, mad i munden og stemme." },
+        { label: "Advarselstegn", body: ["Hoste under måltid", "Fejlsynkning", "Gentagne lungebetændelser"] },
+        { label: "Hvad gør du?", body: "Tilpasset konsistens, oprejst stilling og ro ved måltid; kontakt sygeplejerske." },
+        { label: "Hvad dokumenterer du?", body: "Synkefunktion, kostform og tiltag." },
+      ]},
+      { id: "ern-kostformer", title: "Kostformer", sections: [
+        { label: "Kort forklaret", body: "Kost tilpasset borgerens behov og funktion." },
+        { label: "Hvad skal du observere?", body: "Normalkost, energirig kost, tygge-/synkevenlig kost m.fl." },
+        { label: "Advarselstegn", body: ["Forkert konsistens ved dysfagi", "Utilstrækkelig energi"] },
+        { label: "Hvad gør du?", body: "Vælg kostform efter behov/ordination og tilpas konsistens." },
+        { label: "Hvad dokumenterer du?", body: "Kostform, indtag og evt. ændringer." },
+      ]},
+      { id: "ern-vaeske", title: "Væskebehov", sections: [
+        { label: "Kort forklaret", body: "Vejledende ca. 30 ml/kg/døgn (varierer)." },
+        { label: "Hvad skal du observere?", body: "Tilpas til vægt, feber, varme og tab." },
+        { label: "Advarselstegn", body: ["Tegn på dehydrering", "Meget lavt indtag"] },
+        { label: "Hvad gør du?", body: "Tilbyd væske jævnt og registrér på væskeskema." },
+        { label: "Hvad dokumenterer du?", body: "Beregnet behov, indtag og afvigelse." },
+      ]},
+      { id: "ern-tegn", title: "Tegn på dårlig ernæring", sections: [
+        { label: "Kort forklaret", body: "Signaler om at borgeren ikke trives ernæringsmæssigt." },
+        { label: "Hvad skal du observere?", body: "Vægttab, nedsat appetit, træthed og dårlig sårheling." },
+        { label: "Advarselstegn", body: ["Hurtigt vægttab", "Tab af muskelmasse", "Tryksår der ikke heler"] },
+        { label: "Hvad gør du?", body: "Tilbyd tilpasset kost, observér indtag og lav ernæringsscreening." },
+        { label: "Hvad dokumenterer du?", body: "Vægt, indtag og fund." },
+      ]},
+      { id: "ern-screening", title: "Ernæringsscreening", sections: [
+        { label: "Kort forklaret", body: "Systematisk vurdering af ernæringsrisiko (fx MNA)." },
+        { label: "Hvad skal du observere?", body: "Vægt, BMI, vægttab, indtag og sygdom." },
+        { label: "Advarselstegn", body: ["Høj risikoscore", "Utilsigtet vægttab"] },
+        { label: "Hvad gør du?", body: "Udfør screening efter lokal retningslinje og lav en handleplan." },
+        { label: "Hvad dokumenterer du?", body: "Score, risiko og plan." },
+      ]},
+      { id: "ern-obstipation", title: "Obstipation", sections: [
+        { label: "Observationer", body: "Hvornår borgeren sidst har haft afføring, konsistens (Bristol), mavegener, oppustethed, appetit samt væske-, fiber- og aktivitetsniveau." },
+        { label: "Advarselstegn", body: ["Ingen afføring gennem flere dage", "Hård afføring (Bristol 1–2)", "Mavesmerter, kvalme eller oppustet mave"] },
+        { label: "Handling og opfølgning", body: "Tilbyd væske, fibre og mobilisering inden for borgerens plan, observér og kontakt ansvarlig ved vedvarende obstipation. Følg lokale retningslinjer." },
+        { label: "Dokumentation", body: "Seneste afføring, konsistens, gener, tiltag og kontakt." },
+      ]},
+    ],
+  },
+
+  {
+    id: "demens",
+    title: "Demens",
+    subtitle: "Forståelse og tilgang",
+    color: "#A146C9", g1: "#C06FE8", g2: "#8A2FB0",
+    Icon: Puzzle,
+    cards: [
+      { id: "dem-alzheimer", title: "Alzheimer", sections: [
+        { label: "Kort forklaret", body: "Hyppigste demensform; snigende hukommelsessvigt." },
+        { label: "Hvad skal du observere?", body: "Hukommelse, sprog, orientering og daglige funktioner." },
+        { label: "Advarselstegn", body: ["Pludselig forværring (mistænk infektion)", "Vægttab", "Faldrisiko"] },
+        { label: "Hvad gør du?", body: "Skab struktur og genkendelighed; kommunikér enkelt og roligt." },
+        { label: "Hvad dokumenterer du?", body: "Funktion, adfærd og ændringer." },
+      ]},
+      { id: "dem-vaskulaer", title: "Vaskulær demens", sections: [
+        { label: "Kort forklaret", body: "Demens pga. nedsat blodtilførsel til hjernen." },
+        { label: "Hvad skal du observere?", body: "Trinvis forværring, fokale udfald og kredsløbssygdom." },
+        { label: "Advarselstegn", body: ["Pludselige ændringer", "Tegn på apopleksi"] },
+        { label: "Hvad gør du?", body: "Støt funktion, forebyg fald og observér ved pludselige ændringer." },
+        { label: "Hvad dokumenterer du?", body: "Funktion og ændringer." },
+      ]},
+      { id: "dem-frontotemporal", title: "Frontotemporal demens", sections: [
+        { label: "Kort forklaret", body: "Demens med ændret adfærd og personlighed tidligt." },
+        { label: "Hvad skal du observere?", body: "Adfærd, hæmningstab, sprog og sociale situationer." },
+        { label: "Advarselstegn", body: ["Udadreagerende adfærd", "Manglende sygdomsindsigt"] },
+        { label: "Hvad gør du?", body: "Rolig, struktureret tilgang; undgå konfrontation." },
+        { label: "Hvad dokumenterer du?", body: "Adfærd og situationer." },
+      ]},
+      { id: "dem-kommunikation", title: "Kommunikation ved demens", sections: [
+        { label: "Kort forklaret", body: "Tilpasset, tryg kommunikation." },
+        { label: "Hvad skal du observere?", body: "Forståelse, kropssprog og reaktioner." },
+        { label: "Advarselstegn", body: ["For mange valg", "Komplekse beskeder", "Skæld ud eller korrektion"] },
+        { label: "Hvad gør du?", body: "Tal enkelt, én besked ad gangen, øjenkontakt, ro og tid." },
+        { label: "Hvad dokumenterer du?", body: "Hvad der virker for borgeren." },
+      ]},
+      { id: "dem-udad", title: "Udadreagerende adfærd", sections: [
+        { label: "Kort forklaret", body: "Adfærd der udtrykker et uopfyldt behov eller mistrivsel." },
+        { label: "Hvad skal du observere?", body: "Udløsende faktorer (smerte, sult, uro, omgivelser)." },
+        { label: "Advarselstegn", body: ["Optrapning", "Risiko for skade på borger eller personale"] },
+        { label: "Hvad gør du?", body: "Find årsagen, skab ro, afled, undgå konfrontation og tilkald hjælp." },
+        { label: "Hvad dokumenterer du?", body: "Hændelse, mulig årsag og tiltag (evt. UTH)." },
+      ]},
+      { id: "dem-guidning", title: "Guidning og struktur", sections: [
+        { label: "Kort forklaret", body: "Støtte til at klare hverdagen via faste rutiner." },
+        { label: "Hvad skal du observere?", body: "Hvad borgeren selv kan, og hvor der er behov for hjælp." },
+        { label: "Advarselstegn", body: ["Forvirring ved ændringer", "Mistrivsel uden struktur"] },
+        { label: "Hvad gør du?", body: "Guid trin for trin, brug genkendelige rutiner og rolige omgivelser." },
+        { label: "Hvad dokumenterer du?", body: "Hvad der støtter borgeren bedst." },
+      ]},
+      { id: "dem-paaroerende", title: "Pårørende ved demens", sections: [
+        { label: "Kort forklaret", body: "Pårørende er ofte vigtige samarbejdspartnere." },
+        { label: "Hvad skal du observere?", body: "Deres viden om borgeren, bekymringer og behov." },
+        { label: "Advarselstegn", body: ["Overbelastning", "Konflikter", "Sorg over tab af relation"] },
+        { label: "Hvad gør du?", body: "Inddrag, lyt, informér inden for tavshedspligt og henvis ved behov." },
+        { label: "Hvad dokumenterer du?", body: "Aftaler og relevant viden." },
+      ]},
+      { id: "dem-delirium", title: "Delirium (akut forvirring)", sections: [
+        { label: "Kort forklaret", body: "Delirium er en akut, ofte svingende forvirringstilstand, der opstår over timer til dage — hyppigt udløst af fx infektion, væskemangel, smerter eller medicin." },
+        { label: "Hvad observeres?", body: "Pludselig ændring i opmærksomhed og bevidsthed, svingende tilstand over døgnet, uro eller sløvhed og ændret søvn — sammenholdt med borgerens normale niveau." },
+        { label: "Advarselstegn", body: ["Akut eller pludselig forvirring", "Svingende bevidsthed over døgnet", "Pludselig ændret adfærd fra det vante"] },
+        { label: "Handling og opfølgning", body: "Skab ro og tryghed, bliv hos borgeren, observér tæt og kontakt ansvarlig sygeplejerske. Følg lokale retningslinjer." },
+        { label: "Dokumentation", body: "Hvornår det startede, ændring fra normalt, observationer og kontakt." },
+      ]},
+    ],
+  },
+
+  {
+    id: "medicin",
+    title: "Medicin basics",
+    subtitle: "Sikker medicinhåndtering",
+    color: "#F2683C", g1: "#FF8A5C", g2: "#DC4E22",
+    Icon: Pill,
+    cards: [
+      { id: "med-5r", title: "De 5 R'er", sections: [
+        { label: "Kort forklaret", body: "Sikkerhedstjek før medicingivning." },
+        { label: "Hvad skal du observere?", body: "Rigtig borger, rigtige medicin, rigtige dosis, rigtige tidspunkt, rigtige måde." },
+        { label: "Advarselstegn", body: ["Tvivl om ét af R'erne", "Uklar ordination"] },
+        { label: "Handling og opfølgning", body: "Tjek alle 5 R'er hver gang; ved tvivl — giv ikke, spørg." },
+        { label: "Hvad dokumenterer du?", body: "Givet medicin, dosis, tidspunkt og initialer." },
+      ]},
+      { id: "med-pn", title: "PN medicin", sections: [
+        { label: "Kort forklaret", body: "Medicin \u201Epro necessitate\u201C — efter behov." },
+        { label: "Hvad skal du observere?", body: "Indikation, maks. dosis pr. døgn og effekt." },
+        { label: "Advarselstegn", body: ["Overskridelse af maks.", "Manglende effekt", "Bivirkninger"] },
+        { label: "Handling og opfølgning", body: "Giv kun på indikation og inden for ordineret ramme; observér effekt." },
+        { label: "Hvad dokumenterer du?", body: "Hvorfor, hvornår, dosis og effekt." },
+      ]},
+      { id: "med-fejl", title: "Medicinfejl", sections: [
+        { label: "Kort forklaret", body: "Fejl i ordination, dispensering eller administration." },
+        { label: "Hvad skal du observere?", body: "Afvigelser fra de 5 R'er." },
+        { label: "Advarselstegn", body: ["Forkert dosis/borger/tidspunkt", "Glemt eller dobbelt dosis"] },
+        { label: "Handling og opfølgning", body: "Stop, vurder borgeren, kontakt sygeplejerske/læge og rapportér som UTH." },
+        { label: "Hvad dokumenterer du?", body: "Hvad skete, borgerens tilstand, kontakt og rapportering." },
+      ]},
+      { id: "med-obs", title: "Observation efter medicin", sections: [
+        { label: "Kort forklaret", body: "At følge op på virkning og bivirkning." },
+        { label: "Hvad skal du observere?", body: "Ønsket effekt og tegn på bivirkninger." },
+        { label: "Advarselstegn", body: ["Manglende effekt", "Allergisk reaktion", "Nye symptomer"] },
+        { label: "Handling og opfølgning", body: "Observér efter givning; kontakt ved uventet reaktion." },
+        { label: "Hvad dokumenterer du?", body: "Effekt, bivirkninger og tiltag." },
+      ]},
+      { id: "med-former", title: "Medicinformer", sections: [
+        { label: "Kort forklaret", body: "Den måde medicinen gives på." },
+        { label: "Hvad skal du observere?", body: "Tablet, kapsel, mikstur, injektion, plaster, suppositorium m.m." },
+        { label: "Advarselstegn", body: ["Knusning af tabletter der ikke må knuses", "Forkert form"] },
+        { label: "Handling og opfølgning", body: "Giv i ordineret form; tjek om tabletter må deles eller knuses." },
+        { label: "Hvad dokumenterer du?", body: "Form, dosis og måde." },
+      ]},
+      { id: "med-insulin", title: "Insulin basics", sections: [
+        { label: "Kort forklaret", body: "Hormon der sænker blodsukkeret. Gives ved diabetes." },
+        { label: "Hvad skal du observere?", body: "Blodsukker, tidspunkt ift. måltid og injektionssted (skift!)." },
+        { label: "Advarselstegn", body: ["Lavt blodsukker (hypoglykæmi)", "Sprunget måltid efter insulin"] },
+        { label: "Handling og opfølgning", body: "Observér blodsukker og borgerens tilstand, dokumentér løbende, og kontakt ansvarlig ved afvigelser. Følg altid gældende delegation, ordination og lokale retningslinjer." },
+        { label: "Hvad dokumenterer du?", body: "Blodsukker, dosis, tidspunkt og effekt." },
+      ]},
+      { id: "med-bivirkninger", title: "Bivirkninger", sections: [
+        { label: "Kort forklaret", body: "Uønskede virkninger af medicin." },
+        { label: "Hvad skal du observere?", body: "Nye symptomer efter opstart/ændring (fx udslæt, kvalme, sløvhed)." },
+        { label: "Advarselstegn", body: ["Allergisk reaktion", "Vejrtrækningsbesvær", "Pludselig forværring"] },
+        { label: "Handling og opfølgning", body: "Observér og kontakt sygeplejerske/læge; ring 1-1-2 ved svær reaktion." },
+        { label: "Hvad dokumenterer du?", body: "Symptom, tidssammenhæng og tiltag." },
+      ]},
+      { id: "med-delegation", title: "Delegation af medicin", sections: [
+        { label: "Kort forklaret", body: "At få overdraget medicinopgaver fra autoriseret personale." },
+        { label: "Hvad skal du observere?", body: "Hvad du er oplært og delegeret til." },
+        { label: "Advarselstegn", body: ["Opgave uden for din delegation", "Manglende oplæring"] },
+        { label: "Handling og opfølgning", body: "Udfør kun delegerede opgaver; spørg ved tvivl." },
+        { label: "Hvad dokumenterer du?", body: "Hvad er givet og af hvem (initialer)." },
+      ]},
+      { id: "med-opbevaring", title: "Medicinopbevaring", sections: [
+        { label: "Original emballage", body: "Opbevar som udgangspunkt medicin i den originale emballage med læsbar mærkat og udløbsdato." },
+        { label: "Temperaturkrav", body: "Følg produktets anvisning — fx køleskab (typisk 2–8 °C) for visse præparater som insulin. Undgå direkte varme og sollys." },
+        { label: "Sikker opbevaring", body: "Opbevar utilgængeligt for uvedkommende, adskilt pr. borger, og følg lokale retningslinjer for medicinhåndtering." },
+      ]},
+      { id: "med-antikoag", title: "Antikoagulantia (blodfortyndende)", sections: [
+        { label: "Hvad observeres?", body: "Tegn på blødning og blå mærker, og om borgeren har fået stød eller fald. Vær ekstra opmærksom ved sår og procedurer." },
+        { label: "Tegn på blødning", body: ["Næseblod eller blødende tandkød", "Blod i urin eller afføring (rød/sort)", "Store eller uforklarlige blå mærker", "Langvarig blødning fra sår"] },
+        { label: "Hvornår reageres?", body: "Kontakt ansvarlig sygeplejerske ved tegn på blødning. Ved kraftig blødning eller påvirket tilstand: ring 1-1-2. Følg lokale retningslinjer." },
+      ]},
+    ],
+  },
+
+  {
+    id: "psykiatri",
+    title: "Psykiatri",
+    subtitle: "Psykisk sygdom og støtte",
+    color: "#6366F1", g1: "#8488F5", g2: "#4F52D9",
+    Icon: Brain,
+    cards: [
+      { id: "psy-depression", title: "Depression", sections: [
+        { label: "Kort forklaret", body: "Vedvarende nedtrykthed og tab af interesse eller energi." },
+        { label: "Hvad skal du observere?", body: "Stemningsleje, søvn, appetit, aktivitet og relationer." },
+        { label: "Advarselstegn", body: ["Håbløshed", "Tanker om ikke at ville leve", "Stærk tilbagetrækning"] },
+        { label: "Hvad gør du?", body: "Vær nærværende og lyttende, støt struktur og kontakt sygeplejerske ved bekymring." },
+        { label: "Hvad dokumenterer du?", body: "Observationer, ændringer og kontakt." },
+      ]},
+      { id: "psy-angst", title: "Angst", sections: [
+        { label: "Kort forklaret", body: "Stærk frygt eller uro, ofte med kropslige symptomer." },
+        { label: "Hvad skal du observere?", body: "Uro, hjertebanken, vejrtrækning og undgåelsesadfærd." },
+        { label: "Advarselstegn", body: ["Panikanfald", "Stærk undgåelse", "Forværring"] },
+        { label: "Hvad gør du?", body: "Skab ro og tryghed, bliv hos borgeren og hjælp med rolig vejrtrækning." },
+        { label: "Hvad dokumenterer du?", body: "Udløsere, symptomer og tiltag." },
+      ]},
+      { id: "psy-skizofreni", title: "Skizofreni", sections: [
+        { label: "Kort forklaret", body: "Sygdom med bl.a. vrangforestillinger og hallucinationer." },
+        { label: "Hvad skal du observere?", body: "Kontakt med virkeligheden, adfærd, medicin og trivsel." },
+        { label: "Advarselstegn", body: ["Forværring af symptomer", "Manglende medicin", "Selvskade eller risiko"] },
+        { label: "Hvad gør du?", body: "Vær rolig og konkret, modsig ikke vrangforestillinger unødigt og kontakt sygeplejerske." },
+        { label: "Hvad dokumenterer du?", body: "Observationer, adfærd og kontakt." },
+      ]},
+      { id: "psy-bipolar", title: "Bipolar lidelse", sections: [
+        { label: "Kort forklaret", body: "Svingninger mellem depression og mani." },
+        { label: "Hvad skal du observere?", body: "Stemningsleje, søvn, aktivitetsniveau og medicin." },
+        { label: "Advarselstegn", body: ["Manisk adfærd (lidt søvn, høj risiko)", "Dyb depression", "Selvmordstanker"] },
+        { label: "Hvad gør du?", body: "Støt struktur og søvn, observér svingninger og kontakt sygeplejerske ved ændringer." },
+        { label: "Hvad dokumenterer du?", body: "Stemning, søvn, adfærd og kontakt." },
+      ]},
+      { id: "psy-selvmord", title: "Selvmordsrisiko", sections: [
+        { label: "Kort forklaret", body: "Tegn på at en borger kan være i fare for at skade sig selv." },
+        { label: "Hvad skal du observere?", body: "Direkte/indirekte udsagn, håbløshed og tilbagetrækning." },
+        { label: "Advarselstegn", body: ["Konkrete udsagn om selvmord", "Pludselig ro efter krise", "Planer"] },
+        { label: "Hvad gør du?", body: "Tag det ALTID alvorligt, bliv hos borgeren, lyt og kontakt sygeplejerske/læge straks." },
+        { label: "Hvad dokumenterer du?", body: "Hvad blev sagt/observeret, hvornår og hvem der er kontaktet." },
+      ]},
+      { id: "psy-misbrug", title: "Misbrug", sections: [
+        { label: "Kort forklaret", body: "Skadeligt forbrug af fx alkohol eller stoffer." },
+        { label: "Hvad skal du observere?", body: "Adfærd, abstinenser, almentilstand og medicininteraktioner." },
+        { label: "Advarselstegn", body: ["Abstinenssymptomer", "Påvirket bevidsthed", "Aggression"] },
+        { label: "Hvad gør du?", body: "Mød borgeren uden fordømmelse, observér og kontakt sygeplejerske ved abstinenser." },
+        { label: "Hvad dokumenterer du?", body: "Observationer og tiltag." },
+      ]},
+      { id: "psy-konflikt", title: "Konfliktnedtrapning", sections: [
+        { label: "Kort forklaret", body: "At dæmpe en optrappet situation roligt og sikkert." },
+        { label: "Hvad skal du observere?", body: "Tegn på optrapning, egen sikkerhed og flugtveje." },
+        { label: "Advarselstegn", body: ["Trusler eller vold", "Eskalering trods forsøg"] },
+        { label: "Hvad gør du?", body: "Hold afstand, tal roligt, lyt, undgå konfrontation og tilkald hjælp." },
+        { label: "Hvad dokumenterer du?", body: "Hændelse, tiltag og evt. UTH." },
+      ]},
+      { id: "psy-konflikttrappen", title: "Konflikttrappen", sections: [
+        { label: "Trinvis optrapning af konflikt", body: "Konflikttrappen beskriver, hvordan en konflikt kan optrappe trin for trin — fra uenighed til personangreb og åben fjendtlighed, hvis den ikke håndteres." },
+        { label: "Tidlige tegn", body: "Irritation, hævet stemme, anspændt kropssprog, tilbagetrækning eller gentagne klager." },
+        { label: "Hvordan konflikter forebygges", body: "Mød borgeren roligt og respektfuldt, lyt aktivt, anerkend følelser og afklar misforståelser tidligt." },
+        { label: "Deeskalering", body: "Sænk tempoet, hold afstand og rolig stemme, undgå konfrontation, giv plads og tilkald hjælp ved behov." },
+      ]},
+    ],
+  },
+
+  {
+    id: "vaerktoejer",
+    title: "Kliniske værktøjer",
+    subtitle: "Scorer, skabeloner og tjeklister",
+    color: "#0E9488", g1: "#22B8A8", g2: "#0A7A70",
+    Icon: Calculator,
+    cards: [
+      { id: "vt-bmi", title: "BMI beregner", sections: [
+        { label: "Formål", body: "Vurdere vægt ift. højde (under-/overvægt)." },
+        { label: "Sådan bruges det", body: "BMI = vægt (kg) / højde² (m). Normalt ca. 18,5–24,9." },
+        { label: "Vigtige observationer", body: "BMI alene siger ikke alt — se på vægtudvikling og trivsel." },
+        { label: "Hvornår skal du reagere?", body: "Ved BMI under 18,5 eller utilsigtet vægttab: overvej screening." },
+        { label: "Dokumentation", body: "Vægt, højde, BMI og udvikling." },
+      ]},
+      { id: "vt-vaeske", title: "Væskebehov beregner", sections: [
+        { label: "Formål", body: "Estimere borgerens daglige væskebehov." },
+        { label: "Sådan bruges det", body: "Ca. 30 ml/kg/døgn; tilpas ved feber, varme og tab." },
+        { label: "Vigtige observationer", body: "Tegn på dehydrering trods 'nok' beregnet væske." },
+        { label: "Hvornår skal du reagere?", body: "Ved lavt indtag eller tegn på dehydrering: registrér og kontakt sygeplejerske." },
+        { label: "Dokumentation", body: "Beregnet behov, indtag og afvigelse." },
+      ]},
+      { id: "vt-news2", title: "NEWS2 oversigt", sections: [
+        { label: "Formål", body: "Score til tidlig opsporing af forværring (Early Warning Score)." },
+        { label: "Sådan bruges det", body: "Pointgiver på respiration, saturation, BT, puls, bevidsthed og temperatur." },
+        { label: "Vigtige observationer", body: "Stigende score = stigende risiko." },
+        { label: "Hvornår skal du reagere?", body: "Ved forhøjet eller stigende score: kontakt efter lokal optrapningsplan." },
+        { label: "Dokumentation", body: "Værdier, samlet score og handling." },
+      ]},
+      { id: "vt-braden", title: "Braden Score oversigt", sections: [
+        { label: "Formål", body: "Vurdere risiko for tryksår." },
+        { label: "Sådan bruges det", body: "Vurderer bl.a. mobilitet, fugt, ernæring og friktion." },
+        { label: "Vigtige observationer", body: "Lav score = høj risiko for tryksår." },
+        { label: "Hvornår skal du reagere?", body: "Ved risiko: iværksæt forebyggelse (lejring, trykaflastning)." },
+        { label: "Dokumentation", body: "Score og forebyggende tiltag." },
+      ]},
+      { id: "vt-mna", title: "MNA ernæringsscreening", sections: [
+        { label: "Formål", body: "Screene ældre for ernæringsrisiko (Mini Nutritional Assessment)." },
+        { label: "Sådan bruges det", body: "Vurderer vægt, BMI, appetit og indtag." },
+        { label: "Vigtige observationer", body: "Lav score = risiko for underernæring." },
+        { label: "Hvornår skal du reagere?", body: "Ved risiko: lav ernæringshandleplan og følg op." },
+        { label: "Dokumentation", body: "Score, risiko og plan." },
+      ]},
+      { id: "vt-isbar", title: "ISBAR skabelon", sections: [
+        { label: "Formål", body: "Struktur til sikker mundtlig overlevering." },
+        { label: "Sådan bruges det", body: "Identifikation – Situation – Baggrund – Analyse – Råd." },
+        { label: "Vigtige observationer", body: "Husk dit konkrete forslag eller ønske (R)." },
+        { label: "Hvornår skal du reagere?", body: "Brug ved kontakt til sygeplejerske/læge — især ved forværring." },
+        { label: "Dokumentation", body: "Hvad du meldte og hvad der blev aftalt." },
+      ]},
+      { id: "vt-abcde", title: "ABCDE tjekliste", sections: [
+        { label: "Formål", body: "Systematisk akut-vurdering." },
+        { label: "Sådan bruges det", body: "A luftvej · B vejrtrækning · C kredsløb · D bevidsthed · E helkrop." },
+        { label: "Vigtige observationer", body: "Afhjælp problemer undervejs, før du går videre." },
+        { label: "Hvornår skal du reagere?", body: "Ved påvirket ABCDE: tilkald hjælp; 1-1-2 ved livsfare." },
+        { label: "Dokumentation", body: "Fund ved hvert trin, tiltag og tidspunkter." },
+      ]},
+      { id: "vt-tobs", title: "TOBS", sections: [
+        { label: "Hvad er TOBS?", body: "TOBS (Tidlig Opsporing af Begyndende Sygdom) er et redskab til systematisk at opdage forværring hos borgeren tidligt." },
+        { label: "Formål", body: "At fange ændringer i vitale værdier og almentilstand, før borgeren bliver alvorligt syg." },
+        { label: "Hvad observeres?", body: "Vitale værdier som respiration, saturation, puls, blodtryk, temperatur og bevidsthed — sammenholdt med borgerens normale niveau." },
+        { label: "Husk", body: "Følg lokal TOBS-/optrapningsplan og kontakt ansvarlig ved afvigelser." },
+      ]},
+      { id: "vt-avpu", title: "AVPU", sections: [
+        { label: "Alert", body: "Borgeren er vågen, opmærksom og reagerer spontant." },
+        { label: "Voice", body: "Borgeren reagerer kun på tiltale (stemme)." },
+        { label: "Pain", body: "Borgeren reagerer kun på smertestimulus." },
+        { label: "Unresponsive", body: "Borgeren reagerer ikke på tiltale eller smerte — reagér straks og tilkald hjælp." },
+      ]},
+      { id: "vt-vasnrs", title: "VAS/NRS", sections: [
+        { label: "Smerteskala 0-10", body: "VAS/NRS er en skala fra 0 (ingen smerter) til 10 (værst tænkelige smerter)." },
+        { label: "Hvordan bruges den?", body: "Bed borgeren angive sin smerte på skalaen; gentag vurderingen for at følge udvikling og effekt af tiltag, og dokumentér værdien." },
+      ]},
+      { id: "vt-bristol", title: "Bristol Skala", sections: [
+        { label: "Kort forklaring af type 1-7", body: "Bristol-skalaen beskriver afføringens konsistens i 7 typer — fra type 1 (hårde klumper) til type 7 (helt flydende)." },
+        { label: "Type 3-4 typisk normal", body: "Type 3–4 (pølseformet og blød) regnes typisk som normal. Type 1–2 tyder på forstoppelse, type 6–7 på diarré." },
+      ]},
+    ],
+  },
+];
+
+/* curated "most used" tools (card ids) */
+const TOOLS = ["akut-abcde", "kom-isbar", "hyg-hand", "obs-respiration", "saar-tryksaar", "mik-crp"];
+
+/* lookups */
+const CARD_INDEX = {};
+DATA.forEach((cat) => cat.cards.forEach((card) => { CARD_INDEX[card.id] = { card, cat }; }));
+
+const ALL_CARDS = DATA.flatMap((cat) =>
+  cat.cards.map((card) => ({
+    card, cat,
+    search: (card.title + " " + cat.title + " " +
+      card.sections.map((s) => s.label + " " + (Array.isArray(s.body) ? s.body.join(" ") : s.body)).join(" ")).toLowerCase(),
+  }))
+);
+
+/* ----------------------------- THEME ------------------------------ */
+
+const C = {
+  ink: "#15212B",
+  inkSoft: "#5B6A73",
+  inkFaint: "#97A4AB",
+  line: "#ECEFF2",
+  surface: "#FFFFFF",
+  primary: "#2E68E0",
+};
+const tint = (hex, a = "16") => hex + a;
+const grad = (c) => `linear-gradient(135deg, ${c.g1}, ${c.g2})`;
+
+/* --------------------------- PRIMITIVES --------------------------- */
+
+/* KLARIO mark — a distinctive two-tone stylised "K" (clarity, knowledge, trust). */
+function KGlyph({ size = 20, stem = "#FFFFFF", arm = "#2BD9C0" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ display: "block" }}>
+      <line x1="6.6" y1="4.4" x2="6.6" y2="19.6" stroke={stem} strokeWidth="3.4" strokeLinecap="round" />
+      <line x1="9.7" y1="12" x2="17.6" y2="4.7" stroke={arm} strokeWidth="3.4" strokeLinecap="round" />
+      <line x1="9.7" y1="12" x2="17.6" y2="19.3" stroke={arm} strokeWidth="3.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Mark({ size = 32 }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: size * 0.3, background: "linear-gradient(145deg,#1B4868,#0E2A40)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(15,52,77,0.38)", flexShrink: 0 }}>
+      <KGlyph size={size * 0.66} stem="#FFFFFF" arm="#2BD9C0" />
+    </div>
+  );
+}
+
+function Chip({ cat, size = 38, radius = 12 }) {
+  const Ic = cat.Icon;
+  return (
+    <div style={{ width: size, height: size, borderRadius: radius, background: grad(cat), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 12px ${tint(cat.color, "44")}` }}>
+      <Ic size={size * 0.52} color="#fff" strokeWidth={2.2} />
+    </div>
+  );
+}
+
+function SectionHead({ title, action, onAction }) {
+  return (
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "0 0 12px" }}>
+      <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: -0.2 }}>{title}</h3>
+      {action && (
+        <button onClick={onAction} style={{ border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 1, color: C.primary, fontSize: 13.5, fontWeight: 600, fontFamily: "inherit" }}>
+          {action} <ChevronRight size={15} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function Body({ body, color }) {
+  if (Array.isArray(body)) {
+    return (
+      <ul style={{ margin: "7px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 7 }}>
+        {body.map((it, i) => (
+          <li key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+            <span style={{ width: 6, height: 6, borderRadius: 99, background: color, marginTop: 7, flexShrink: 0 }} />
+            <span style={{ fontSize: 14.5, lineHeight: 1.5, color: C.ink }}>{it}</span>
+          </li>
+        ))}
+      </ul>
+    );
+  }
+  return <p style={{ margin: "6px 0 0", fontSize: 14.5, lineHeight: 1.58, color: C.ink }}>{body}</p>;
+}
+
+/* expandable clinical card */
+function ClinCard({ card, cat, expanded, onToggle, isFav, onFav, showCat }) {
+  return (
+    <div id={`card-${card.id}`} style={{ background: C.surface, borderRadius: 20, border: `1px solid ${C.line}`, boxShadow: expanded ? "0 14px 34px rgba(21,33,43,0.10)" : "0 2px 6px rgba(21,33,43,0.04)", overflow: "hidden", transition: "box-shadow .25s ease" }}>
+      <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 12, padding: 13, cursor: "pointer" }}>
+        <Chip cat={cat} size={40} radius={13} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {showCat && <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, color: cat.color, marginBottom: 1 }}>{cat.title}</div>}
+          <div style={{ fontSize: 15.5, fontWeight: 600, color: C.ink, lineHeight: 1.25 }}>{card.title}</div>
+        </div>
+        <button onClick={(e) => { e.stopPropagation(); onFav(); }} aria-label="Favorit" style={{ border: "none", background: "transparent", padding: 6, cursor: "pointer", display: "flex", borderRadius: 10 }}>
+          <Star size={19} strokeWidth={2} color={isFav ? "#F5A623" : C.inkFaint} fill={isFav ? "#F5A623" : "none"} />
+        </button>
+        <ChevronDown size={19} color={C.inkFaint} style={{ transition: "transform .28s ease", transform: expanded ? "rotate(180deg)" : "none", flexShrink: 0 }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateRows: expanded ? "1fr" : "0fr", transition: "grid-template-rows .3s ease" }}>
+        <div style={{ overflow: "hidden" }}>
+          <div style={{ padding: "2px 16px 16px", display: "flex", flexDirection: "column", gap: 13 }}>
+            {card.sections.map((s, i) => (
+              <div key={i}>
+                <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: 0.2, textTransform: "uppercase", color: cat.color, background: tint(cat.color, "14"), padding: "3px 9px", borderRadius: 8 }}>{s.label}</span>
+                <Body body={s.body} color={cat.color} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniCard({ card, cat, onClick, fav }) {
+  return (
+    <button onClick={onClick} style={{ flexShrink: 0, width: 158, textAlign: "left", border: `1px solid ${C.line}`, background: `linear-gradient(160deg, ${tint(cat.color, "12")}, ${tint(cat.color, "06")})`, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", flexDirection: "column", gap: 10, height: 118, justifyContent: "space-between" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Chip cat={cat} size={34} radius={11} />
+        {fav && <Star size={15} color="#F5A623" fill="#F5A623" />}
+      </div>
+      <div>
+        <div style={{ fontSize: 10.5, fontWeight: 700, color: cat.color, marginBottom: 2 }}>{cat.title}</div>
+        <div style={{ fontSize: 14, fontWeight: 600, color: C.ink, lineHeight: 1.2, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{card.title}</div>
+      </div>
+    </button>
+  );
+}
+
+/* --------------------------- MERE / INFO -------------------------- */
+
+const MORE_MENU = [
+  { id: "om", label: "Om KLARIO", Icon: Info, c: "#2BA99A" },
+  { id: "privatliv", label: "Privatlivspolitik", Icon: ShieldCheck, c: "#2F6FAE" },
+  { id: "vilkaar", label: "Vilkår og betingelser", Icon: Scale, c: "#475B8E" },
+  { id: "ansvar", label: "Ansvarsfraskrivelse", Icon: Siren, c: "#D9646A" },
+  { id: "kontakt", label: "Kontakt KLARIO", Icon: MessageCircle, c: "#1AA0E6" },
+  { id: "version", label: "Version", Icon: Clock, c: "#6B7C93" },
+];
+
+/* a labelled prose block for info/legal pages */
+function InfoBlock({ label, children }) {
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: 0.2, textTransform: "uppercase", color: C.primary, background: tint(C.primary, "14"), padding: "3px 9px", borderRadius: 8, marginBottom: 7 }}>{label}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.6, color: C.ink }}>{children}</div>
+    </div>
+  );
+}
+
+function DisclaimerPill() {
+  return (
+    <div style={{ display: "flex", gap: 10, padding: "12px 14px", background: tint(C.primary, "0D"), borderRadius: 14 }}>
+      <Info size={17} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} />
+      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: "#3D5366" }}>{DISCLAIMER}</p>
+    </div>
+  );
+}
+
+/* ------------------------------ APP ------------------------------- */
+
+function Klario() {
+  const [screen, setScreen] = useState("hjem");
+  const [activeCat, setActiveCat] = useState(null);
+  const [query, setQuery] = useState("");
+  const [favs, setFavs] = useState(() => new Set());
+  const [expanded, setExpanded] = useState(() => new Set());
+  const [recents, setRecents] = useState([]);
+  const [moreView, setMoreView] = useState(null);
+  const mainRef = useRef(null);
+  const searchRef = useRef(null);
+  const pendingScroll = useRef(null);
+
+  const recordRecent = (id) => setRecents((p) => [id, ...p.filter((x) => x !== id)].slice(0, 8));
+  const toggleFav = (id) => setFavs((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleExpand = (id) => {
+    const willOpen = !expanded.has(id);
+    setExpanded((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+    if (willOpen) recordRecent(id);
+  };
+  const scrollTop = () => requestAnimationFrame(() => { if (mainRef.current) mainRef.current.scrollTop = 0; });
+
+  const openCategory = (catId) => { setActiveCat(catId); scrollTop(); };
+  const openCard = (id) => {
+    const { cat } = CARD_INDEX[id];
+    setActiveCat(cat.id);
+    setExpanded((p) => new Set(p).add(id));
+    recordRecent(id);
+    pendingScroll.current = id;
+  };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setScreen(tab); scrollTop(); };
+
+  useEffect(() => {
+    if (activeCat && pendingScroll.current) {
+      const id = pendingScroll.current; pendingScroll.current = null;
+      setTimeout(() => { document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 90);
+    }
+  }, [activeCat]);
+  useEffect(() => { if (screen === "soeg" && !activeCat) searchRef.current?.focus(); }, [screen, activeCat]);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return q ? ALL_CARDS.filter((c) => c.search.includes(q)) : [];
+  }, [query]);
+
+  const favCards = ALL_CARDS.filter((c) => favs.has(c.card.id));
+  const recentCards = recents.map((id) => CARD_INDEX[id]).filter(Boolean);
+  const activeCatObj = DATA.find((c) => c.id === activeCat);
+  const akut = DATA.find((c) => c.id === "akut");
+
+  const greeting = () => { const h = new Date().getHours(); return h < 10 ? "Godmorgen" : h < 17 ? "God eftermiddag" : "Godaften"; };
+
+  const nav = [
+    { id: "hjem", label: "Hjem", Icon: Home },
+    { id: "soeg", label: "Søg", Icon: Search },
+    { id: "kategorier", label: "Kategorier", Icon: LayoutGrid },
+    { id: "favoritter", label: "Favoritter", Icon: Star },
+    { id: "mere", label: "Mere", Icon: MoreHorizontal },
+  ];
+
+  const PAD = 18;
+
+  return (
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&display=swap');
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        .cscroll::-webkit-scrollbar { width: 0; }
+        .hscroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .hscroll::-webkit-scrollbar { display: none; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+        .anim { animation: fadeUp .45s cubic-bezier(.22,.61,.36,1) both; }
+        button:active { transform: scale(.98); }
+      `}</style>
+
+      <div style={{ minHeight: "100vh", background: "#D7DEE4", display: "flex", justifyContent: "center", fontFamily: "'Schibsted Grotesk', system-ui, sans-serif" }}>
+        <div style={{ width: "100%", maxWidth: 440, height: "100vh", background: C.surface, display: "flex", flexDirection: "column", position: "relative", boxShadow: "0 0 80px rgba(21,33,43,0.16)" }}>
+
+          {/* HEADER */}
+          <header style={{ display: "flex", alignItems: "center", gap: 11, padding: "13px 18px", background: "rgba(255,255,255,0.82)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${C.line}`, zIndex: 6 }}>
+            {activeCat ? (
+              <>
+                <button onClick={() => setActiveCat(null)} style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <ChevronLeft size={20} color={C.ink} />
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: -0.2 }}>{activeCatObj.title}</div>
+                  <div style={{ fontSize: 11.5, color: C.inkFaint }}>{activeCatObj.cards.length} emner</div>
+                </div>
+              </>
+            ) : moreView ? (
+              <>
+                <button onClick={() => { setMoreView(null); scrollTop(); }} style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <ChevronLeft size={20} color={C.ink} />
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: -0.2 }}>{MORE_MENU.find((m) => m.id === moreView)?.label}</div>
+                  <div style={{ fontSize: 11.5, color: C.inkFaint }}>KLARIO Information</div>
+                </div>
+              </>
+            ) : (
+              <>
+                <Mark />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: C.ink, letterSpacing: 2 }}>KLARIO</div>
+                  <div style={{ fontSize: 11, color: C.inkFaint, letterSpacing: 0.2 }}>Din kliniske lommehjælper</div>
+                </div>
+              </>
+            )}
+          </header>
+
+          {/* MAIN */}
+          <main ref={mainRef} className="cscroll" style={{ flex: 1, overflowY: "auto", padding: `18px ${PAD}px 26px` }}>
+
+            {/* CATEGORY DETAIL */}
+            {activeCat && (
+              <div key={activeCat} className="anim">
+                <div style={{ borderRadius: 22, background: grad(activeCatObj), padding: "18px 18px 20px", color: "#fff", marginBottom: 16, boxShadow: `0 12px 28px ${tint(activeCatObj.color, "55")}`, position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", right: -30, top: -30, width: 140, height: 140, borderRadius: 99, background: "rgba(255,255,255,0.12)" }} />
+                  <activeCatObj.Icon size={26} color="#fff" strokeWidth={2.2} />
+                  <div style={{ fontSize: 23, fontWeight: 800, marginTop: 12, letterSpacing: -0.4 }}>{activeCatObj.title}</div>
+                  <div style={{ fontSize: 13.5, opacity: 0.92, marginTop: 3 }}>{activeCatObj.subtitle}</div>
+                </div>
+                {activeCatObj.banner && (
+                  <div style={{ display: "flex", gap: 10, padding: "12px 14px", background: tint(activeCatObj.color, "12"), borderRadius: 14, marginBottom: 14 }}>
+                    <Info size={17} color={activeCatObj.color} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: C.inkSoft }}>{activeCatObj.banner}</p>
+                  </div>
+                )}
+                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                  {activeCatObj.cards.map((card) => (
+                    <ClinCard key={card.id} card={card} cat={activeCatObj} expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} />
+                  ))}
+                </div>
+                <div style={{ marginTop: 16 }}><DisclaimerPill /></div>
+              </div>
+            )}
+
+            {/* HJEM — dashboard */}
+            {!activeCat && screen === "hjem" && (
+              <div className="anim">
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: C.primary }}>{greeting()}</div>
+                  <h1 style={{ margin: "2px 0 0", fontSize: 26, fontWeight: 800, color: C.ink, letterSpacing: -0.6 }}>Hvad har du brug for?</h1>
+                </div>
+
+                {/* SEARCH FIRST */}
+                <button onClick={() => goTab("soeg")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, padding: "15px 16px", background: tint(C.ink, "06"), border: `1px solid ${C.line}`, borderRadius: 16, cursor: "pointer", marginBottom: 18 }}>
+                  <Search size={20} color={C.inkSoft} />
+                  <span style={{ fontSize: 15, color: C.inkSoft, fontWeight: 500 }}>Søg i KLARIO…</span>
+                </button>
+
+                {/* EMERGENCY */}
+                <button onClick={() => openCategory("akut")} style={{ width: "100%", textAlign: "left", border: "none", borderRadius: 22, padding: 18, marginBottom: 24, cursor: "pointer", background: grad(akut), color: "#fff", display: "flex", alignItems: "center", gap: 15, boxShadow: `0 14px 30px ${tint(akut.color, "55")}`, position: "relative", overflow: "hidden" }}>
+                  <div style={{ position: "absolute", right: -25, bottom: -35, width: 130, height: 130, borderRadius: 99, background: "rgba(255,255,255,0.13)" }} />
+                  <div style={{ width: 50, height: 50, borderRadius: 16, background: "rgba(255,255,255,0.22)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Siren size={26} color="#fff" strokeWidth={2.3} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.2 }}>Akut overblik</div>
+                    <div style={{ fontSize: 12.5, opacity: 0.95, marginTop: 2 }}>ABCDE · Fald · Åndenød · Brystsmerter</div>
+                  </div>
+                  <ChevronRight size={22} color="#fff" />
+                </button>
+
+                {/* RECENTLY USED */}
+                {recentCards.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <SectionHead title="Senest brugt" />
+                    <div className="hscroll" style={{ display: "flex", gap: 11, overflowX: "auto", margin: `0 -${PAD}px`, padding: `2px ${PAD}px 4px` }}>
+                      {recentCards.map(({ card, cat }) => (
+                        <MiniCard key={card.id} card={card} cat={cat} fav={favs.has(card.id)} onClick={() => openCard(card.id)} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* FAVORITES */}
+                <div style={{ marginBottom: 24 }}>
+                  <SectionHead title="Favoritter" action={favCards.length > 0 ? "Se alle" : null} onAction={() => goTab("favoritter")} />
+                  {favCards.length > 0 ? (
+                    <div className="hscroll" style={{ display: "flex", gap: 11, overflowX: "auto", margin: `0 -${PAD}px`, padding: `2px ${PAD}px 4px` }}>
+                      {favCards.map(({ card, cat }) => (
+                        <MiniCard key={card.id} card={card} cat={cat} fav onClick={() => openCard(card.id)} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 11, alignItems: "center", padding: "14px 15px", borderRadius: 16, border: `1px dashed ${tint(C.ink, "20")}` }}>
+                      <Star size={20} color={C.inkFaint} />
+                      <span style={{ fontSize: 13.5, color: C.inkSoft }}>Tryk på stjernen på et kort for at gemme det her.</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* MOST USED TOOLS */}
+                <div style={{ marginBottom: 22 }}>
+                  <SectionHead title="Mest brugte værktøjer" />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+                    {TOOLS.map((id) => {
+                      const { card, cat } = CARD_INDEX[id];
+                      return (
+                        <button key={id} onClick={() => openCard(id)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: `linear-gradient(160deg, ${tint(cat.color, "10")}, #fff)`, borderRadius: 18, padding: 14, cursor: "pointer", display: "flex", flexDirection: "column", gap: 11, minHeight: 104, justifyContent: "space-between" }}>
+                          <Chip cat={cat} size={38} radius={12} />
+                          <div>
+                            <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{card.title}</div>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: cat.color, marginTop: 2 }}>{cat.title}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <DisclaimerPill />
+              </div>
+            )}
+
+            {/* SØG */}
+            {!activeCat && screen === "soeg" && (
+              <div className="anim">
+                <h2 style={{ margin: "0 0 14px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Søg</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "13px 15px", background: tint(C.ink, "06"), border: `1px solid ${C.line}`, borderRadius: 16, marginBottom: 18 }}>
+                  <Search size={20} color={C.inkSoft} />
+                  <input ref={searchRef} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Søg efter emne, fx puls eller ISBAR…" style={{ flex: 1, border: "none", outline: "none", fontSize: 15, color: C.ink, background: "transparent", fontFamily: "inherit" }} />
+                  {query && <button onClick={() => setQuery("")} style={{ border: "none", background: tint(C.ink, "12"), borderRadius: 99, padding: 4, display: "flex", cursor: "pointer" }}><X size={15} color={C.inkSoft} /></button>}
+                </div>
+
+                {!query && (
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkFaint, marginBottom: 11, letterSpacing: 0.3 }}>HURTIGE FORSLAG</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
+                      {TOOLS.map((id) => {
+                        const { card, cat } = CARD_INDEX[id];
+                        return (
+                          <button key={id} onClick={() => openCard(id)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 13px 8px 9px", borderRadius: 99, border: `1px solid ${C.line}`, background: tint(cat.color, "0E"), cursor: "pointer", fontFamily: "inherit" }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 99, background: cat.color }} />
+                            <span style={{ fontSize: 13.5, fontWeight: 600, color: C.ink }}>{card.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {query && (
+                  <>
+                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{results.length} {results.length === 1 ? "resultat" : "resultater"}</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                      {results.map(({ card, cat }) => (
+                        <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} />
+                      ))}
+                      {results.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* KATEGORIER */}
+            {!activeCat && screen === "kategorier" && (
+              <div className="anim">
+                <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Kategorier</h2>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {DATA.map((cat) => (
+                    <button key={cat.id} onClick={() => openCategory(cat.id)} style={{ textAlign: "left", border: "none", borderRadius: 20, padding: 15, cursor: "pointer", background: `linear-gradient(160deg, ${tint(cat.color, "1A")}, ${tint(cat.color, "08")})`, display: "flex", flexDirection: "column", gap: 12, minHeight: 138, justifyContent: "space-between" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Chip cat={cat} size={42} radius={13} />
+                        <span style={{ fontSize: 12, fontWeight: 700, color: cat.color, background: "rgba(255,255,255,0.7)", padding: "2px 8px", borderRadius: 8 }}>{cat.cards.length}</span>
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{cat.title}</div>
+                        <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.35 }}>{cat.subtitle}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* FAVORITTER */}
+            {!activeCat && screen === "favoritter" && (
+              <div className="anim">
+                <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Favoritter</h2>
+                {favCards.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "54px 24px", color: C.inkFaint }}>
+                    <div style={{ width: 64, height: 64, borderRadius: 20, background: tint("#F5A623", "16"), display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                      <Star size={30} color="#F5A623" />
+                    </div>
+                    <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: C.inkSoft }}>Du har ingen favoritter endnu.<br />Tryk på stjernen på et kort for at gemme det her.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    {favCards.map(({ card, cat }) => (
+                      <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MERE — menu */}
+            {!activeCat && screen === "mere" && !moreView && (
+              <div className="anim">
+                <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Mere</h2>
+
+                <div style={{ borderRadius: 22, padding: 18, marginBottom: 22, background: "linear-gradient(150deg,#1B4868,#0E2A40)", color: "#fff", boxShadow: "0 14px 30px rgba(15,52,77,0.4)", display: "flex", alignItems: "center", gap: 13 }}>
+                  <div style={{ width: 46, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.14)", display: "flex", alignItems: "center", justifyContent: "center" }}><KGlyph size={28} stem="#FFFFFF" arm="#3BE3CB" /></div>
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2 }}>KLARIO</div>
+                    <div style={{ fontSize: 11, opacity: 0.78, letterSpacing: 1.5, fontWeight: 600 }}>KLARIO HEALTHCARE</div>
+                  </div>
+                </div>
+
+                <SectionHead title="KLARIO Information" />
+                <div style={{ border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", background: C.surface }}>
+                  {MORE_MENU.map((m, i) => (
+                    <button key={m.id} onClick={() => { setMoreView(m.id); scrollTop(); }} style={{ width: "100%", textAlign: "left", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 13, padding: "14px 15px", borderBottom: i < MORE_MENU.length - 1 ? `1px solid ${C.line}` : "none" }}>
+                      <div style={{ width: 38, height: 38, borderRadius: 12, background: tint(m.c, "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><m.Icon size={19} color={m.c} /></div>
+                      <div style={{ flex: 1, fontSize: 15, fontWeight: 600, color: C.ink }}>{m.label}</div>
+                      <ChevronRight size={19} color={C.inkFaint} />
+                    </button>
+                  ))}
+                </div>
+
+                <p style={{ textAlign: "center", fontSize: 11.5, color: C.inkFaint, marginTop: 20, lineHeight: 1.6 }}>KLARIO v1.0 · Indhold gemmes lokalt på enheden<br />© KLARIO HEALTHCARE</p>
+              </div>
+            )}
+
+            {/* MERE — sub-pages */}
+            {!activeCat && screen === "mere" && moreView && (
+              <div key={moreView} className="anim">
+
+                {moreView === "om" && (
+                  <>
+                    <div style={{ borderRadius: 22, padding: 18, marginBottom: 18, background: "linear-gradient(150deg,#1B4868,#0E2A40)", color: "#fff", boxShadow: "0 14px 30px rgba(15,52,77,0.4)", display: "flex", alignItems: "center", gap: 13 }}>
+                      <div style={{ width: 46, height: 46, borderRadius: 14, background: "rgba(255,255,255,0.14)", display: "flex", alignItems: "center", justifyContent: "center" }}><KGlyph size={28} stem="#FFFFFF" arm="#3BE3CB" /></div>
+                      <div>
+                        <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: 2 }}>KLARIO</div>
+                        <div style={{ fontSize: 11, opacity: 0.78, letterSpacing: 1.5, fontWeight: 600 }}>KLARIO HEALTHCARE</div>
+                      </div>
+                    </div>
+                    <InfoBlock label="Hvad er KLARIO?">KLARIO er en klinisk lommehjælper til hverdagen i sundhedssektoren — et roligt opslagsværk med observationer, normalværdier, hygiejne, sårpleje, dokumentation, akutte situationer og meget mere.</InfoBlock>
+                    <InfoBlock label="Hvem er det til?">SOSU- og SSA-elever, sygeplejestuderende, social- og sundhedsassistenter, plejepersonale og nye medarbejdere i sundhedssektoren.</InfoBlock>
+                    <InfoBlock label="Sådan bruges det">Søg eller bladr i kategorierne, åbn et emne for hurtigt overblik, og gem dine favoritter. Alt indhold er vejledende og fungerer lokalt på din enhed.</InfoBlock>
+                    <div style={{ border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", margin: "4px 0 16px" }}>
+                      {[
+                        { Ic: ShieldCheck, t: "Sikker brug", d: "Til læring og støtte — ikke til diagnose.", c: "#0FAE9E" },
+                        { Ic: LayoutGrid, t: `${DATA.length} kategorier`, d: `${ALL_CARDS.length} kliniske emner i alt.`, c: "#2E68E0" },
+                        { Ic: Clock, t: "Hurtig adgang", d: "Senest brugt og favoritter på forsiden.", c: "#7A5AF5" },
+                      ].map((r, i, arr) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 15px", borderBottom: i < arr.length - 1 ? `1px solid ${C.line}` : "none" }}>
+                          <div style={{ width: 38, height: 38, borderRadius: 12, background: tint(r.c, "16"), display: "flex", alignItems: "center", justifyContent: "center" }}><r.Ic size={19} color={r.c} /></div>
+                          <div>
+                            <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>{r.t}</div>
+                            <div style={{ fontSize: 12.5, color: C.inkSoft }}>{r.d}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <DisclaimerPill />
+                  </>
+                )}
+
+                {moreView === "privatliv" && (
+                  <>
+                    <InfoBlock label="Kort fortalt">KLARIO indsamler ingen personoplysninger og kræver hverken login eller internetforbindelse for at vise indhold.</InfoBlock>
+                    <InfoBlock label="Dine data">Favoritter og “senest brugt” gemmes kun lokalt i appen på din enhed og forsvinder, hvis du rydder appens data. Der sendes ingen oplysninger til servere.</InfoBlock>
+                    <InfoBlock label="Sporing">KLARIO bruger ingen sporing, markedsføringscookies eller tredjepartsannoncer.</InfoBlock>
+                    <InfoBlock label="Dataansvarlig">KLARIO HEALTHCARE. Dette er en eksempeltekst — tilpas til jeres faktiske privatlivspolitik før udgivelse.</InfoBlock>
+                  </>
+                )}
+
+                {moreView === "vilkaar" && (
+                  <>
+                    <InfoBlock label="Formål">KLARIO er et lærings- og opslagsværktøj. Det er en hjælp til at huske og slå op — ikke en autoritativ kilde.</InfoBlock>
+                    <InfoBlock label="Ansvar">Indholdet er vejledende og kan ikke erstatte sundhedsfaglig uddannelse, faglig vurdering eller lokale instrukser. Brug sker på eget ansvar.</InfoBlock>
+                    <InfoBlock label="Ændringer">Indhold og funktioner kan ændres eller opdateres uden varsel.</InfoBlock>
+                    <InfoBlock label="Rettigheder">Navnet KLARIO og KLARIO-mærket tilhører KLARIO HEALTHCARE. Dette er en eksempeltekst — tilpas før udgivelse.</InfoBlock>
+                    <DisclaimerPill />
+                  </>
+                )}
+
+                {moreView === "ansvar" && (
+                  <>
+                    <InfoBlock label="Vigtigt">KLARIO er et lærings- og støtteværktøj og erstatter ikke sundhedsfaglig vurdering, uddannelse eller lokale retningslinjer.</InfoBlock>
+                    <InfoBlock label="Ikke til diagnose">KLARIO stiller ikke diagnoser og giver ikke individuel behandlingsvejledning. Følg altid lokale retningslinjer og ordinationer.</InfoBlock>
+                    <InfoBlock label="Ved tvivl">Kontakt en relevant sundhedsfaglig person. I akutte og livstruende situationer: ring 1-1-2.</InfoBlock>
+                    <DisclaimerPill />
+                  </>
+                )}
+
+                {moreView === "kontakt" && (
+                  <>
+                    <InfoBlock label="KLARIO HEALTHCARE">Har du spørgsmål, forslag eller har du fundet en fejl i indholdet, hører vi gerne fra dig.</InfoBlock>
+                    <div style={{ border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", marginBottom: 14, background: C.surface }}>
+                      {[
+                        { Ic: MessageCircle, t: "E-mail", d: "kontakt@klario.dk", c: "#1AA0E6" },
+                        { Ic: Info, t: "Web", d: "klario.dk", c: "#2BA99A" },
+                      ].map((r, i, arr) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 13, padding: "13px 15px", borderBottom: i < arr.length - 1 ? `1px solid ${C.line}` : "none" }}>
+                          <div style={{ width: 38, height: 38, borderRadius: 12, background: tint(r.c, "16"), display: "flex", alignItems: "center", justifyContent: "center" }}><r.Ic size={19} color={r.c} /></div>
+                          <div>
+                            <div style={{ fontSize: 12.5, color: C.inkSoft }}>{r.t}</div>
+                            <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>{r.d}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p style={{ fontSize: 12, color: C.inkFaint, lineHeight: 1.5, margin: 0 }}>Eksempelkontaktoplysninger — tilpas til jeres rigtige oplysninger før udgivelse.</p>
+                  </>
+                )}
+
+                {moreView === "version" && (
+                  <div style={{ border: `1px solid ${C.line}`, borderRadius: 18, overflow: "hidden", background: C.surface }}>
+                    {[
+                      { t: "App", d: "KLARIO" },
+                      { t: "Version", d: "1.0 (v1)" },
+                      { t: "Udgiver", d: "KLARIO HEALTHCARE" },
+                      { t: "Indhold", d: "Gemmes lokalt på enheden" },
+                      { t: "Status", d: "Læringsversion" },
+                    ].map((r, i, arr) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 15px", borderBottom: i < arr.length - 1 ? `1px solid ${C.line}` : "none" }}>
+                        <span style={{ fontSize: 13.5, color: C.inkSoft }}>{r.t}</span>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>{r.d}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p style={{ textAlign: "center", fontSize: 11.5, color: C.inkFaint, marginTop: 20 }}>© KLARIO HEALTHCARE</p>
+              </div>
+            )}
+          </main>
+
+          {/* BOTTOM NAV */}
+          <nav style={{ display: "flex", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", borderTop: `1px solid ${C.line}`, padding: "8px 6px 10px" }}>
+            {nav.map((n) => {
+              const active = !activeCat && screen === n.id;
+              return (
+                <button key={n.id} onClick={() => goTab(n.id)} style={{ flex: 1, border: "none", background: "transparent", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "5px 0" }}>
+                  <n.Icon size={22} strokeWidth={active ? 2.5 : 2} color={active ? C.primary : C.inkFaint} fill={active && n.id === "favoritter" ? C.primary : "none"} />
+                  <span style={{ fontSize: 10.5, fontWeight: active ? 700 : 500, color: active ? C.primary : C.inkFaint }}>{n.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      </div>
+    </>
+  );
+}
+
+
+createRoot(document.getElementById("root")).render(<Klario />);
+
+</script>
+</body>
+</html>
