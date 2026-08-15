@@ -3019,6 +3019,211 @@ const EMERGENCY_CATEGORIES = [{
   serviceId: "offerraadgivningen"
 }];
 
+/* --------------------- AKUT TELEFONBOG (central) ------------------ *
+ *  Single source of truth for the phone book. Every entry carries the
+ *  same verification fields; pending: true marks entries that still
+ *  need verified local data (not shown as trusted, no number invented).
+ * =================================================================== */
+
+const PB_CATS = [{
+  id: "politi",
+  label: "Politi og beredskab",
+  Icon: ShieldCheck
+}, {
+  id: "laege",
+  label: "Sundhed og akut lægehjælp",
+  Icon: Stethoscope
+}, {
+  id: "gift",
+  label: "Forgiftning",
+  Icon: Droplets
+}, {
+  id: "psyk",
+  label: "Psykiatrisk akut hjælp",
+  Icon: Brain
+}, {
+  id: "tand",
+  label: "Tandlægevagt",
+  Icon: Plus
+}, {
+  id: "overgreb",
+  label: "Seksuelle overgreb",
+  Icon: Heart
+}, {
+  id: "apotek",
+  label: "Apotek og akut medicin",
+  Icon: Pill
+}, {
+  id: "offer",
+  label: "Offer- og krisehjælp",
+  Icon: MessageCircle
+}, {
+  id: "andre",
+  label: "Andre vigtige numre",
+  Icon: Info
+}];
+const PB_BLANK = {
+  municipality: "",
+  website: "",
+  sourceName: "",
+  sourceUrl: "",
+  lastVerified: "",
+  verified: false
+};
+const PHONEBOOK = [{
+  ...PB_BLANK,
+  id: "pb-112",
+  name: "Alarmcentralen",
+  phone: "112",
+  category: "politi",
+  shortDescription: "Livsfare, ambulance, brand eller akut politi.",
+  region: "national",
+  openingHours: "Døgnåbent",
+  keywords: "alarm ambulance brand politi livsfare beredskab",
+  core: true,
+  callLabel: "Ring 112"
+}, {
+  ...PB_BLANK,
+  id: "pb-114",
+  name: "Politi – ikke akut",
+  phone: "114",
+  category: "politi",
+  shortDescription: "Ikke-akutte henvendelser til politiet.",
+  region: "national",
+  openingHours: "Døgnåbent",
+  keywords: "politi anmeldelse tyveri hærværk",
+  sourceName: "Politi",
+  core: true,
+  callLabel: "Ring 114"
+}, {
+  ...PB_BLANK,
+  id: "pb-gift",
+  name: "Giftlinjen",
+  phone: "82 12 12 12",
+  category: "gift",
+  shortDescription: "Rådgivning ved mistanke om forgiftning.",
+  region: "national",
+  openingHours: "Døgnåbent",
+  keywords: "gift forgiftning kemikalier planter svampe medicin rusmidler",
+  core: true,
+  callLabel: "Ring Giftlinjen"
+}, {
+  ...PB_BLANK,
+  id: "pb-offer",
+  name: "Offerrådgivningen",
+  phone: "116 006",
+  category: "offer",
+  shortDescription: "Hjælp til ofre, vidner og pårørende.",
+  region: "national",
+  openingHours: "",
+  keywords: "offer vidne pårørende krise kriminalitet rådgivning",
+  core: true,
+  callLabel: "Ring 116 006"
+}, {
+  ...PB_BLANK,
+  id: "pb-acute-hovedstaden",
+  name: "Region Hovedstaden – Akuttelefonen 1813",
+  phone: "1813",
+  category: "laege",
+  shortDescription: "Akut, ikke-livstruende lægehjælp.",
+  region: "hovedstaden",
+  openingHours: "Døgnåbent",
+  keywords: "lægevagt akuttelefon hovedstaden",
+  core: true
+}, {
+  ...PB_BLANK,
+  id: "pb-acute-sjaelland",
+  name: "Region Sjælland – Lægevagten",
+  phone: "1818",
+  category: "laege",
+  shortDescription: "Akut, ikke-livstruende lægehjælp.",
+  region: "sjaelland",
+  openingHours: "",
+  keywords: "lægevagt akuttelefon sjælland",
+  core: true
+}, {
+  ...PB_BLANK,
+  id: "pb-acute-syddanmark",
+  name: "Region Syddanmark – Lægevagten",
+  phone: "70 11 07 07",
+  category: "laege",
+  shortDescription: "Akut, ikke-livstruende lægehjælp.",
+  region: "syddanmark",
+  openingHours: "",
+  keywords: "lægevagt syddanmark fyn",
+  core: true
+}, {
+  ...PB_BLANK,
+  id: "pb-acute-midtjylland",
+  name: "Region Midtjylland – Lægevagten",
+  phone: "70 11 31 31",
+  category: "laege",
+  shortDescription: "Akut, ikke-livstruende lægehjælp.",
+  region: "midtjylland",
+  openingHours: "",
+  keywords: "lægevagt midtjylland",
+  core: true
+}, {
+  ...PB_BLANK,
+  id: "pb-acute-nordjylland",
+  name: "Region Nordjylland – Lægevagten",
+  phone: "70 15 03 00",
+  category: "laege",
+  shortDescription: "Akut, ikke-livstruende lægehjælp.",
+  region: "nordjylland",
+  openingHours: "",
+  keywords: "lægevagt nordjylland",
+  core: true
+}, {
+  ...PB_BLANK,
+  id: "pb-psyk",
+  name: "Psykiatrisk akuthjælp",
+  phone: "",
+  category: "psyk",
+  shortDescription: "Ved akut psykisk krise: kontakt den regionale lægevagt/akuttelefon ovenfor, eller ring 112. Dedikerede psykiatriske numre tilføjes, når data er bekræftet.",
+  region: "national",
+  pending: true,
+  keywords: "psykiatri psykisk krise selvmord angst"
+}, {
+  ...PB_BLANK,
+  id: "pb-tand",
+  name: "Tandlægevagt",
+  phone: "",
+  category: "tand",
+  shortDescription: "Tandlægevagten er lokal og varierer efter region og tidspunkt. Verificerede numre tilføjes senere.",
+  region: "national",
+  pending: true,
+  keywords: "tandlæge tandpine tandskade tandlægevagt"
+}, {
+  ...PB_BLANK,
+  id: "pb-overgreb",
+  name: "Center for voldtægtsofre",
+  phone: "",
+  category: "overgreb",
+  shortDescription: "Lokale centre for voldtægtsofre tilføjes, når data er bekræftet. Ved akut behov: ring 112 eller kontakt lægevagten.",
+  region: "national",
+  pending: true,
+  keywords: "voldtægt seksuelt overgreb center krisehjælp"
+}, {
+  ...PB_BLANK,
+  id: "pb-apotek",
+  name: "Vagtapotek / døgnapotek",
+  phone: "",
+  category: "apotek",
+  shortDescription: "Vagt- og døgnapoteker er lokale. Verificerede numre og adresser tilføjes senere.",
+  region: "national",
+  pending: true,
+  keywords: "apotek vagtapotek døgnapotek medicin"
+}];
+const PB_VIGTIGSTE = ["pb-112", "pb-114", "pb-gift", "pb-offer"];
+const pbById = id => PHONEBOOK.find(e => e.id === id);
+const pbCatIcon = catId => (PB_CATS.find(c => c.id === catId) || {}).Icon || Info;
+const pbText = e => {
+  const cat = PB_CATS.find(c => c.id === e.category);
+  const reg = e.region && e.region !== "national" ? (EMERGENCY_REGIONS.find(r => r.id === e.region) || {}).name || "" : "";
+  return (e.name + " " + (cat ? cat.label : "") + " " + e.phone + " " + e.phone.replace(/\s+/g, "") + " " + reg + " " + (e.keywords || "")).toLowerCase();
+};
+
 /* ----------------------------- THEME ------------------------------ */
 
 const C = {
@@ -3072,6 +3277,26 @@ function KGlyph({
     stroke: arm,
     strokeWidth: "3.4",
     strokeLinecap: "round"
+  }));
+}
+function PhoneIcon({
+  size = 22,
+  color = "currentColor",
+  strokeWidth = 2,
+  style
+}) {
+  return /*#__PURE__*/React.createElement("svg", {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: color,
+    strokeWidth: strokeWidth,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: style
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M6.6 10.8a11 11 0 0 0 4.6 4.6l1.5-1.5a1 1 0 0 1 1-.25 8 8 0 0 0 2.6.42 1 1 0 0 1 1 1V18a1 1 0 0 1-1 1A13 13 0 0 1 5 6a1 1 0 0 1 1-1h2.7a1 1 0 0 1 1 1 8 8 0 0 0 .42 2.6 1 1 0 0 1-.25 1z"
   }));
 }
 function Mark({
@@ -3631,6 +3856,149 @@ function RegionSelector({
   })));
 }
 
+/* --- Akut telefonbog: reusable phone entry (icon, name, big number, call) --- */
+function EmergencyPhoneEntry({
+  e,
+  isFav,
+  onFav,
+  onCall,
+  highlight
+}) {
+  const Ic = pbCatIcon(e.category);
+  const digits = e.phone.replace(/\s+/g, "");
+  const is112 = digits === "112";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1.5px solid ${highlight ? RED : C.line}`,
+      borderRadius: 16,
+      padding: 14,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: e.pending ? tint(C.inkFaint, "1F") : tint(RED, "12"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Ic, {
+    size: 20,
+    color: e.pending ? C.inkFaint : RED,
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 7,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink,
+      lineHeight: 1.2
+    }
+  }, e.name), highlight && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 700,
+      color: RED,
+      background: tint(RED, "14"),
+      padding: "1px 7px",
+      borderRadius: 6
+    }
+  }, "Din region")), e.shortDescription && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 3,
+      lineHeight: 1.4
+    }
+  }, e.shortDescription)), !e.pending && onFav && /*#__PURE__*/React.createElement("button", {
+    onClick: () => onFav(e.id),
+    "aria-label": "Marker som favorit",
+    style: {
+      border: "none",
+      background: "transparent",
+      padding: 4,
+      cursor: "pointer",
+      display: "flex"
+    }
+  }, /*#__PURE__*/React.createElement(Star, {
+    size: 18,
+    strokeWidth: 2,
+    color: isFav ? "#E0A03A" : "#AAB6BE",
+    fill: isFav ? "#E0A03A" : "none"
+  }))), !e.pending && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      fontSize: 26,
+      fontWeight: 800,
+      color: C.ink,
+      letterSpacing: 0.5,
+      userSelect: "text"
+    }
+  }, e.phone), is112 ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => onCall(e.phone),
+    "aria-label": "Ring 112",
+    style: {
+      border: "none",
+      borderRadius: 12,
+      padding: "11px 18px",
+      background: "linear-gradient(135deg,#F0625E,#C22F2C)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 46
+    }
+  }, "Ring 112") : /*#__PURE__*/React.createElement("a", {
+    href: `tel:${digits}`,
+    "aria-label": e.callLabel || `Ring ${e.phone}`,
+    style: {
+      textDecoration: "none",
+      textAlign: "center",
+      borderRadius: 12,
+      padding: "11px 18px",
+      background: "linear-gradient(135deg,#3E78EE,#2457D6)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 46,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, e.callLabel || "Ring")));
+}
+
 /* ------------------------------ APP ------------------------------- */
 
 function Klario() {
@@ -3644,6 +4012,7 @@ function Klario() {
   const [akutView, setAkutView] = useState(null);
   const [region, setRegion] = useState(null); // KLARIO region — kept in React state (same in-memory model as favoritter/senest brugt)
   const [callPrompt, setCallPrompt] = useState(null); // { phone } — confirmation shown before any tel: link is used
+  const [pbQuery, setPbQuery] = useState(""); // Akut telefonbog — instant local search
   const mainRef = useRef(null);
   const searchRef = useRef(null);
   const pendingScroll = useRef(null);
@@ -3713,6 +4082,15 @@ function Klario() {
   const akut = DATA.find(c => c.id === "akut");
   const akutCatObj = EMERGENCY_CATEGORIES.find(c => c.id === akutView);
   const regionName = region ? EMERGENCY_REGIONS.find(r => r.id === region)?.name : null;
+  const pbQ = pbQuery.trim().toLowerCase();
+  const pbResults = pbQ ? PHONEBOOK.filter(e => pbText(e).includes(pbQ)) : [];
+  const pbFavs = PHONEBOOK.filter(e => favs.has(e.id) && !e.pending);
+  const togglePbCat = id => setExpanded(p => {
+    const n = new Set(p);
+    const k = "pbcat-" + id;
+    n.has(k) ? n.delete(k) : n.add(k);
+    return n;
+  });
   const greeting = () => {
     const h = new Date().getHours();
     return h < 10 ? "Godmorgen" : h < 17 ? "God eftermiddag" : "Godaften";
@@ -3726,9 +4104,9 @@ function Klario() {
     label: "Søg",
     Icon: Search
   }, {
-    id: "akut_hjaelp",
+    id: "telefonbog",
     label: "Akut",
-    Icon: Siren,
+    Icon: PhoneIcon,
     danger: true
   }, {
     id: "kategorier",
@@ -4226,7 +4604,291 @@ function Klario() {
       borderRadius: 14,
       padding: "14px 15px"
     }
-  }, akutCatObj.note), /*#__PURE__*/React.createElement(EmergencyWarning, null))), !activeCat && screen === "hjem" && /*#__PURE__*/React.createElement("div", {
+  }, akutCatObj.note), /*#__PURE__*/React.createElement(EmergencyWarning, null))), !activeCat && screen === "telefonbog" && /*#__PURE__*/React.createElement("div", {
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: "0 0 4px",
+      fontSize: 24,
+      fontWeight: 800,
+      color: C.ink,
+      letterSpacing: -0.5
+    }
+  }, "Akut telefonbog"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 14px",
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.45
+    }
+  }, "Vigtige telefonnumre til akut hj\xE6lp, sundhed, politi og beredskab."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(C.ink, "06"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 19,
+    color: C.inkSoft
+  }), /*#__PURE__*/React.createElement("input", {
+    value: pbQuery,
+    onChange: e => setPbQuery(e.target.value),
+    placeholder: "S\xF8g efter nummer eller afdeling",
+    "aria-label": "S\xF8g efter nummer eller afdeling",
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 15,
+      color: C.ink,
+      background: "transparent",
+      fontFamily: "inherit"
+    }
+  }), pbQuery && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPbQuery(""),
+    "aria-label": "Ryd s\xF8gning",
+    style: {
+      border: "none",
+      background: tint(C.ink, "12"),
+      borderRadius: 99,
+      padding: 4,
+      display: "flex",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 15,
+    color: C.inkSoft
+  }))), pbQ ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginBottom: 12
+    }
+  }, pbResults.length, " ", pbResults.length === 1 ? "resultat" : "resultater"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, pbResults.map(e => /*#__PURE__*/React.createElement(EmergencyPhoneEntry, {
+    key: e.id,
+    e: e,
+    isFav: favs.has(e.id),
+    onFav: toggleFav,
+    onCall: startCall,
+    highlight: e.region && e.region === region
+  })), pbResults.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      color: C.inkFaint,
+      fontSize: 14,
+      padding: "26px 0"
+    }
+  }, "Ingen numre matcher \\u201E", pbQuery, "\\u201C."))) : /*#__PURE__*/React.createElement(React.Fragment, null, pbFavs.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 11px",
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Mine vigtige numre"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, pbFavs.map(e => /*#__PURE__*/React.createElement(EmergencyPhoneEntry, {
+    key: e.id,
+    e: e,
+    isFav: true,
+    onFav: toggleFav,
+    onCall: startCall,
+    highlight: e.region && e.region === region
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 11px",
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Vigtigste numre"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, PB_VIGTIGSTE.map(id => {
+    const e = pbById(id);
+    return /*#__PURE__*/React.createElement(EmergencyPhoneEntry, {
+      key: id,
+      e: e,
+      isFav: favs.has(id),
+      onFav: toggleFav,
+      onCall: startCall
+    });
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 11px",
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Akut l\xE6gehj\xE6lp"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, PHONEBOOK.filter(e => e.category === "laege").map(e => /*#__PURE__*/React.createElement(EmergencyPhoneEntry, {
+    key: e.id,
+    e: e,
+    isFav: favs.has(e.id),
+    onFav: toggleFav,
+    onCall: startCall,
+    highlight: e.region === region
+  })))), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: "0 0 11px",
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Kategorier"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      marginBottom: 20
+    }
+  }, PB_CATS.map(cat => {
+    const entries = PHONEBOOK.filter(e => e.category === cat.id);
+    const open = expanded.has("pbcat-" + cat.id);
+    return /*#__PURE__*/React.createElement("div", {
+      key: cat.id,
+      style: {
+        background: C.surface,
+        border: `1px solid ${C.line}`,
+        borderRadius: 16,
+        overflow: "hidden",
+        boxShadow: "0 1px 3px rgba(21,33,43,0.04)"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => togglePbCat(cat.id),
+      "aria-expanded": open,
+      style: {
+        width: "100%",
+        textAlign: "left",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: 13
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 38,
+        height: 38,
+        borderRadius: 11,
+        background: tint(RED, "12"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(cat.Icon, {
+      size: 19,
+      color: RED,
+      strokeWidth: 2.1
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1,
+        fontSize: 14.5,
+        fontWeight: 700,
+        color: C.ink
+      }
+    }, cat.label), /*#__PURE__*/React.createElement(ChevronDown, {
+      size: 19,
+      color: C.inkFaint,
+      style: {
+        transition: "transform .25s ease",
+        transform: open ? "rotate(180deg)" : "none"
+      }
+    })), open && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "0 12px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 10
+      }
+    }, entries.length > 0 ? entries.map(e => /*#__PURE__*/React.createElement(EmergencyPhoneEntry, {
+      key: e.id,
+      e: e,
+      isFav: favs.has(e.id),
+      onFav: toggleFav,
+      onCall: startCall,
+      highlight: e.region === region
+    })) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: C.inkSoft,
+        lineHeight: 1.5,
+        background: tint(C.ink, "04"),
+        borderRadius: 12,
+        padding: "12px 13px"
+      }
+    }, "Verificerede numre tilf\xF8jes senere.")));
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAkutView(null);
+      setScreen("akut_hjaelp");
+      scrollTop();
+    },
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "13px 15px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 11,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement(Siren, {
+    size: 19,
+    color: RED
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: 600,
+      color: C.ink
+    }
+  }, "Guidet akut hj\xE6lp \u2014 find den rette hj\xE6lp trin for trin"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18,
+    color: C.inkFaint
+  })), /*#__PURE__*/React.createElement(EmergencyWarning, null))), !activeCat && screen === "hjem" && /*#__PURE__*/React.createElement("div", {
     className: "anim"
   }, /*#__PURE__*/React.createElement("div", {
     style: {
