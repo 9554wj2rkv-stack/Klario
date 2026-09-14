@@ -3223,6 +3223,545 @@ const pbText = e => {
   return (e.name + " " + (cat ? cat.label : "") + " " + e.phone + " " + e.phone.replace(/\s+/g, "") + " " + reg + " " + (e.keywords || "")).toLowerCase();
 };
 
+/* ===================== PLEJEPROCEDURER + FAGLIGT SPROG ===================== *
+ *  General faglig vejledning. Følg altid borgerens plan, delegation,
+ *  ordination og arbejdsstedets lokale instrukser. Indholdet er ikke
+ *  lægemiddel-/udstyrsspecifikt og erstatter ikke lokal oplæring.
+ * =========================================================================== */
+
+const PLEJE_GENERAL_NOTE = "Dette er generel faglig vejledning. Følg altid borgerens aktuelle plan, delegation, ordination og arbejdsstedets lokale instrukser.";
+const PLEJE_PROCS = [{
+  id: "p-kateter",
+  title: "Kateterpleje",
+  desc: "Hygiejne, observation og sikker håndtering af kateter.",
+  Icon: Droplets,
+  formaal: ["Vedligeholde hygiejne omkring kateteret.", "Nedsætte risiko for komplikationer og infektion.", "Observere kateter, urin og borgerens tilstand."],
+  brug: ["Engangshandsker", "Vaskeklude og vand (efter lokal instruks)", "Håndklæde", "Affaldspose"],
+  foer: ["Informér borgeren, og indhent samtykke.", "Skab privatliv.", "Inddrag borgerens ressourcer.", "Udfør håndhygiejne.", "Tjek borgerens plan og lokal instruks for kateterpleje."],
+  trin: ["Udfør håndhygiejne, og tag handsker på.", "Udfør nedre/intim hygiejne omkring kateteret.", "Arbejd fra rent mod urent, og vask forsigtigt.", "Undgå at trække i kateteret.", "Undgå unødvendig manipulation af kateteret.", "Tjek slangen, og undgå knæk.", "Placér urinposen lavere end blæren, så urin ikke løber tilbage.", "Undgå unødvendig åbning af det lukkede drænagesystem.", "Afslut med håndhygiejne, og hjælp borgeren til rette."],
+  hygiejne: ["Håndhygiejne før og efter.", "Handsker ved kontakt med urin/sekret.", "Arbejd fra rent mod urent for at undgå krydskontaminering.", "Hold det lukkede system lukket."],
+  observer: ["Urinens farve", "Klarhed", "Lugt", "Sediment (hvis relevant)", "Mængde (hvis relevant)", "Lækage ved kateteret", "Smerte", "Rødme", "Hævelse", "Feber/almen forværring (hvis relevant)"],
+  stop: ["Ingen urin i posen trods væskeindtag", "Blod i urinen", "Stærk smerte, feber eller påvirket almentilstand", "Tegn på infektion omkring kateteret"],
+  dokText: "Dokumentér objektivt hvad du har observeret — ikke hvad du tror.",
+  dokHverdag: "Urinen så lidt underlig ud.",
+  dokFaglig: "Urin fremstår uklar med kraftig lugt. Ingen synlig lækage. Borger angiver ingen smerte.",
+  begrundelse: "Et lukket, korrekt placeret drænagesystem og god hygiejne nedsætter risikoen for urinvejsinfektion og komplikationer.",
+  ord: ["t-diurese", "t-urin", "t-sediment", "t-hudintegritet", "t-observation", "t-habitualtilstand"],
+  localNote: "Følg altid arbejdsstedets lokale instruks for kateterpleje."
+}, {
+  id: "p-oejendraaber",
+  title: "Øjendråber",
+  desc: "Sikker administration af øjendråber.",
+  Icon: Plus,
+  formaal: ["Give øjendråber korrekt og sikkert.", "Sikre rigtig dosis i rigtigt øje."],
+  brug: ["Den ordinerede øjendråbe", "Renseserviet/vat (hvis relevant)", "Handsker (hvis relevant)"],
+  foer: ["Tjek ordination: rigtig borger, rigtigt præparat, rigtigt øje, rigtig dosis, rigtigt tidspunkt.", "Informér borgeren.", "Udfør håndhygiejne.", "Bring borgeren i god stilling med hovedet let bagover."],
+  trin: ["Bed borgeren se opad.", "Træk forsigtigt det nederste øjenlåg lidt ned.", "Dryp den ordinerede dosis i lommen mellem øjet og øjenlåget.", "Undgå at røre øjet eller øjenvipperne med flaskespidsen.", "Bed borgeren lukke øjet blidt bagefter.", "Tør evt. overskydende væske væk.", "Udfør håndhygiejne."],
+  hygiejne: ["Håndhygiejne før og efter.", "Flaskespidsen må ikke røre øje, vipper eller hud.", "Én flaske pr. borger efter lokal instruks."],
+  observer: ["Om dråben kom i øjet", "Rødme eller irritation", "Svie eller ubehag", "Borgerens reaktion"],
+  stop: ["Kraftig rødme, smerte eller synsændring", "Tvivl om præparat, øje, dosis eller ordination"],
+  dokText: "Dokumentér givet dråbe, øje og tidspunkt.",
+  dokHverdag: "Gav dråber i øjet.",
+  dokFaglig: "Givet 1 dråbe i højre øje kl. 08.00 efter ordination. Ingen synlig irritation.",
+  begrundelse: "Korrekt teknik sikrer virkning og forebygger skade samt forurening af flasken.",
+  ord: ["t-observation", "t-dokumentation"],
+  localNote: "Ved tvivl om præparat, øje, dosis eller ordination: stop og afklar før administration. Lægemiddelspecifik instruks har altid forrang."
+}, {
+  id: "p-medicin",
+  title: "Medicinadministration",
+  desc: "Sikker medicingivning — kontrol, observation og dokumentation.",
+  Icon: Pill,
+  formaal: ["Give medicin sikkert og korrekt.", "Observere virkning og bivirkning.", "Dokumentere korrekt."],
+  brug: ["Ordination/medicinkort", "Det ordinerede lægemiddel", "Vand/administrationsremedier (efter behov)", "Handsker (hvis relevant)"],
+  foer: ["Tjek ordination.", "Bekræft borgerens identitet.", "Tjek lægemiddel, dosis, administrationsvej og tidspunkt.", "Tjek relevante allergier/oplysninger, hvis tilgængelige."],
+  trin: ["Observér borgeren under administrationen.", "Giv medicinen efter instruktion og korrekt administrationsvej.", "Gæt aldrig — stop, hvis noget ikke stemmer.", "Observér borgeren efter administration.", "Vær opmærksom på virkning og evt. bivirkninger.", "Dokumentér givet medicin, dosis, tidspunkt og initialer."],
+  hygiejne: ["Håndhygiejne før og efter.", "Handsker hvor relevant."],
+  observer: ["Borgerens tilstand under og efter", "Ønsket virkning (hvor relevant)", "Tegn på bivirkning", "Nye symptomer"],
+  stop: ["Tvivl om præparat, dosis, ordination, borger eller administrationsmåde", "Uventet reaktion eller forværring"],
+  dokText: "Dokumentér givet medicin, dosis, tidspunkt og dine initialer.",
+  dokHverdag: "Gav pillerne.",
+  dokFaglig: "Givet tablet efter ordination kl. 08.00. Borger tog medicinen uden problemer. /XX",
+  begrundelse: "De rigtige kontroller (borger, lægemiddel, dosis, tidspunkt, administrationsvej, dokumentation) forebygger medicinfejl.",
+  ord: ["t-observation", "t-dokumentation", "t-aendring"],
+  medicinsikkerhed: ["Rigtig borger", "Rigtigt lægemiddel", "Rigtig dosis", "Rigtigt tidspunkt", "Rigtig administrationsvej", "Relevant dokumentation"],
+  stopStrong: "Er du i tvivl om præparat, dosis, ordination, borger eller administrationsmåde, skal du ikke gætte. Stop og kontakt den relevante ansvarlige fagperson.",
+  delegationNote: "Du skal kende din kompetence og den delegation/instruks, du arbejder efter.",
+  localNote: "Dette erstatter ikke arbejdsstedets lokale medicininstruks."
+}, {
+  id: "p-nedre",
+  title: "Nedre hygiejne",
+  desc: "Ren og tør hud med respekt for værdighed.",
+  Icon: Droplets,
+  formaal: ["Sikre ren og tør hud i intimområdet.", "Bevare værdighed og forebygge hudproblemer."],
+  brug: ["Handsker", "Vaskeklude", "Vand og evt. mild sæbe (efter lokal instruks)", "Håndklæde", "Rene kontinensprodukter (hvis relevant)", "Affaldspose"],
+  foer: ["Informér borgeren, og indhent samtykke.", "Skab privatliv, og bevar værdighed.", "Inddrag borgerens ressourcer.", "Udfør håndhygiejne, og tag handsker på."],
+  trin: ["Arbejd fra rent mod urent.", "Vask forsigtigt, og skift klud/kontaktflade løbende.", "Tør huden omhyggeligt, også i hudfolder.", "Skift kontinensprodukt, hvis relevant.", "Hjælp borgeren til rette.", "Afslut med håndhygiejne."],
+  hygiejne: ["Håndhygiejne før og efter.", "Handsker under plejen.", "Fra rent mod urent for at undgå krydskontaminering.", "Skift klud/flade, så snavs ikke flyttes."],
+  observer: ["Rødme", "Fugt", "Sår", "Hudskade", "Svampelignende forandringer", "Sekret", "Lugt", "Smerte", "Tryksår", "Ændring fra habitualtilstand"],
+  stop: ["Nyopståede sår eller hudskade", "Tegn på tryksår", "Kraftig rødme, sekret eller smerte"],
+  dokText: "Dokumentér objektive hudobservationer.",
+  dokHverdag: "Huden så lidt rød ud.",
+  dokFaglig: "Huden fremstår rød i lyskefolden, intet synligt sår. Borger angiver let ubehag.",
+  begrundelse: "God hygiejne og tør hud forebygger hudinfektion og tryksår. Værdighed er en del af plejen.",
+  ord: ["t-hudintegritet", "t-tryksaar", "t-inkontinens", "t-observation", "t-habitualtilstand"],
+  anatomyNote: "Tilpas altid plejen til borgerens anatomi og behov.",
+  localNote: null
+}, {
+  id: "p-stoette",
+  title: "Støttestrømper",
+  desc: "Korrekt påtagning og observation af ben og hud.",
+  Icon: Activity,
+  formaal: ["Støtte kredsløbet i benene efter ordination.", "Forebygge hævelse (ødem)."],
+  brug: ["De ordinerede støttestrømper", "Evt. påtagningshjælpemiddel", "Handsker (hvis relevant)"],
+  foer: ["Tjek ordination/instruks/plan.", "Inspicér ben og hud.", "Tjek for sår, rødme, hævelse og smerte.", "Sikr rigtig strømpe til rigtigt ben."],
+  trin: ["Bring borgeren i god stilling.", "Tag strømpen på med korrekt teknik.", "Brug ordineret/tilgængeligt påtagningshjælpemiddel.", "Glat strømpen ud — undgå folder.", "Undgå rullekant foroven."],
+  hygiejne: ["Håndhygiejne før og efter.", "Ren hud og strømpe."],
+  observer: ["Hud og tæer (hvor synligt)", "Folder eller rullekant", "Borgerens komfort", "Farve og følelse i foden"],
+  stop: ["Kraftig smerte", "Markant farveændring", "Ny følelsesløshed", "Tydelig forværring"],
+  dokText: "Dokumentér påtagning og hudobservationer.",
+  dokHverdag: "Tog strømperne på.",
+  dokFaglig: "Støttestrømper påsat begge ben efter ordination. Ingen folder. Tæer varme og normalt farvede.",
+  begrundelse: "Korrekt påsatte strømper støtter kredsløbet. Folder eller rullekant kan skade huden og hæmme blodgennemstrømningen.",
+  ord: ["t-oedem", "t-hudintegritet", "t-observation"],
+  after: ["Strømpen sidder korrekt", "Ingen folder", "Ingen rullekant", "Borgeren er komfortabel", "Tæer/fod ser normale ud, hvor synligt"],
+  localNote: null
+}, {
+  id: "p-sejl-seng-stol",
+  title: "Sejl – seng → stol",
+  desc: "Sikker forflytning med lift og sejl.",
+  Icon: ChevronRight,
+  slingNote: "Brug altid det sejl og den lift, der er beskrevet i borgerens forflytningsplan, og følg producentens og arbejdsstedets instruktion.",
+  formaal: ["Flytte borgeren sikkert fra seng til stol med lift og sejl.", "Skåne både borger og medarbejder."],
+  brug: ["Borgerens forflytningsplan", "Den beskrevne lift", "Det beskrevne sejl i korrekt størrelse"],
+  foer: ["Læs borgerens forflytningsplan.", "Vurder borgerens tilstand og ressourcer.", "Informér borgeren.", "Klargør omgivelserne."],
+  trin: ["Læs forflytningsplanen.", "Vurder borgerens tilstand og ressourcer.", "Forklar fremgangsmåden.", "Klargør omgivelserne.", "Tjek liften.", "Tjek sejlet.", "Placér borgeren.", "Placér sejlet efter godkendt teknik.", "Fastgør kun efter det specifikke lift-/sejlsystem.", "Kontrollér fastgørelsen.", "Løft minimalt først.", "Udfør sikkerhedstjek.", "Fortsæt forflytningen.", "Placér borgeren korrekt i stolen.", "Sænk sikkert.", "Fjern kun sejlet, hvis planen/instruksen siger det.", "Observér borgeren bagefter."],
+  hygiejne: ["Håndhygiejne før og efter.", "Rent sejl efter lokal instruks."],
+  observer: ["Borgerens tryghed og smerte under forflytning", "Hud, hvor sejlet har ligget", "Almentilstand bagefter"],
+  stop: ["Sejl eller lift virker defekt", "Borgeren får smerter eller bliver utryg", "Tvivl om fastgørelse eller teknik"],
+  dokText: "Dokumentér forflytning og observationer efter behov.",
+  dokHverdag: "Flyttede ham til stolen.",
+  dokFaglig: "Forflyttet fra seng til stol med lift og sejl efter forflytningsplan. Borger tryg, ingen smerter angivet.",
+  begrundelse: "Forskellige lifte og sejl har forskellige instruktioner. Korrekt sejl, størrelse og fastgørelse er afgørende for sikkerheden.",
+  ord: ["t-mobilisering", "t-observation", "t-funktionsniveau"],
+  safety: ["Rigtigt sejl", "Rigtig størrelse", "Sejlet er intakt", "Korrekte fæstepunkter efter systemet", "Liften fungerer", "Området er frit", "Borgeren er informeret", "Krav om antal medarbejdere er fulgt"],
+  ergonomi: ["Arbejd i god arbejdshøjde.", "Brug benene, og hold ryggen i neutral stilling.", "Undgå vrid i ryggen.", "Bed om hjælp ved behov."],
+  localNote: "Følg altid borgerens forflytningsplan samt producentens og arbejdsstedets instruktion."
+}, {
+  id: "p-sejl-stol-seng",
+  title: "Sejl – stol → seng",
+  desc: "Sikker forflytning med lift og sejl.",
+  Icon: ChevronLeft,
+  slingNote: "Brug altid det sejl og den lift, der er beskrevet i borgerens forflytningsplan, og følg producentens og arbejdsstedets instruktion.",
+  formaal: ["Flytte borgeren sikkert fra stol til seng med lift og sejl.", "Skåne både borger og medarbejder."],
+  brug: ["Borgerens forflytningsplan", "Den beskrevne lift", "Det beskrevne sejl i korrekt størrelse"],
+  foer: ["Læs borgerens forflytningsplan.", "Vurder borgerens tilstand og ressourcer.", "Informér borgeren.", "Klargør omgivelserne."],
+  trin: ["Læs forflytningsplanen.", "Vurder borgerens tilstand og ressourcer.", "Forklar fremgangsmåden.", "Klargør omgivelserne.", "Tjek liften.", "Tjek sejlet.", "Placér borgeren.", "Placér sejlet efter godkendt teknik.", "Fastgør kun efter det specifikke lift-/sejlsystem.", "Kontrollér fastgørelsen.", "Løft minimalt først.", "Udfør sikkerhedstjek.", "Fortsæt forflytningen.", "Placér borgeren korrekt i sengen.", "Sænk sikkert.", "Fjern kun sejlet, hvis planen/instruksen siger det.", "Observér borgeren bagefter."],
+  hygiejne: ["Håndhygiejne før og efter.", "Rent sejl efter lokal instruks."],
+  observer: ["Borgerens tryghed og smerte under forflytning", "Hud, hvor sejlet har ligget", "Almentilstand og lejring bagefter"],
+  stop: ["Sejl eller lift virker defekt", "Borgeren får smerter eller bliver utryg", "Tvivl om fastgørelse eller teknik"],
+  dokText: "Dokumentér forflytning og observationer efter behov.",
+  dokHverdag: "Lagde ham i seng.",
+  dokFaglig: "Forflyttet fra stol til seng med lift og sejl efter forflytningsplan. Borger tryg og korrekt lejret.",
+  begrundelse: "Forskellige lifte og sejl har forskellige instruktioner. Korrekt sejl, størrelse og fastgørelse er afgørende for sikkerheden.",
+  ord: ["t-mobilisering", "t-observation", "t-funktionsniveau"],
+  safety: ["Rigtigt sejl", "Rigtig størrelse", "Sejlet er intakt", "Korrekte fæstepunkter efter systemet", "Liften fungerer", "Området er frit", "Borgeren er informeret", "Krav om antal medarbejdere er fulgt"],
+  ergonomi: ["Arbejd i god arbejdshøjde.", "Brug benene, og hold ryggen i neutral stilling.", "Undgå vrid i ryggen.", "Bed om hjælp ved behov."],
+  localNote: "Følg altid borgerens forflytningsplan samt producentens og arbejdsstedets instruktion."
+}, {
+  id: "p-mund",
+  title: "Tandbørstning / mundpleje",
+  desc: "Ren mund og faglig observation.",
+  Icon: Heart,
+  formaal: ["Holde mund og tænder rene.", "Forebygge problemer i mundhulen.", "Observere mundens tilstand."],
+  brug: ["Tandbørste og tandpasta", "Evt. protesebørste og bæger", "Krus med vand", "Håndklæde", "Handsker (hvis relevant)"],
+  foer: ["Informér borgeren, og inddrag egne ressourcer.", "Udfør håndhygiejne."],
+  trin: ["Lad borgeren børste selv, hvis muligt — støt efter behov.", "Børst tænder/proteser grundigt.", "Rengør evt. tunge, og gør munden ren.", "Rengør og opbevar proteser korrekt.", "Afslut med håndhygiejne."],
+  hygiejne: ["Håndhygiejne før og efter.", "Rene remedier; protese rengøres separat."],
+  observer: ["Tørhed", "Sår", "Blødning", "Smerte", "Belægninger", "Dårlig ånde (hvis relevant)", "Synkebesvær (hvis relevant)", "Tænder, tandkød, tunge og mundslimhinde"],
+  stop: ["Blødning, sår eller kraftig smerte", "Synkebesvær", "Tegn på infektion i munden"],
+  dokText: "Dokumentér mundstatus og udført pleje.",
+  dokHverdag: "Børstede tænder.",
+  dokFaglig: "Mundpleje udført. Tandkød let blødende ved børstning. Ingen sår observeret.",
+  begrundelse: "God mundhygiejne forebygger smerter, infektion og problemer med at spise. Udvidet mundpleje kan være nødvendig ved nedsat egenomsorg.",
+  ord: ["t-egenomsorg", "t-ernaeringstilstand", "t-observation", "t-habitualtilstand"],
+  oralNote: "Skeln mellem almindelig tandbørstning og udvidet mundpleje (fx ved nedsat egenomsorg eller synkebesvær).",
+  localNote: null
+}, {
+  id: "p-barbering",
+  title: "Barbering",
+  desc: "Nænsom barbering med observation af huden.",
+  Icon: Info,
+  formaal: ["Hjælpe borgeren med barbering efter ønske.", "Bevare velvære og værdighed."],
+  brug: ["Elektrisk eller manuel barbermaskine (efter borgerens ønske)", "Barberskum (hvis manuel)", "Håndklæde", "Handsker (hvis relevant)"],
+  foer: ["Spørg om borgerens ønske og vaner.", "Udfør håndhygiejne.", "Tjek huden."],
+  trin: ["Barbér forsigtigt efter borgerens ønske.", "Vær nænsom over knogler og hudfolder.", "Tør ansigtet, og hjælp borgeren til rette.", "Rengør udstyret."],
+  hygiejne: ["Håndhygiejne før og efter.", "Rent, personligt udstyr; rengør efter brug."],
+  observer: ["Hud", "Sår", "Irritation", "Rødme", "Blødning"],
+  stop: ["Sår, der bløder meget eller ikke stopper", "Tegn på infektion"],
+  dokText: "Dokumentér ved relevante hudfund.",
+  dokHverdag: "Barberede ham.",
+  dokFaglig: "Barbering udført efter borgerens ønske. Ingen sår eller irritation observeret.",
+  begrundelse: "Personlig pleje er også en anledning til at observere huden.",
+  ord: ["t-hudintegritet", "t-observation"],
+  bleedNote: "Vær ekstra forsigtig, hvis borgeren har øget blødningsrisiko. Giv ikke medicinspecifik behandlingsrådgivning — kontakt ansvarlig fagperson ved tvivl.",
+  localNote: null
+}, {
+  id: "p-haar",
+  title: "Frisering / hårpleje",
+  desc: "Hårpleje efter ønske med observation af hovedbund.",
+  Icon: Star,
+  formaal: ["Hjælpe med hårpleje efter borgerens ønske.", "Bevare værdighed og velvære."],
+  brug: ["Kam/børste", "Evt. hårprodukter (efter ønske)", "Håndklæde"],
+  foer: ["Spørg om borgerens ønske.", "Inddrag borgerens ressourcer.", "Udfør håndhygiejne."],
+  trin: ["Red/frisér håret nænsomt efter ønske.", "Observér hovedbunden undervejs.", "Hjælp borgeren til rette.", "Rengør udstyret."],
+  hygiejne: ["Håndhygiejne før og efter.", "Rent, personligt udstyr."],
+  observer: ["Hovedbund", "Rødme", "Sår", "Skæl", "Hudforandringer", "Ubehag/smerte"],
+  stop: ["Sår, kraftig rødme eller tegn på infektion i hovedbunden"],
+  dokText: "Dokumentér ved relevante fund.",
+  dokHverdag: "Redte hendes hår.",
+  dokFaglig: "Hårpleje udført efter ønske. Hovedbund uden synlige sår; lette skæl observeret.",
+  begrundelse: "Rutinemæssig personlig pleje er også en anledning til faglig observation af hovedbund og hud.",
+  ord: ["t-egenomsorg", "t-observation"],
+  localNote: null
+}];
+const procById = id => PLEJE_PROCS.find(p => p.id === id);
+const procText = p => (p.title + " " + p.desc + " " + (p.ord || []).join(" ")).toLowerCase();
+
+/* -------------------------------- FAGLIGT SPROG -------------------------------- */
+
+const FS_CATS = ["Almen tilstand", "Respiration", "Kredsløb", "Hud", "Ernæring", "Væske", "Udskillelse", "Mobilitet", "Funktionsniveau", "Smerter", "Søvn", "Kognition", "Psykisk tilstand", "Kommunikation", "Personlig pleje", "Egenomsorg", "Rehabilitering", "Forebyggelse", "Dokumentation"];
+const TERMS = [{
+  id: "t-habitualtilstand",
+  term: "Habitualtilstand",
+  cat: "Almen tilstand",
+  meaning: "Borgerens normale, vanlige tilstand.",
+  observe: "Hvordan borgeren plejer at være (vågenhed, humør, funktion).",
+  doc: "Borger er i habitualtilstand.",
+  syn: ["normal tilstand", "vanlig", "som han plejer"],
+  related: []
+}, {
+  id: "t-observation",
+  term: "Observation",
+  cat: "Dokumentation",
+  meaning: "At iagttage og registrere borgerens tilstand.",
+  observe: "Det du ser, hører, mærker og måler.",
+  doc: "Obs. rød hud på højre hæl.",
+  syn: ["iagttage", "holde øje"],
+  related: []
+}, {
+  id: "t-objektiv",
+  term: "Objektiv observation",
+  cat: "Dokumentation",
+  meaning: "Det du selv måler eller ser.",
+  observe: "Målbare eller synlige fund.",
+  doc: "Temperatur 38,2 °C.",
+  syn: ["fakta", "målt", "det jeg ser"],
+  related: []
+}, {
+  id: "t-subjektiv",
+  term: "Subjektiv oplevelse",
+  cat: "Dokumentation",
+  meaning: "Det borgeren selv oplever og fortæller.",
+  observe: "Borgerens egne udsagn.",
+  doc: "Borger angiver smerter 6/10.",
+  syn: ["borgerens oplevelse", "fortæller selv"],
+  related: []
+}, {
+  id: "t-symptomer",
+  term: "Symptomer",
+  cat: "Almen tilstand",
+  meaning: "Det borgeren mærker eller oplever (subjektivt).",
+  observe: "Fx smerte, kvalme, træthed.",
+  doc: "Borger oplyser kvalme.",
+  syn: ["gener"],
+  related: []
+}, {
+  id: "t-tegn",
+  term: "Tegn",
+  cat: "Almen tilstand",
+  meaning: "Det du kan observere objektivt.",
+  observe: "Fx rødme, hævelse, feber.",
+  doc: "Obs. hævelse omkring ankel.",
+  syn: ["objektive fund"],
+  related: []
+}, {
+  id: "t-ressourcer",
+  term: "Ressourcer",
+  cat: "Funktionsniveau",
+  meaning: "Det borgeren selv kan og magter.",
+  observe: "Hvad borgeren klarer selv.",
+  doc: "Borger kan selv børste tænder.",
+  syn: ["egne evner", "kan selv"],
+  related: []
+}, {
+  id: "t-begraensninger",
+  term: "Begrænsninger",
+  cat: "Funktionsniveau",
+  meaning: "Det borgeren har svært ved eller ikke kan.",
+  observe: "Hvor der er behov for hjælp.",
+  doc: "Behøver hjælp til nedre hygiejne.",
+  syn: ["behov for hjælp"],
+  related: []
+}, {
+  id: "t-funktionsniveau",
+  term: "Funktionsniveau",
+  cat: "Funktionsniveau",
+  meaning: "Hvor meget borgeren kan klare i hverdagen.",
+  observe: "ADL, mobilitet og egenomsorg.",
+  doc: "Nedsat funktionsniveau ift. habitualtilstand.",
+  syn: ["kan klare"],
+  related: ["p-stoette"]
+}, {
+  id: "t-egenomsorg",
+  term: "Egenomsorg",
+  cat: "Egenomsorg",
+  meaning: "Borgerens evne til at tage vare på sig selv.",
+  observe: "Personlig pleje, måltider, medicin.",
+  doc: "Nedsat egenomsorg — behøver støtte til mundpleje.",
+  syn: ["klare sig selv"],
+  related: ["p-mund", "p-haar"]
+}, {
+  id: "t-rehabilitering",
+  term: "Rehabilitering",
+  cat: "Rehabilitering",
+  meaning: "At genvinde eller bevare funktion og selvstændighed.",
+  observe: "Fremgang i funktion.",
+  doc: "Deltager i genoptræning dagligt.",
+  syn: ["genoptræning"],
+  related: []
+}, {
+  id: "t-sundhedsfremme",
+  term: "Sundhedsfremme",
+  cat: "Forebyggelse",
+  meaning: "At styrke sundhed og trivsel.",
+  observe: "Sunde vaner og trivsel.",
+  doc: "Motiveret til daglige gåture.",
+  syn: ["fremme sundhed"],
+  related: []
+}, {
+  id: "t-forebyggelse",
+  term: "Forebyggelse",
+  cat: "Forebyggelse",
+  meaning: "At forhindre sygdom eller forværring.",
+  observe: "Tiltag der nedsætter risiko.",
+  doc: "Trykaflastning for at forebygge tryksår.",
+  syn: ["forhindre"],
+  related: ["p-nedre"]
+}, {
+  id: "t-dokumentation",
+  term: "Dokumentation",
+  cat: "Dokumentation",
+  meaning: "Skriftlig registrering af observationer og pleje.",
+  observe: "Hvad, hvornår og af hvem.",
+  doc: "Se eksempel i den enkelte procedure.",
+  syn: ["journalføring", "skrive ned"],
+  related: []
+}, {
+  id: "t-aendring",
+  term: "Ændring i tilstand",
+  cat: "Almen tilstand",
+  meaning: "Forskel fra borgerens habitualtilstand.",
+  observe: "Noget nyt eller anderledes ift. normalt.",
+  doc: "Ændret ift. habitualtilstand: mere træt end vanligt.",
+  syn: ["forandring", "anderledes"],
+  related: []
+}, {
+  id: "t-mobilisering",
+  term: "Mobilisering",
+  cat: "Mobilitet",
+  meaning: "At hjælpe borgeren i bevægelse.",
+  observe: "Hvordan borgeren bevæger sig.",
+  doc: "Mobiliseret til stol med lift.",
+  syn: ["i bevægelse", "op at stå"],
+  related: ["p-sejl-seng-stol", "p-sejl-stol-seng"]
+}, {
+  id: "t-adl",
+  term: "ADL",
+  cat: "Funktionsniveau",
+  meaning: "Almindelige daglige aktiviteter (fx spise, vaske sig).",
+  observe: "Hvad borgeren klarer i dagligdagen.",
+  doc: "Behøver hjælp til flere ADL-opgaver.",
+  syn: ["daglige aktiviteter"],
+  related: []
+}, {
+  id: "t-respiration",
+  term: "Respiration",
+  cat: "Respiration",
+  meaning: "Vejrtrækningen.",
+  observe: "Frekvens, dybde og besvær.",
+  doc: "Rolig, upåvirket respiration.",
+  syn: ["vejrtrækning", "åndedræt"],
+  related: []
+}, {
+  id: "t-dyspnoe",
+  term: "Dyspnø",
+  cat: "Respiration",
+  meaning: "Åndenød / besværet vejrtrækning.",
+  observe: "Anstrengt vejrtrækning, høj frekvens, brug af hjælpemuskler.",
+  doc: "Borger fremstår forpustet i hvile med forhøjet respirationsfrekvens.",
+  syn: ["forpustet", "åndenød", "stakåndet"],
+  related: []
+}, {
+  id: "t-oedem",
+  term: "Ødem",
+  cat: "Kredsløb",
+  meaning: "Væskeophobning i vævet (hævelse).",
+  observe: "Hævede ben/fødder; tryk giver fordybning.",
+  doc: "Ødem på begge underben.",
+  syn: ["hævelse", "hævede ben", "væske i benene"],
+  related: ["p-stoette"]
+}, {
+  id: "t-cyanose",
+  term: "Cyanose",
+  cat: "Kredsløb",
+  meaning: "Blålig misfarvning pga. iltmangel.",
+  observe: "Blålige læber, negle eller hud.",
+  doc: "Obs. cyanose omkring læber.",
+  syn: ["blålig", "blå læber"],
+  related: []
+}, {
+  id: "t-obstipation",
+  term: "Obstipation",
+  cat: "Udskillelse",
+  meaning: "Forstoppelse.",
+  observe: "Sjælden, hård afføring; oppustethed.",
+  doc: "Ingen afføring i 3 døgn; oplyser oppustethed.",
+  syn: ["forstoppelse", "hård mave"],
+  related: []
+}, {
+  id: "t-diarre",
+  term: "Diarré",
+  cat: "Udskillelse",
+  meaning: "Hyppig, tynd afføring.",
+  observe: "Løs/vandig afføring og hyppighed.",
+  doc: "3 tynde afføringer siden morgen.",
+  syn: ["tynd mave", "løs afføring"],
+  related: []
+}, {
+  id: "t-inkontinens",
+  term: "Inkontinens",
+  cat: "Udskillelse",
+  meaning: "Ufrivillig vandladning eller afføring.",
+  observe: "Utilsigtet urin/afføring; brug af hjælpemidler.",
+  doc: "Urininkontinens; anvender ble.",
+  syn: ["kan ikke holde på vandet"],
+  related: ["p-nedre"]
+}, {
+  id: "t-diurese",
+  term: "Diurese",
+  cat: "Udskillelse",
+  meaning: "Urinproduktion / urinmængde.",
+  observe: "Mængde, farve og hyppighed.",
+  doc: "Nedsat diurese trods væskeindtag.",
+  syn: ["urinmængde", "vandladning"],
+  related: ["p-kateter"]
+}, {
+  id: "t-urin",
+  term: "Urin",
+  cat: "Udskillelse",
+  meaning: "Vandladningens indhold og udseende.",
+  observe: "Farve, klarhed, lugt og sediment.",
+  doc: "Urin uklar med kraftig lugt.",
+  syn: ["tis", "vandladning"],
+  related: ["p-kateter"]
+}, {
+  id: "t-sediment",
+  term: "Sediment",
+  cat: "Udskillelse",
+  meaning: "Bundfald/partikler i urinen.",
+  observe: "Grumset urin med synlige partikler.",
+  doc: "Synligt sediment i urinen.",
+  syn: ["bundfald", "grums"],
+  related: ["p-kateter"]
+}, {
+  id: "t-ernaeringstilstand",
+  term: "Ernæringstilstand",
+  cat: "Ernæring",
+  meaning: "Hvor godt borgeren er ernæret.",
+  observe: "Appetit, vægt og indtag.",
+  doc: "Nedsat appetit; spiser ca. 1/4 af måltider.",
+  syn: ["ernæring", "spiser dårligt"],
+  related: ["p-mund"]
+}, {
+  id: "t-dehydrering",
+  term: "Dehydrering",
+  cat: "Væske",
+  meaning: "Væskemangel i kroppen.",
+  observe: "Tørre slimhinder, tørst, nedsat urin.",
+  doc: "Tørre slimhinder og nedsat diurese — obs. dehydrering.",
+  syn: ["væskemangel", "udtørret"],
+  related: []
+}, {
+  id: "t-hudintegritet",
+  term: "Hudintegritet",
+  cat: "Hud",
+  meaning: "Hudens tilstand og hele overflade.",
+  observe: "Rødme, sår, fugt og tryksår.",
+  doc: "Intakt hud uden rødme eller sår.",
+  syn: ["hudens tilstand", "hel hud"],
+  related: ["p-nedre", "p-kateter"]
+}, {
+  id: "t-tryksaar",
+  term: "Tryksår",
+  cat: "Hud",
+  meaning: "Skade på hud/væv pga. tryk.",
+  observe: "Vedvarende rødme over knoglefremspring; sår.",
+  doc: "Rødme over haleben, forsvinder ikke ved tryk.",
+  syn: ["liggesår"],
+  related: ["p-nedre"]
+}, {
+  id: "t-konfusion",
+  term: "Konfusion",
+  cat: "Kognition",
+  meaning: "Forvirring / nedsat klarhed.",
+  observe: "Desorientering, ændret opmærksomhed.",
+  doc: "Fremstår konfus og desorienteret ift. habitualtilstand.",
+  syn: ["forvirret", "desorienteret"],
+  related: []
+}, {
+  id: "t-kateter",
+  term: "Kateter",
+  cat: "Udskillelse",
+  meaning: "Slange, der dræner urin fra blæren.",
+  observe: "Urin, lækage, smerte og hud omkring.",
+  doc: "Kateter fungerer; urin klar.",
+  syn: ["urinkateter", "kad"],
+  related: ["p-kateter"]
+}];
+const termById = id => TERMS.find(t => t.id === id);
+const termText = t => (t.term + " " + t.cat + " " + t.meaning + " " + (t.syn || []).join(" ")).toLowerCase();
+const SIG_PAIRS = [{
+  bad: "Hun virker mærkelig i dag.",
+  good: "Borgeren fremstår ændret i forhold til habitualtilstand.",
+  better: "Borgeren fremstår mere træt end vanligt og deltager mindre i samtalen."
+}, {
+  bad: "Han er forpustet.",
+  good: "Borgeren fremstår dyspnøisk.",
+  better: "Borger er forpustet i hvile med forhøjet respirationsfrekvens."
+}, {
+  bad: "Han har ondt.",
+  good: "Borgeren angiver smerter.",
+  better: "Borger angiver smerter 6/10 i højre knæ ved bevægelse."
+}, {
+  bad: "Hun spiste næsten ingenting.",
+  good: "Borgeren har nedsat appetit.",
+  better: "Borger spiste ca. 1/4 af morgenmaden; oplyser nedsat appetit."
+}, {
+  bad: "Han var forvirret.",
+  good: "Borgeren fremstår konfus.",
+  better: "Borger er desorienteret i tid og sted ift. habitualtilstand."
+}, {
+  bad: "Benene var hævede.",
+  good: "Borgeren har ødem.",
+  better: "Ødem på begge underben; tryk efterlader fordybning."
+}];
+const DOC_TRAINER = {
+  see: "Grethe har næsten ikke spist sin morgenmad.",
+  steps: ["Hvad observerede jeg?", "Hvad fortalte borgeren?", "Hvad er anderledes end vanligt?", "Hvad gjorde jeg?", "Hvem informerede jeg?", "Hvad skal følges op?"],
+  example: "Borgeren spiste ca. 1/4 af morgenmaden. Oplyser nedsat appetit. Relevant medarbejder informeret.",
+  note: "Opfind aldrig værdier. Hvis mængde, tid eller værdi ikke er kendt, så skriv det ikke som et tal."
+};
+
 /* ----------------------------- THEME ------------------------------ */
 
 const C = {
@@ -3998,6 +4537,679 @@ function EmergencyPhoneEntry({
   }, e.callLabel || "Ring")));
 }
 
+/* ---------------- Plejeprocedurer + Fagligt sprog: components ---------------- */
+
+function Acc({
+  title,
+  tone,
+  defaultOpen,
+  children
+}) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  const headColor = tone === "stop" ? RED : tone === "observer" ? "#2F6FAE" : C.ink;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      overflow: "hidden",
+      background: C.surface
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(o => !o),
+    "aria-expanded": open,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "13px 14px",
+      minHeight: 48
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: headColor
+    }
+  }, title), /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 18,
+    color: C.inkFaint,
+    style: {
+      transition: "transform .25s ease",
+      transform: open ? "rotate(180deg)" : "none",
+      flexShrink: 0
+    }
+  })), open && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 14px 14px"
+    }
+  }, children));
+}
+function Bullets({
+  items,
+  color
+}) {
+  return /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: "2px 0 0",
+      padding: 0,
+      listStyle: "none",
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, items.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 9,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: 99,
+      background: color || C.inkFaint,
+      marginTop: 7,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      lineHeight: 1.45,
+      color: C.ink
+    }
+  }, x))));
+}
+function Checks({
+  items
+}) {
+  return /*#__PURE__*/React.createElement("ul", {
+    style: {
+      margin: "2px 0 0",
+      padding: 0,
+      listStyle: "none",
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, items.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 17,
+      height: 17,
+      borderRadius: 5,
+      border: `1.6px solid ${C.inkFaint}`,
+      marginTop: 1,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      lineHeight: 1.45,
+      color: C.ink
+    }
+  }, x))));
+}
+function Steps({
+  items
+}) {
+  return /*#__PURE__*/React.createElement("ol", {
+    style: {
+      margin: "2px 0 0",
+      padding: 0,
+      listStyle: "none",
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, items.map((x, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 10,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 25,
+      height: 25,
+      borderRadius: 7,
+      background: tint(C.primary, "16"),
+      color: C.primary,
+      fontWeight: 800,
+      fontSize: 13,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14.5,
+      lineHeight: 1.45,
+      color: C.ink
+    }
+  }, x))));
+}
+function NoteCard({
+  icon,
+  color,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(color, "10"),
+      border: `1px solid ${tint(color, "2A")}`,
+      borderRadius: 13
+    }
+  }, icon, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      lineHeight: 1.5,
+      color: C.ink
+    }
+  }, children));
+}
+function ProcCard({
+  p,
+  onOpen
+}) {
+  const Ic = p.Icon || ClipboardList;
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: () => onOpen(p.id),
+    "aria-label": p.title,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 16,
+      padding: 13,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+      minHeight: 62
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: tint(C.primary, "12"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Ic, {
+    size: 20,
+    color: C.primary,
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink,
+      lineHeight: 1.2
+    }
+  }, p.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 2,
+      lineHeight: 1.35
+    }
+  }, p.desc)), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18,
+    color: C.inkFaint,
+    style: {
+      flexShrink: 0
+    }
+  }));
+}
+function TermCard({
+  t,
+  onOpen
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: () => onOpen(t.id),
+    "aria-label": t.term,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "12px 14px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      boxShadow: "0 1px 2px rgba(21,33,43,0.04)",
+      minHeight: 54
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, t.term), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 1,
+      lineHeight: 1.35,
+      display: "-webkit-box",
+      WebkitLineClamp: 1,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden"
+    }
+  }, t.meaning)), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 17,
+    color: C.inkFaint,
+    style: {
+      flexShrink: 0
+    }
+  }));
+}
+function ProcDetail({
+  p,
+  onTerm
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 13.5,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, p.desc), /*#__PURE__*/React.createElement(NoteCard, {
+    icon: /*#__PURE__*/React.createElement(Info, {
+      size: 17,
+      color: C.primary,
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }),
+    color: C.primary
+  }, p.localNote || PLEJE_GENERAL_NOTE), p.slingNote && /*#__PURE__*/React.createElement(NoteCard, {
+    icon: /*#__PURE__*/React.createElement(Siren, {
+      size: 17,
+      color: "#B7791F",
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }),
+    color: "#B7791F"
+  }, /*#__PURE__*/React.createElement("b", null, "\u26A0\uFE0F V\xE6r opm\xE6rksom."), " ", p.slingNote), p.anatomyNote && /*#__PURE__*/React.createElement(NoteCard, {
+    icon: /*#__PURE__*/React.createElement(Info, {
+      size: 17,
+      color: C.primary,
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }),
+    color: C.primary
+  }, p.anatomyNote), p.oralNote && /*#__PURE__*/React.createElement(NoteCard, {
+    icon: /*#__PURE__*/React.createElement(Info, {
+      size: 17,
+      color: C.primary,
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }),
+    color: C.primary
+  }, p.oralNote), /*#__PURE__*/React.createElement(Acc, {
+    title: "Form\xE5l"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: p.formaal,
+    color: C.primary
+  })), /*#__PURE__*/React.createElement(Acc, {
+    title: "Du skal bruge"
+  }, /*#__PURE__*/React.createElement(Checks, {
+    items: p.brug
+  })), /*#__PURE__*/React.createElement(Acc, {
+    title: "F\xF8r du starter"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: p.foer,
+    color: C.primary
+  })), p.medicinsikkerhed && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint(C.primary, "33")}`,
+      background: tint(C.primary, "0C"),
+      borderRadius: 14,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 800,
+      color: C.primary,
+      marginBottom: 7
+    }
+  }, "MEDICINSIKKERHED"), /*#__PURE__*/React.createElement(Checks, {
+    items: p.medicinsikkerhed
+  }), p.delegationNote && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "9px 0 0",
+      fontSize: 12.5,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, p.delegationNote), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "6px 0 0",
+      fontSize: 11.5,
+      color: C.inkFaint,
+      lineHeight: 1.5
+    }
+  }, "Erstatter ikke arbejdsstedets lokale medicininstruks.")), /*#__PURE__*/React.createElement(Acc, {
+    title: "Trin for trin",
+    defaultOpen: true
+  }, /*#__PURE__*/React.createElement(Steps, {
+    items: p.trin
+  })), p.safety && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint("#B7791F", "33")}`,
+      background: tint("#B7791F", "0C"),
+      borderRadius: 14,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 800,
+      color: "#8A5A0B",
+      marginBottom: 7
+    }
+  }, "\uD83D\uDED1 Sikkerhedstjek f\xF8r l\xF8ft"), /*#__PURE__*/React.createElement(Checks, {
+    items: p.safety
+  })), p.ergonomi && /*#__PURE__*/React.createElement(Acc, {
+    title: "Ergonomi for dig"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: p.ergonomi,
+    color: C.primary
+  })), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hygiejne"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: p.hygiejne,
+    color: "#0FAE9E"
+  })), /*#__PURE__*/React.createElement(Acc, {
+    title: "Observ\xE9r",
+    tone: "observer",
+    defaultOpen: true
+  }, /*#__PURE__*/React.createElement(Checks, {
+    items: p.observer
+  })), p.after && /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 7
+    }
+  }, "Tjek til sidst"), /*#__PURE__*/React.createElement(Checks, {
+    items: p.after
+  })), p.bleedNote && /*#__PURE__*/React.createElement(NoteCard, {
+    icon: /*#__PURE__*/React.createElement(Siren, {
+      size: 17,
+      color: "#B7791F",
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }),
+    color: "#B7791F"
+  }, /*#__PURE__*/React.createElement("b", null, "\u26A0\uFE0F V\xE6r opm\xE6rksom."), " ", p.bleedNote), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint(RED, "33")}`,
+      background: tint(RED, "0C"),
+      borderRadius: 14,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 800,
+      color: RED,
+      marginBottom: 7
+    }
+  }, "\uD83D\uDED1 Stop og reag\xE9r"), /*#__PURE__*/React.createElement(Bullets, {
+    items: p.stop,
+    color: RED
+  }), p.stopStrong && /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "9px 0 0",
+      fontSize: 13,
+      fontWeight: 600,
+      color: "#7A2A28",
+      lineHeight: 1.5
+    }
+  }, p.stopStrong), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "9px 0 0",
+      fontSize: 11.5,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Kontakt relevant ansvarlig fagperson efter arbejdsstedets lokale procedure ved bekymrende fund.")), /*#__PURE__*/React.createElement(Acc, {
+    title: "Dokumentation"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      lineHeight: 1.5,
+      color: C.ink
+    }
+  }, p.dokText), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#7A2A28",
+      background: tint(RED, "0C"),
+      borderRadius: 10,
+      padding: "9px 11px"
+    }
+  }, "\u274C ", p.dokHverdag), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#1F5136",
+      background: tint("#0FAE9E", "12"),
+      borderRadius: 10,
+      padding: "9px 11px"
+    }
+  }, "\u2713 ", p.dokFaglig))), /*#__PURE__*/React.createElement(Acc, {
+    title: "Faglig begrundelse"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      lineHeight: 1.55,
+      color: C.ink
+    }
+  }, p.begrundelse)), p.ord && p.ord.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: C.ink,
+      margin: "6px 0 9px"
+    }
+  }, "Faglige ord til denne opgave"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8
+    }
+  }, p.ord.map(tid => {
+    const t = termById(tid);
+    if (!t) return null;
+    return /*#__PURE__*/React.createElement("button", {
+      key: tid,
+      onClick: () => onTerm(tid),
+      style: {
+        border: `1px solid ${C.line}`,
+        background: tint(C.primary, "0C"),
+        color: C.primary,
+        borderRadius: 99,
+        padding: "7px 13px",
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      }
+    }, t.term);
+  }))));
+}
+function TermDetail({
+  t,
+  onProc
+}) {
+  const block = (label, text) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-block",
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 0.2,
+      textTransform: "uppercase",
+      color: C.primary,
+      background: tint(C.primary, "14"),
+      padding: "3px 9px",
+      borderRadius: 8,
+      marginBottom: 6
+    }
+  }, label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      lineHeight: 1.55,
+      color: C.ink
+    }
+  }, text));
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-block",
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.inkSoft,
+      background: tint(C.ink, "0A"),
+      padding: "3px 10px",
+      borderRadius: 8,
+      marginBottom: 14
+    }
+  }, t.cat), block("Betydning", t.meaning), block("Hvad kan du observere?", t.observe), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-block",
+      fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: 0.2,
+      textTransform: "uppercase",
+      color: "#1F5136",
+      background: tint("#0FAE9E", "14"),
+      padding: "3px 9px",
+      borderRadius: 8,
+      marginBottom: 6
+    }
+  }, "S\xE5dan kan du beskrive det fagligt"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      lineHeight: 1.55,
+      color: "#1F5136",
+      background: tint("#0FAE9E", "0E"),
+      borderRadius: 10,
+      padding: "10px 12px"
+    }
+  }, t.doc)), t.related && t.related.length > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: C.ink,
+      margin: "4px 0 9px"
+    }
+  }, "Se ogs\xE5"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8
+    }
+  }, t.related.map(pid => {
+    const p = procById(pid);
+    if (!p) return null;
+    return /*#__PURE__*/React.createElement("button", {
+      key: pid,
+      onClick: () => onProc(pid),
+      style: {
+        border: `1px solid ${C.line}`,
+        background: tint(C.primary, "0C"),
+        color: C.primary,
+        borderRadius: 99,
+        padding: "7px 13px",
+        fontSize: 13,
+        fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      }
+    }, p.title);
+  }))));
+}
+
 /* ------------------------------ APP ------------------------------- */
 
 function Klario() {
@@ -4011,6 +5223,10 @@ function Klario() {
   const [akutView, setAkutView] = useState(null);
   const [region, setRegion] = useState(null); // KLARIO region — kept in React state (same in-memory model as favoritter/senest brugt)
   const [callPrompt, setCallPrompt] = useState(null); // { phone } — confirmation shown before any tel: link is used
+  const [procView, setProcView] = useState(null); // Plejeprocedurer — open procedure id
+  const [termView, setTermView] = useState(null); // Fagligt sprog — open term id
+  const [procQuery, setProcQuery] = useState("");
+  const [termQuery, setTermQuery] = useState("");
   const [pbQuery, setPbQuery] = useState(""); // Akut telefonbog — instant local search
   const mainRef = useRef(null);
   const searchRef = useRef(null);
@@ -4050,6 +5266,8 @@ function Klario() {
     setActiveCat(null);
     setMoreView(null);
     setAkutView(null);
+    setProcView(null);
+    setTermView(null);
     setScreen(tab);
     scrollTop();
   };
@@ -4080,6 +5298,42 @@ function Klario() {
   const activeCatObj = DATA.find(c => c.id === activeCat);
   const akut = DATA.find(c => c.id === "akut");
   const akutCatObj = EMERGENCY_CATEGORIES.find(c => c.id === akutView);
+  const curProc = procView ? procById(procView) : null;
+  const curTerm = termView ? termById(termView) : null;
+  const procQ = procQuery.trim().toLowerCase();
+  const procResults = procQ ? PLEJE_PROCS.filter(p => procText(p).includes(procQ)) : [];
+  const termQ = termQuery.trim().toLowerCase();
+  const termResults = termQ ? TERMS.filter(t => termText(t).includes(termQ)) : [];
+  const openProc = id => {
+    setScreen("plejeprocedurer");
+    setProcView(id);
+    setTermView(null);
+    scrollTop();
+  };
+  const openTerm = id => {
+    setScreen("fagligtsprog");
+    setTermView(id);
+    setProcView(null);
+    scrollTop();
+  };
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog";
+  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : curTerm ? curTerm.term : "Fagligt sprog";
+  const pfBack = () => {
+    if (screen === "plejeprocedurer" && procView) {
+      setProcView(null);
+      scrollTop();
+      return;
+    }
+    if (screen === "fagligtsprog" && termView) {
+      setTermView(null);
+      scrollTop();
+      return;
+    }
+    setScreen("kategorier");
+    setProcView(null);
+    setTermView(null);
+    scrollTop();
+  };
   const regionName = region ? EMERGENCY_REGIONS.find(r => r.id === region)?.name : null;
   const pbQ = pbQuery.trim().toLowerCase();
   const pbResults = pbQ ? PHONEBOOK.filter(e => pbText(e).includes(pbQ)) : [];
@@ -4226,7 +5480,40 @@ function Klario() {
       fontSize: 11.5,
       color: C.inkFaint
     }
-  }, "KLARIO Information"))) : akutView ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+  }, "KLARIO Information"))) : inPF ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: pfBack,
+    "aria-label": "Tilbage",
+    style: {
+      border: "none",
+      background: tint(C.ink, "0A"),
+      width: 36,
+      height: 36,
+      borderRadius: 11,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 20,
+    color: C.ink
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: C.ink,
+      letterSpacing: -0.2
+    }
+  }, pfTitle), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint
+    }
+  }, "Kategorier"))) : akutView ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setAkutView(null);
       scrollTop();
@@ -5242,7 +6529,330 @@ function Klario() {
       fontSize: 14,
       padding: "30px 0"
     }
-  }, "Ingen emner matcher \\u201E", query, "\\u201C.")))), !activeCat && screen === "kategorier" && /*#__PURE__*/React.createElement("div", {
+  }, "Ingen emner matcher \\u201E", query, "\\u201C.")))), !activeCat && screen === "plejeprocedurer" && !procView && /*#__PURE__*/React.createElement("div", {
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 14px",
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Praktiske trin-for-trin guides til pleje, observation og dokumentation."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(C.ink, "06"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 19,
+    color: C.inkSoft
+  }), /*#__PURE__*/React.createElement("input", {
+    value: procQuery,
+    onChange: e => setProcQuery(e.target.value),
+    placeholder: "S\xF8g i plejeprocedurer",
+    "aria-label": "S\xF8g i plejeprocedurer",
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 15,
+      color: C.ink,
+      background: "transparent",
+      fontFamily: "inherit"
+    }
+  }), procQuery && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setProcQuery(""),
+    "aria-label": "Ryd s\xF8gning",
+    style: {
+      border: "none",
+      background: tint(C.ink, "12"),
+      borderRadius: 99,
+      padding: 4,
+      display: "flex",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 15,
+    color: C.inkSoft
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, (procQ ? procResults : PLEJE_PROCS).map(p => /*#__PURE__*/React.createElement(ProcCard, {
+    key: p.id,
+    p: p,
+    onOpen: openProc
+  })), procQ && procResults.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      color: C.inkFaint,
+      fontSize: 14,
+      padding: "24px 0"
+    }
+  }, "Ingen procedurer matcher \\u201E", procQuery, "\\u201C."))), !activeCat && screen === "plejeprocedurer" && procView && curProc && /*#__PURE__*/React.createElement("div", {
+    key: procView,
+    className: "anim"
+  }, /*#__PURE__*/React.createElement(ProcDetail, {
+    p: curProc,
+    onTerm: openTerm
+  })), !activeCat && screen === "fagligtsprog" && !termView && /*#__PURE__*/React.createElement("div", {
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 14px",
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Fra hverdagssprog til SSA-sprog."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(C.ink, "06"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 19,
+    color: C.inkSoft
+  }), /*#__PURE__*/React.createElement("input", {
+    value: termQuery,
+    onChange: e => setTermQuery(e.target.value),
+    placeholder: "Fx: Han er forpustet\u2026",
+    "aria-label": "S\xF8g efter ord eller situation",
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 15,
+      color: C.ink,
+      background: "transparent",
+      fontFamily: "inherit"
+    }
+  }), termQuery && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTermQuery(""),
+    "aria-label": "Ryd s\xF8gning",
+    style: {
+      border: "none",
+      background: tint(C.ink, "12"),
+      borderRadius: 99,
+      padding: 4,
+      display: "flex",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 15,
+    color: C.inkSoft
+  }))), termQ ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginBottom: 11
+    }
+  }, termResults.length, " ", termResults.length === 1 ? "resultat" : "resultater"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, termResults.map(t => /*#__PURE__*/React.createElement(TermCard, {
+    key: t.id,
+    t: t,
+    onOpen: openTerm
+  })), termResults.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      color: C.inkFaint,
+      fontSize: 14,
+      padding: "24px 0"
+    }
+  }, "Ingen ord matcher \\u201E", termQuery, "\\u201C."))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement(Acc, {
+    title: "Sig det fagligt"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, SIG_PAIRS.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      borderTop: i > 0 ? `1px solid ${C.line}` : "none",
+      paddingTop: i > 0 ? 12 : 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#7A2A28",
+      lineHeight: 1.4
+    }
+  }, "\u274C ", s.bad), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#1F5136",
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, "\u2713 ", s.good), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 4,
+      lineHeight: 1.4
+    }
+  }, "G\xF8r det mere objektivt: ", s.better))))), /*#__PURE__*/React.createElement(Acc, {
+    title: "Fra observation \u2192 dokumentation"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft
+    }
+  }, "Du ser:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 600,
+      color: C.ink,
+      margin: "3px 0 10px"
+    }
+  }, DOC_TRAINER.see), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginBottom: 6
+    }
+  }, "T\xE6nk fagligt:"), /*#__PURE__*/React.createElement("ol", {
+    style: {
+      margin: 0,
+      padding: 0,
+      listStyle: "none",
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, DOC_TRAINER.steps.map((q, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    style: {
+      display: "flex",
+      gap: 9,
+      alignItems: "flex-start"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 20,
+      height: 20,
+      borderRadius: 6,
+      background: tint(C.primary, "16"),
+      color: C.primary,
+      fontWeight: 800,
+      fontSize: 12,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13.5,
+      lineHeight: 1.45,
+      color: C.ink
+    }
+  }, q)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      margin: "12px 0 4px"
+    }
+  }, "Eksempel p\xE5 dokumentation:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#1F5136",
+      background: tint("#0FAE9E", "0E"),
+      borderRadius: 10,
+      padding: "10px 12px",
+      lineHeight: 1.5
+    }
+  }, DOC_TRAINER.example), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      marginTop: 10,
+      background: tint("#B7791F", "10"),
+      border: `1px solid ${tint("#B7791F", "2A")}`,
+      borderRadius: 10,
+      padding: "9px 11px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: "#7A4E0A",
+      lineHeight: 1.45
+    }
+  }, DOC_TRAINER.note)))), FS_CATS.map(cat => {
+    const list = TERMS.filter(t => t.cat === cat);
+    if (list.length === 0) return null;
+    return /*#__PURE__*/React.createElement("div", {
+      key: cat,
+      style: {
+        marginBottom: 18
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: C.inkFaint,
+        letterSpacing: 0.3,
+        marginBottom: 9
+      }
+    }, cat.toUpperCase()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 9
+      }
+    }, list.map(t => /*#__PURE__*/React.createElement(TermCard, {
+      key: t.id,
+      t: t,
+      onOpen: openTerm
+    }))));
+  }), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 4,
+      lineHeight: 1.5
+    }
+  }, "Stil aldrig en diagnose ud fra \xE9n observation. Beskriv objektivt, hvad du ser."))), !activeCat && screen === "fagligtsprog" && termView && curTerm && /*#__PURE__*/React.createElement("div", {
+    key: termView,
+    className: "anim"
+  }, /*#__PURE__*/React.createElement(TermDetail, {
+    t: curTerm,
+    onProc: openProc
+  })), !activeCat && screen === "kategorier" && /*#__PURE__*/React.createElement("div", {
     className: "anim"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -5253,6 +6863,129 @@ function Klario() {
       letterSpacing: -0.5
     }
   }, "Kategorier"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11,
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setProcView(null);
+      setScreen("plejeprocedurer");
+      scrollTop();
+    },
+    "aria-label": "Plejeprocedurer",
+    style: {
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 18,
+      padding: 15,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+      minHeight: 68
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      background: tint(C.primary, "14"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(ClipboardList, {
+    size: 23,
+    color: C.primary,
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Plejeprocedurer"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 2
+    }
+  }, "Trin-for-trin til pleje, observation og dokumentation.")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 20,
+    color: C.inkFaint
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setTermView(null);
+      setScreen("fagligtsprog");
+      scrollTop();
+    },
+    "aria-label": "Fagligt sprog",
+    style: {
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 18,
+      padding: 15,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+      minHeight: 68
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      background: tint("#0FAE9E", "16"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(MessageCircle, {
+    size: 23,
+    color: "#0FAE9E",
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Fagligt sprog"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 2
+    }
+  }, "Fra hverdagssprog til SSA-sprog.")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 20,
+    color: C.inkFaint
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkFaint,
+      letterSpacing: 0.3,
+      marginBottom: 11
+    }
+  }, "KLINISKE KATEGORIER"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gridTemplateColumns: "1fr 1fr",
@@ -5713,7 +7446,7 @@ function Klario() {
       padding: "8px 6px 10px"
     }
   }, nav.map(n => {
-    const active = !activeCat && screen === n.id;
+    const active = !activeCat && (screen === n.id || n.id === "kategorier" && inPF);
     return /*#__PURE__*/React.createElement("button", {
       key: n.id,
       onClick: () => goTab(n.id),
