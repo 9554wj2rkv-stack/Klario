@@ -1357,7 +1357,7 @@ function Body({ body, color }) {
 }
 
 /* expandable clinical card */
-function ClinCard({ card, cat, expanded, onToggle, isFav, onFav, showCat }) {
+function ClinCard({ card, cat, expanded, onToggle, isFav, onFav, showCat, onQuiz, onCase }) {
   return (
     <div id={`card-${card.id}`} style={{ background: C.surface, borderRadius: 20, border: `1px solid ${C.line}`, boxShadow: expanded ? "0 14px 34px rgba(21,33,43,0.10)" : "0 2px 6px rgba(21,33,43,0.04)", overflow: "hidden", transition: "box-shadow .25s ease" }}>
       <div onClick={onToggle} style={{ display: "flex", alignItems: "center", gap: 12, padding: 13, cursor: "pointer" }}>
@@ -1380,6 +1380,7 @@ function ClinCard({ card, cat, expanded, onToggle, isFav, onFav, showCat }) {
                 <Body body={s.body} color={cat.color} />
               </div>
             ))}
+            {expanded && <TestButtons topicId={card.id} onQuiz={onQuiz} onCase={onCase} />}
           </div>
         </div>
       </div>
@@ -1620,7 +1621,7 @@ function TermCard({ t, onOpen }) {
   );
 }
 
-function ProcDetail({ p, onTerm }) {
+function ProcDetail({ p, onTerm, onQuiz, onCase }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
       <p style={{ margin: 0, fontSize: 13.5, color: C.inkSoft, lineHeight: 1.5 }}>{p.desc}</p>
@@ -1690,6 +1691,7 @@ function ProcDetail({ p, onTerm }) {
           </div>
         </div>
       )}
+      <TestButtons topicId={p.id} onQuiz={onQuiz} onCase={onCase} />
     </div>
   );
 }
@@ -1725,6 +1727,689 @@ function TermDetail({ t, onProc }) {
 }
 
 
+/* ============================== LOMMEREGNERE ============================== *
+ *  Rene beregningsfunktioner + UI. Klario er et lærings-/støtteværktøj og
+ *  erstatter ikke ordination, delegation, kompetence eller faglig kontrol.
+ *  Ingen dosis opfindes; inkompatible enheder konverteres aldrig i det skjulte.
+ * ========================================================================= */
+
+const MASS_MG = { mikrogram: 0.001, mg: 1, g: 1000 };
+function convertMedicationUnit(value, from, to) {
+  if (from === to) return value;
+  if (Object.prototype.hasOwnProperty.call(MASS_MG, from) && Object.prototype.hasOwnProperty.call(MASS_MG, to)) return (value * MASS_MG[from]) / MASS_MG[to];
+  return null; // inkompatible (fx IE <-> mg)
+}
+function parseNum(s) {
+  if (s == null) return NaN;
+  const t = String(s).trim().replace(",", ".");
+  if (t === "") return NaN;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : NaN;
+}
+function fmtNum(n, dec) {
+  if (!Number.isFinite(n)) return "";
+  let s = n.toFixed(dec == null ? 3 : dec);
+  if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+  return s.replace(".", ",");
+}
+function calculateTabletCount(dose, doseUnit, strength, strengthUnit) {
+  if (!(dose > 0)) return { error: "Indtast en gyldig dosis." };
+  if (!(strength > 0)) return { error: "Styrken skal være større end 0." };
+  const conv = convertMedicationUnit(strength, strengthUnit, doseUnit);
+  if (conv == null) return { error: "Kontrollér at dosis og styrke bruger kompatible enheder." };
+  return { count: dose / conv, strengthInDoseUnit: conv, doseUnit };
+}
+function calculateLiquidVolume(dose, doseUnit, conc, concMassUnit) {
+  if (!(dose > 0)) return { error: "Indtast en gyldig dosis." };
+  if (!(conc > 0)) return { error: "Styrken skal være større end 0." };
+  const d = convertMedicationUnit(dose, doseUnit, concMassUnit);
+  if (d == null) return { error: "Kontrollér at dosis og styrke bruger kompatible enheder." };
+  return { ml: d / conc, doseInConcUnit: d, concMassUnit };
+}
+function calculateInfusionRate(volume, hours) {
+  if (!(volume > 0)) return { error: "Indtast et gyldigt volumen." };
+  if (!(hours > 0)) return { error: "Indtast en gyldig infusionstid." };
+  return { rate: volume / hours };
+}
+function calculateInfusionTime(volume, rate) {
+  if (!(volume > 0)) return { error: "Indtast et gyldigt volumen." };
+  if (!(rate > 0)) return { error: "Infusionshastigheden skal være større end 0." };
+  return { hoursTotal: volume / rate };
+}
+function calculateInfusionVolume(rate, hours) {
+  if (!(rate > 0)) return { error: "Infusionshastigheden skal være større end 0." };
+  if (!(hours > 0)) return { error: "Indtast en gyldig infusionstid." };
+  return { volume: rate * hours };
+}
+function calculateDropRate(volume, dropFactor, minutes) {
+  if (!(volume > 0)) return { error: "Indtast et gyldigt volumen." };
+  if (!(dropFactor > 0)) return { error: "Indtast en gyldig dråbefaktor (dråber/ml)." };
+  if (!(minutes > 0)) return { error: "Indtast en gyldig tid i minutter." };
+  return { drops: (volume * dropFactor) / minutes };
+}
+function calculateBMI(cm, kg) {
+  if (!(cm > 0)) return { error: "Indtast en gyldig højde." };
+  if (!(kg > 0)) return { error: "Indtast en gyldig vægt." };
+  const m = cm / 100;
+  return { bmi: kg / (m * m), m };
+}
+function hoursToHM(hoursTotal) {
+  const totalMin = Math.round(hoursTotal * 60);
+  return { h: Math.floor(totalMin / 60), m: totalMin % 60 };
+}
+function bmiCategory(bmi) {
+  if (bmi < 18.5) return "undervægt";
+  if (bmi < 25) return "normalområde";
+  if (bmi < 30) return "overvægt";
+  return "svær overvægt";
+}
+
+/* ---- shared calculator UI ---- */
+function CField({ label, value, set, placeholder }) {
+  return (
+    <div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft, marginBottom: 6 }}>{label}</div>
+      <input value={value} onChange={(e) => set(e.target.value)} inputMode="decimal" placeholder={placeholder || "0"} aria-label={label}
+        style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px 14px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit", outline: "none" }} />
+    </div>
+  );
+}
+function CSeg({ opts, val, set }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+      {opts.map((o) => {
+        const on = val === o.v;
+        return (
+          <button key={o.v} onClick={() => set(o.v)} aria-pressed={on}
+            style={{ border: `1.5px solid ${on ? C.primary : C.line}`, background: on ? tint(C.primary, "0E") : C.surface, color: on ? C.primary : C.ink, borderRadius: 10, padding: "9px 13px", fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", minHeight: 42 }}>
+            {o.l}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+function CActions({ onCalc, onReset }) {
+  return (
+    <div style={{ display: "flex", gap: 10 }}>
+      <button onClick={onCalc} style={{ flex: 2, border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 16, fontWeight: 800, cursor: "pointer", minHeight: 52 }}>Beregn</button>
+      <button onClick={onReset} style={{ flex: 1, border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 52 }}>Ryd</button>
+    </div>
+  );
+}
+function CResult({ rows, result, unit, note }) {
+  return (
+    <div style={{ border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0A"), borderRadius: 16, padding: 16 }}>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, minWidth: 78 }}>{r.k}</span>
+          <span style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.4 }}>{r.v}</span>
+        </div>
+      ))}
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${tint(C.primary, "22")}` }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft }}>Resultat</div>
+        <div style={{ fontSize: 26, fontWeight: 800, color: C.ink, marginTop: 2 }}>{result} <span style={{ fontSize: 16, fontWeight: 700, color: C.inkSoft }}>{unit}</span></div>
+      </div>
+      {note && <p style={{ margin: "10px 0 0", fontSize: 12.5, color: "#7A4E0A", background: tint("#B7791F", "12"), borderRadius: 10, padding: "9px 11px", lineHeight: 1.45 }}>{note}</p>}
+    </div>
+  );
+}
+function CError({ msg }) {
+  return (
+    <div style={{ display: "flex", gap: 9, background: tint(RED, "10"), border: `1px solid ${tint(RED, "2A")}`, borderRadius: 12, padding: "11px 13px" }}>
+      <Info size={17} color={RED} style={{ flexShrink: 0, marginTop: 1 }} />
+      <span style={{ fontSize: 13.5, fontWeight: 600, color: "#7A2A28", lineHeight: 1.45 }}>{msg}</span>
+    </div>
+  );
+}
+function CSafety({ text }) {
+  return (
+    <div style={{ display: "flex", gap: 10, background: tint(RED, "0C"), border: `1px solid ${tint(RED, "26")}`, borderRadius: 13, padding: "12px 14px" }}>
+      <Siren size={18} color={RED} style={{ flexShrink: 0, marginTop: 1 }} />
+      <div style={{ fontSize: 12.5, lineHeight: 1.5, color: C.ink }}><b style={{ color: RED }}>🛑 Ved tvivl – stop.</b> {text}</div>
+    </div>
+  );
+}
+const MED_SAFETY = "Kontrollér altid ordination, præparat, styrke, dosis, administrationsvej og lokale medicininstrukser. Brug ikke beregneren som erstatning for faglig vurdering eller dobbeltkontrol. Klario viser ikke en \u201Esikker dosis\u201D.";
+const INF_SAFETY = "Infusionsberegninger skal altid kontrolleres mod ordination, pumpeindstillinger, præparatinstruks og lokale procedurer. Resultatet skal verificeres, hvor det kræves.";
+
+const MASS_OPTS = [{ v: "mikrogram", l: "mikrogram" }, { v: "mg", l: "mg" }, { v: "g", l: "g" }, { v: "IE", l: "IE" }];
+const CONC_OPTS = [{ v: "mikrogram", l: "mikrogram/ml" }, { v: "mg", l: "mg/ml" }, { v: "g", l: "g/ml" }, { v: "IE", l: "IE/ml" }];
+
+function MedicinBeregner() {
+  const [mode, setMode] = useState("fast");
+  const [dose, setDose] = useState("");
+  const [doseU, setDoseU] = useState("mg");
+  const [strength, setStrength] = useState("");
+  const [strengthU, setStrengthU] = useState("mg");
+  const [conc, setConc] = useState("");
+  const [concU, setConcU] = useState("mg");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const reset = () => { setDose(""); setStrength(""); setConc(""); setRes(null); setErr(""); };
+  const calc = () => {
+    setRes(null); setErr("");
+    if (mode === "fast") {
+      const r = calculateTabletCount(parseNum(dose), doseU, parseNum(strength), strengthU);
+      if (r.error) { setErr(r.error); return; }
+      setRes({
+        rows: [
+          { k: "Værdier", v: `Dosis ${fmtNum(parseNum(dose))} ${doseU} · Styrke ${fmtNum(parseNum(strength))} ${strengthU} pr. stk.` },
+          { k: "Formel", v: "Dosis ÷ styrke pr. stk. = antal" },
+          { k: "Udregning", v: `${fmtNum(parseNum(dose))} ${doseU} ÷ ${fmtNum(r.strengthInDoseUnit)} ${doseU} = ${fmtNum(r.count)}` },
+        ],
+        result: fmtNum(r.count), unit: "tabletter/kapsler",
+        note: "Kontrollér om den konkrete tablet må deles, og at resultatet stemmer med ordinationen.",
+      });
+    } else {
+      const r = calculateLiquidVolume(parseNum(dose), doseU, parseNum(conc), concU);
+      if (r.error) { setErr(r.error); return; }
+      setRes({
+        rows: [
+          { k: "Værdier", v: `Dosis ${fmtNum(parseNum(dose))} ${doseU} · Styrke ${fmtNum(parseNum(conc))} ${concU}/ml` },
+          { k: "Formel", v: "Dosis ÷ styrke (pr. ml) = volumen" },
+          { k: "Udregning", v: `${fmtNum(r.doseInConcUnit)} ${concU} ÷ ${fmtNum(parseNum(conc))} ${concU}/ml = ${fmtNum(r.ml)} ml` },
+        ],
+        result: fmtNum(r.ml), unit: "ml",
+        note: "Kontrollér resultatet mod ordination og præparatinstruks.",
+      });
+    }
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <CSeg opts={[{ v: "fast", l: "Faste (tabletter)" }, { v: "flydende", l: "Flydende (ml)" }]} val={mode} set={(m) => { setMode(m); setRes(null); setErr(""); }} />
+      <CField label="Ordineret dosis" value={dose} set={setDose} />
+      <div><div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft, marginBottom: 6 }}>Dosis-enhed</div><CSeg opts={MASS_OPTS} val={doseU} set={setDoseU} /></div>
+      {mode === "fast" ? (
+        <>
+          <CField label="Styrke pr. tablet/kapsel" value={strength} set={setStrength} />
+          <div><div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft, marginBottom: 6 }}>Styrke-enhed</div><CSeg opts={MASS_OPTS} val={strengthU} set={setStrengthU} /></div>
+        </>
+      ) : (
+        <>
+          <CField label="Styrke (koncentration) pr. ml" value={conc} set={setConc} />
+          <div><div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft, marginBottom: 6 }}>Koncentrations-enhed</div><CSeg opts={CONC_OPTS} val={concU} set={setConcU} /></div>
+        </>
+      )}
+      <CActions onCalc={calc} onReset={reset} />
+      {err && <CError msg={err} />}
+      {res && <CResult rows={res.rows} result={res.result} unit={res.unit} note={res.note} />}
+      <CSafety text={MED_SAFETY} />
+    </div>
+  );
+}
+
+function InfusionsBeregner() {
+  const [mode, setMode] = useState("rate");
+  const [vol, setVol] = useState("");
+  const [timer, setTimer] = useState("");
+  const [min, setMin] = useState("");
+  const [rate, setRate] = useState("");
+  const [drop, setDrop] = useState("");
+  const [dmin, setDmin] = useState("");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const reset = () => { setVol(""); setTimer(""); setMin(""); setRate(""); setDrop(""); setDmin(""); setRes(null); setErr(""); };
+  const calc = () => {
+    setRes(null); setErr("");
+    if (mode === "rate") {
+      const hrs = (parseNum(timer) || 0) + (parseNum(min) || 0) / 60;
+      const r = calculateInfusionRate(parseNum(vol), hrs);
+      if (r.error) { setErr(r.error); return; }
+      setRes({ rows: [{ k: "Værdier", v: `Volumen ${fmtNum(parseNum(vol))} ml · Tid ${fmtNum(hrs)} timer` }, { k: "Formel", v: "Volumen ÷ tid (timer) = ml/time" }, { k: "Udregning", v: `${fmtNum(parseNum(vol))} ml ÷ ${fmtNum(hrs)} timer = ${fmtNum(r.rate)} ml/time` }], result: fmtNum(r.rate), unit: "ml/time" });
+    } else if (mode === "time") {
+      const r = calculateInfusionTime(parseNum(vol), parseNum(rate));
+      if (r.error) { setErr(r.error); return; }
+      const hm = hoursToHM(r.hoursTotal);
+      setRes({ rows: [{ k: "Værdier", v: `Volumen ${fmtNum(parseNum(vol))} ml · Hastighed ${fmtNum(parseNum(rate))} ml/time` }, { k: "Formel", v: "Volumen ÷ ml/time = tid" }, { k: "Udregning", v: `${fmtNum(parseNum(vol))} ml ÷ ${fmtNum(parseNum(rate))} ml/time = ${fmtNum(r.hoursTotal)} timer` }], result: hm.m === 0 ? `${hm.h}` : `${hm.h} t ${hm.m} min`, unit: hm.m === 0 ? "timer" : "" });
+    } else if (mode === "volume") {
+      const hrs = (parseNum(timer) || 0) + (parseNum(min) || 0) / 60;
+      const r = calculateInfusionVolume(parseNum(rate), hrs);
+      if (r.error) { setErr(r.error); return; }
+      setRes({ rows: [{ k: "Værdier", v: `Hastighed ${fmtNum(parseNum(rate))} ml/time · Tid ${fmtNum(hrs)} timer` }, { k: "Formel", v: "ml/time × tid (timer) = volumen" }, { k: "Udregning", v: `${fmtNum(parseNum(rate))} ml/time × ${fmtNum(hrs)} timer = ${fmtNum(r.volume)} ml` }], result: fmtNum(r.volume), unit: "ml" });
+    } else {
+      const r = calculateDropRate(parseNum(vol), parseNum(drop), parseNum(dmin));
+      if (r.error) { setErr(r.error); return; }
+      setRes({ rows: [{ k: "Værdier", v: `Volumen ${fmtNum(parseNum(vol))} ml · Dråbefaktor ${fmtNum(parseNum(drop))} dråber/ml · Tid ${fmtNum(parseNum(dmin))} min` }, { k: "Formel", v: "(volumen × dråbefaktor) ÷ tid (min) = dråber/min" }, { k: "Udregning", v: `(${fmtNum(parseNum(vol))} × ${fmtNum(parseNum(drop))}) ÷ ${fmtNum(parseNum(dmin))} = ${fmtNum(r.drops, 1)}` }], result: fmtNum(r.drops, 1), unit: "dråber/min", note: "Dråbefaktor skal aflæses på det konkrete infusionssæt. Kontrollér mod ordination og lokal procedure." });
+    }
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <CSeg opts={[{ v: "rate", l: "ml/time" }, { v: "time", l: "Tid" }, { v: "volume", l: "Volumen" }, { v: "drops", l: "Dråber/min" }]} val={mode} set={(m) => { setMode(m); setRes(null); setErr(""); }} />
+      {(mode === "rate" || mode === "time" || mode === "drops") && <CField label="Samlet volumen (ml)" value={vol} set={setVol} />}
+      {(mode === "time") && <CField label="Hastighed (ml/time)" value={rate} set={setRate} />}
+      {(mode === "volume") && <CField label="Hastighed (ml/time)" value={rate} set={setRate} />}
+      {(mode === "rate" || mode === "volume") && (
+        <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ flex: 1 }}><CField label="Timer" value={timer} set={setTimer} /></div>
+          <div style={{ flex: 1 }}><CField label="Minutter" value={min} set={setMin} /></div>
+        </div>
+      )}
+      {mode === "drops" && <><CField label="Dråbefaktor (dråber/ml)" value={drop} set={setDrop} /><CField label="Tid (minutter)" value={dmin} set={setDmin} /></>}
+      <CActions onCalc={calc} onReset={reset} />
+      {err && <CError msg={err} />}
+      {res && <CResult rows={res.rows} result={res.result} unit={res.unit} note={res.note} />}
+      <CSafety text={INF_SAFETY} />
+    </div>
+  );
+}
+
+function BmiBeregner() {
+  const [cm, setCm] = useState("");
+  const [kg, setKg] = useState("");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const reset = () => { setCm(""); setKg(""); setRes(null); setErr(""); };
+  const calc = () => {
+    setRes(null); setErr("");
+    const r = calculateBMI(parseNum(cm), parseNum(kg));
+    if (r.error) { setErr(r.error); return; }
+    setRes({ rows: [{ k: "Værdier", v: `Højde ${fmtNum(parseNum(cm))} cm (${fmtNum(r.m)} m) · Vægt ${fmtNum(parseNum(kg))} kg` }, { k: "Formel", v: "BMI = vægt (kg) ÷ højde² (m)" }, { k: "Udregning", v: `${fmtNum(parseNum(kg))} ÷ (${fmtNum(r.m)} × ${fmtNum(r.m)}) = ${fmtNum(r.bmi, 1)}` }], result: fmtNum(r.bmi, 1), unit: "· " + bmiCategory(r.bmi) });
+  };
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <CField label="Højde (cm)" value={cm} set={setCm} />
+      <CField label="Vægt (kg)" value={kg} set={setKg} />
+      <CActions onCalc={calc} onReset={reset} />
+      {err && <CError msg={err} />}
+      {res && <CResult rows={res.rows} result={"BMI " + res.result} unit={res.unit} />}
+      <div style={{ display: "flex", gap: 10, background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 13, padding: "12px 14px" }}>
+        <Info size={17} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} />
+        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: C.ink }}>BMI beskriver forholdet mellem vægt og højde, men siger ikke direkte noget om muskelmasse, fedtfordeling eller individuel helbredstilstand. Brug det kun som et screenings-/referencemål — ikke som en diagnose.</div>
+      </div>
+    </div>
+  );
+}
+
+const CALC_TOOLS = [
+  { id: "medicin", title: "Medicinberegner", sub: "Dosis, styrke og mængde", Icon: Pill, kw: "medicinberegner medicinberegning dosis tabletter kapsler flydende medicin styrke mængde mg ml mikrogram" },
+  { id: "infusion", title: "Infusioner", sub: "ml/time, tid og volumen", Icon: Droplets, kw: "infusioner infusionsberegner infusion ml/time tid volumen dråber/minut dråber/min dråbefaktor" },
+  { id: "bmi", title: "BMI-beregner", sub: "Højde + vægt → BMI", Icon: Gauge, kw: "bmi bmi-beregner højde vægt body mass index" },
+];
+const calcSearch = (q) => { const s = (q || "").trim().toLowerCase(); return s ? CALC_TOOLS.filter((c) => (c.title + " " + c.sub + " " + c.kw).toLowerCase().includes(s)) : []; };
+
+
+/* ========================= QUIZ + CASE-TRÆNING ========================= *
+ *  Læringslag. Quizindhold er generel SSA-viden (proces, observation,
+ *  terminologi, beregning med opgivne tal). Lægemiddelspecifikke svar
+ *  opfindes IKKE — de markeres som "verificeret svar mangler".
+ *  Alle borgere er fiktive.
+ * ===================================================================== */
+
+const CASE_SAFETY = "Case-træning er til læring og må ikke bruges som grundlag for behandling af en konkret borger. Følg altid ordinationer, lokale instrukser og relevant sundhedsfaglig vejledning.";
+const FLAG_NOTE = "Fagligt verificeret svar mangler. Slå præparatet op i en godkendt kilde (fx pro.medicin.dk eller arbejdsstedets instruks). Verificeret svar tilføjes, når det er bekræftet.";
+
+const T = "Sandt", F = "Falsk";
+const QUIZZES = {
+  "obs-respiration": { title: "Respiration", qs: [
+    { q: "Hvad er en normal respirationsfrekvens for en voksen i hvile?", type: "mc", opts: ["6–8 pr. min", "12–20 pr. min", "24–30 pr. min"], correct: [1], why: "Normalområdet for en voksen i hvile er ca. 12–20 vejrtrækninger pr. minut." },
+    { q: "Cyanose (blålige læber) er et advarselstegn ved respiration.", type: "tf", opts: [T, F], correct: [0], why: "Cyanose kan tyde på iltmangel og skal tages alvorligt." },
+    { q: "Hvad kalder man åndenød med et fagligt ord?", type: "mc", opts: ["Dyspnø", "Ødem", "Cyanose"], correct: [0], why: "Dyspnø betyder åndenød/besværet vejrtrækning." },
+    { q: "Hvad observerer du ved respiration? (vælg alle korrekte)", type: "multi", opts: ["Frekvens", "Dybde", "Hårfarve", "Brug af hjælpemuskler"], correct: [0, 1, 3], why: "Du vurderer frekvens, dybde, rytme og brug af hjælpemuskler — ikke hårfarve." },
+    { q: "Hvad gør du først ved pludselig svær åndenød?", type: "mc", opts: ["Dokumenterer i journalen", "Skaber ro, hjælper op i siddende stilling og tilkalder hjælp", "Venter og ser tiden an"], correct: [1], why: "Skab ro, siddende stilling og tilkald hjælp; ilt efter retningslinje. Ring 1-1-2 ved svær åndenød." },
+  ] },
+  "saar-tryksaar": { title: "Tryksår", qs: [
+    { q: "Hvor opstår tryksår typisk?", type: "mc", opts: ["Over knoglefremspring som hæl og haleben", "Midt på maven", "På håndryggen"], correct: [0], why: "Tryksår opstår, hvor der er vedvarende tryk over knoglefremspring." },
+    { q: "Rødme, der ikke forsvinder ved tryk, kan være et tidligt tryksår.", type: "tf", opts: [T, F], correct: [0], why: "Vedvarende rødme (kategori 1) er et tidligt tegn." },
+    { q: "Hvad forebygger tryksår? (vælg alle korrekte)", type: "multi", opts: ["Trykaflastning og lejring", "Hudpleje", "At lade borgeren ligge længe i samme stilling", "Observation af huden"], correct: [0, 1, 3], why: "Lejring/trykaflastning, hudpleje og observation forebygger; langvarigt tryk gør det værre." },
+    { q: "Hvad gør du ved et nyopstået tryksår?", type: "mc", opts: ["Ignorerer det", "Kontakter ansvarlig og iværksætter trykaflastning", "Masserer området kraftigt"], correct: [1], why: "Kontakt ansvarlig og aflast; massage af tryksår anbefales ikke." },
+    { q: "Et fagligt ord for hudens tilstand er…", type: "mc", opts: ["Hudintegritet", "Diurese", "Dyspnø"], correct: [0], why: "Hudintegritet beskriver hudens hele/tilstand." },
+  ] },
+  "p-kateter": { title: "Kateterpleje", qs: [
+    { q: "Hvor skal urinposen placeres?", type: "mc", opts: ["Højere end blæren", "Lavere end blæren", "Det er ligegyldigt"], correct: [1], why: "Posen placeres lavere end blæren, så urin ikke løber tilbage." },
+    { q: "Du bør undgå unødvendig åbning af det lukkede drænagesystem.", type: "tf", opts: [T, F], correct: [0], why: "Det lukkede system holdes lukket for at nedsætte infektionsrisiko." },
+    { q: "Hvad observerer du ved urinen? (vælg alle korrekte)", type: "multi", opts: ["Farve", "Klarhed", "Lugt", "Rumtemperatur"], correct: [0, 1, 2], why: "Farve, klarhed, lugt og evt. sediment/mængde — ikke rumtemperatur." },
+    { q: "Hvornår reagerer du og kontakter ansvarlig?", type: "mc", opts: ["Ved klar, lys urin", "Ved blod i urinen, feber eller stærk smerte", "Aldrig"], correct: [1], why: "Blod, feber eller stærk smerte kræver kontakt til ansvarlig." },
+    { q: "Hvad gør du for at undgå skade på kateteret?", type: "mc", opts: ["Trækker i det for at tjekke", "Undgår træk og knæk på slangen", "Klemmer slangen sammen"], correct: [1], why: "Undgå træk og knæk; håndtér nænsomt." },
+  ] },
+  "p-nedre": { title: "Nedre hygiejne", qs: [
+    { q: "Hvilket princip arbejder du efter?", type: "mc", opts: ["Fra urent mod rent", "Fra rent mod urent", "Tilfældigt"], correct: [1], why: "Arbejd fra rent mod urent for ikke at flytte smitte." },
+    { q: "Værdighed og privatliv er en vigtig del af nedre hygiejne.", type: "tf", opts: [T, F], correct: [0], why: "Bevar altid værdighed og privatliv og inddrag samtykke." },
+    { q: "Hvad observerer du på huden? (vælg alle korrekte)", type: "multi", opts: ["Rødme", "Sår", "Svampelignende forandringer", "Borgerens yndlingsfarve"], correct: [0, 1, 2], why: "Rødme, sår, fugt, svamp og tryksår m.m. — ikke yndlingsfarve." },
+    { q: "Hvad gør du efter vask?", type: "mc", opts: ["Lader huden være våd", "Tørrer huden omhyggeligt, også i hudfolder", "Bruger samme klud igen"], correct: [1], why: "Tør huden godt, især i folder; skift klud/flade løbende." },
+    { q: "Hvorfor skifter du klud/kontaktflade undervejs?", type: "mc", opts: ["For at spare tid", "For at undgå at flytte snavs/smitte", "Det er ligegyldigt"], correct: [1], why: "Skift forebygger krydskontaminering." },
+  ] },
+  "p-medicin": { title: "Medicinadministration", qs: [
+    { q: "Hvad hører til de rigtige kontroller? (vælg alle korrekte)", type: "multi", opts: ["Rigtig borger", "Rigtig dosis", "Rigtig administrationsvej", "Rigtig vejrudsigt"], correct: [0, 1, 2], why: "Borger, lægemiddel, dosis, tidspunkt, administrationsvej og dokumentation." },
+    { q: "Er du i tvivl om dosis, må du gætte.", type: "tf", opts: [T, F], correct: [1], why: "Ved tvivl: stop og kontakt ansvarlig — gæt aldrig." },
+    { q: "Hvad gør du ved en medicinfejl?", type: "mc", opts: ["Skjuler den", "Vurderer borger, kontakter ansvarlig og rapporterer som UTH", "Venter til næste vagt"], correct: [1], why: "Vurder borgeren, kontakt ansvarlig og rapportér som utilsigtet hændelse." },
+    { q: "Hvad skal du kende, før du giver medicin?", type: "mc", opts: ["Din kompetence og den delegation/instruks, du arbejder efter", "Kun borgerens navn", "Ingenting"], correct: [0], why: "Du skal kende din kompetence og delegation/instruks." },
+    { q: "Du skal observere borgeren efter medicingivning.", type: "tf", opts: [T, F], correct: [0], why: "Observér for virkning og bivirkning, og dokumentér." },
+  ] },
+  "fs": { title: "Fagligt sprog", qs: [
+    { q: "\u201EHan er forpustet\u201C beskrives fagligt som…", type: "mc", opts: ["Dyspnø", "Cyanose", "Ødem"], correct: [0], why: "Dyspnø = åndenød/besværet vejrtrækning." },
+    { q: "\u201EHævede ben\u201C hedder fagligt…", type: "mc", opts: ["Ødem", "Diurese", "Konfusion"], correct: [0], why: "Ødem = væskeophobning i vævet." },
+    { q: "\u201EForvirret\u201C beskrives fagligt som…", type: "mc", opts: ["Konfus", "Dyspnøisk", "Inkontinent"], correct: [0], why: "Konfusion = forvirring/nedsat klarhed." },
+    { q: "\u201EBorger fremstår ændret ift. habitualtilstand\u201C er en brugbar faglig formulering.", type: "tf", opts: [T, F], correct: [0], why: "Den henviser til borgerens vanlige tilstand — suppler gerne med konkrete observationer." },
+    { q: "Hvad er mest objektivt?", type: "mc", opts: ["Hun virker mærkelig", "Borger spiste ca. 1/4 af morgenmaden og deltager mindre i samtalen", "Hun har det skidt"], correct: [1], why: "Objektivt = konkret og observerbart." },
+  ] },
+};
+
+const CASE_LEVELS = { 1: "Niveau 1 – Grundlæggende", 2: "Niveau 2 – Praktik", 3: "Niveau 3 – Farmakologi" };
+
+const CASES = [
+  {
+    id: "case-hjerte-medicin", category: "Hjerte/kredsløb", level: 3, title: "Leif, 65 år – hjerte og medicin",
+    citizen: "Leif, 65 år (fiktiv borger). Bor alene i eget hjem og klarer det meste selv.",
+    situation: "Leif får hjælp til sin medicin. Han har kendt hjertesvigt og forhøjet blodtryk.",
+    history: "Kendt hjertesvigt og forhøjet blodtryk. Ingen kendt kognitiv svækkelse.",
+    medications: ["Furix", "Digoxin", "Kalium", "Imdur"],
+    observations: ["Leif virker mere træt end vanligt.", "Han vil ikke tage sin medicin i dag.", "Lidt hævede ankler (ødem)."],
+    questions: [
+      { section: "A · Præparat", q: "Hvad bruges Furix til, og hvad er den ønskede virkning?", flagged: true },
+      { section: "A · Præparat", q: "Hvordan virker Digoxin, og hvilke relevante bivirkninger skal du kende?", flagged: true },
+      { section: "B · Farmakodynamik", q: "Hvad gør præparaterne ved kroppen, og hvilken effekt forventes?", flagged: true },
+      { section: "C · Farmakokinetik", q: "Hvordan optages, fordeles, nedbrydes og udskilles præparatet (på SSA-niveau)?", flagged: true },
+      { section: "D · Interaktioner", q: "Er der præparater i listen, der kan påvirke hinanden? Hvad skal du være opmærksom på?", flagged: true },
+      { section: "E · Kontraindikationer", q: "Hvilke kontraindikationer er relevante for præparaterne?", flagged: true },
+      { section: "F · Dispenseringsformer", q: "Hvilke dispenseringsformer kan præparaterne fås i (fx tablet, mikstur, injektion, depot)?", flagged: true },
+      { section: "G · Observation", q: "Hvad skal du være særligt opmærksom på hos Leif, og hvornår i hverdagen kan du observere det?", answer: "Observér Leifs almentilstand: træthed/ændring ift. habitualtilstand, hævelse (ødem) i anklerne, vejrtrækning og om han tager sin medicin. Du kan observere det ved daglige besøg, ved måltider og ved personlig pleje. Følg ordination og lokal instruks, og kontakt ansvarlig ved ændringer.", why: "Observation bygger på borgerens habitualtilstand og konkrete, objektive fund — ikke på gæt om lægemidlernes virkning." },
+      { section: "H · Dokumentation", type: "doc", q: "Skriv fagligt: \u201ELeif virker mere træt og vil ikke tage sin medicin.\u201C", answer: "Fx: \u201EBorger fremstår mere træt end vanligt (ændring ift. habitualtilstand). Ønsker ikke at tage sin medicin i dag. Ansvarlig sygeplejerske informeret.\u201C", why: "Beskriv objektivt og konkret, medtag ændring ift. habitualtilstand og hvem du har informeret." },
+      { section: "I · Medicinregning", type: "calc", q: "Ordination: Kaliumklorid 1500 mg × 2 dagligt. Præparat: Kaliumklorid 750 mg pr. tablet. Hvor mange tabletter pr. dosis og pr. døgn?", steps: ["1500 mg ÷ 750 mg = 2 tabletter pr. dosis", "2 doser × 2 tabletter = 4 tabletter pr. døgn"], result: "2 tabletter pr. dosis · 4 tabletter pr. døgn" },
+    ],
+    relatedTopics: ["p-medicin", "diag-hjertesvigt", "t-oedem"],
+  },
+  {
+    id: "case-diabetes", category: "Diabetes", level: 2, title: "Gerda, 78 år – diabetes og observation",
+    citizen: "Gerda, 78 år (fiktiv borger). Får hjælp i hjemmet.",
+    situation: "Gerda har type 2-diabetes. Du kommer til morgenbesøg.",
+    history: "Kendt type 2-diabetes.",
+    medications: ["Insulin (efter ordination)"],
+    observations: ["Gerda er sløv og klam om morgenen.", "Hun har ikke spist morgenmad."],
+    questions: [
+      { q: "Hvilke tegn kan tyde på lavt blodsukker?", answer: "Fx sved, klam hud, sløvhed, forvirring eller uro. Vurder altid sammen med borgerens habitualtilstand.", why: "Generelle observationstegn — følg lokal instruks og ordineret plan." },
+      { q: "Hvad gør du ved mistanke om lavt blodsukker?", answer: "Følg lokal instruks/ordineret plan, mål blodsukker hvis du er oplært og delegeret til det, og kontakt ansvarlig ved tvivl. Klario viser ikke behandling.", why: "Handling følger delegation og lokal instruks — ikke gæt." },
+      { type: "doc", q: "Skriv fagligt: \u201EGerda er sløv og klam og har ikke spist.\u201C", answer: "Fx: \u201EBorger fremstår sløv med klam hud. Har ikke indtaget morgenmad. Ansvarlig kontaktet.\u201C", why: "Objektivt, konkret og med handling." },
+    ],
+    relatedTopics: ["diag-diabetes", "nv-bs"],
+  },
+  {
+    id: "case-obstipation", category: "Obstipation", level: 1, title: "Karl, 82 år – obstipation",
+    citizen: "Karl, 82 år (fiktiv borger). Får hjælp til personlig pleje.",
+    situation: "Karl har ikke haft afføring i flere dage og føler sig utilpas.",
+    history: "Nedsat mobilitet.",
+    medications: [],
+    observations: ["Ingen afføring i 3 døgn.", "Oppustet mave; oplyser ubehag."],
+    questions: [
+      { q: "Hvad observerer du ved mistanke om obstipation?", answer: "Hvornår borgeren sidst har haft afføring, konsistens, mavegener/oppustethed, appetit samt væske-, fiber- og aktivitetsniveau.", why: "Systematisk observation giver overblik." },
+      { q: "Hvad kan du gøre inden for borgerens plan?", answer: "Tilbyd væske, fibre og mobilisering inden for planen, observér og kontakt ansvarlig ved vedvarende obstipation. Følg lokal instruks.", why: "Handling holder sig inden for plan og delegation." },
+      { q: "Hvad er det faglige ord for forstoppelse?", answer: "Obstipation.", why: "Obstipation = forstoppelse." },
+    ],
+    relatedTopics: ["ern-obstipation", "t-obstipation"],
+  },
+  {
+    id: "case-respiration", category: "Respiration", level: 1, title: "Bodil, 70 år – respiration",
+    citizen: "Bodil, 70 år (fiktiv borger).",
+    situation: "Bodil er blevet mere forpustet det seneste døgn.",
+    history: "Ingen kendt lungesygdom oplyst i casen.",
+    medications: [],
+    observations: ["Forpustet ved gang.", "Respirationsfrekvensen virker forhøjet."],
+    questions: [
+      { q: "Hvad observerer du ved respiration?", answer: "Frekvens, dybde, rytme, besvær/brug af hjælpemuskler, hudfarve (cyanose) og lyde.", why: "Systematisk respirationsobservation." },
+      { q: "Hvad er det faglige ord for åndenød?", answer: "Dyspnø.", why: "Dyspnø = åndenød/besværet vejrtrækning." },
+      { q: "Hvad gør du ved svær åndenød?", answer: "Skab ro, hjælp op i siddende stilling, ilt efter retningslinje og tilkald hjælp. Ring 1-1-2 ved svær åndenød eller cyanose.", why: "Sikkerhed først; følg lokal retningslinje." },
+    ],
+    relatedTopics: ["obs-respiration", "t-dyspnoe"],
+  },
+  {
+    id: "case-kateter", category: "Infektion", level: 2, title: "Aksel, 74 år – kateter og urin",
+    citizen: "Aksel, 74 år (fiktiv borger). Har permanent kateter.",
+    situation: "Du kommer på besøg og skal hjælpe med personlig pleje.",
+    history: "Permanent kateter.",
+    medications: [],
+    observations: ["Uklar urin med kraftig lugt.", "Ingen feber oplyst."],
+    questions: [
+      { q: "Hvad observerer du på urinen?", answer: "Farve, klarhed, lugt, evt. sediment og mængde samt lækage ved kateteret.", why: "Grundlæggende urinobservation ved kateter." },
+      { q: "Hvor placeres urinposen, og hvorfor?", answer: "Lavere end blæren, så urin ikke løber tilbage (nedsætter infektionsrisiko).", why: "Tilbageløb øger risiko for infektion." },
+      { q: "Hvornår kontakter du ansvarlig?", answer: "Ved blod i urinen, feber, stærk smerte, ingen urin trods væskeindtag eller tegn på infektion.", why: "Eskalering ved bekymrende fund." },
+    ],
+    relatedTopics: ["p-kateter", "t-urin", "t-diurese"],
+  },
+  {
+    id: "case-medicinsikkerhed", category: "Medicin", level: 2, title: "Inge, 80 år – medicinsikkerhed",
+    citizen: "Inge, 80 år (fiktiv borger).",
+    situation: "Du skal hjælpe Inge med hendes medicin, men noget ser forkert ud.",
+    history: "Ingen kendt kognitiv svækkelse.",
+    medications: ["Medicin i doseringsæske"],
+    observations: ["Medicinen i æsken stemmer ikke med det forventede.", "Inge spørger, om det er de rigtige piller."],
+    questions: [
+      { q: "Hvad gør du, når noget ikke stemmer?", answer: "Stop. Giv ikke medicinen. Kontrollér ordination, og kontakt den relevante ansvarlige fagperson. Gæt aldrig.", why: "Ved tvivl – stop. Sikkerhed frem for at gennemføre." },
+      { q: "Hvilke kontroller hører til sikker medicingivning?", answer: "Rigtig borger, rigtigt lægemiddel, rigtig dosis, rigtigt tidspunkt, rigtig administrationsvej og relevant dokumentation.", why: "De grundlæggende kontroller forebygger fejl." },
+      { type: "calc", q: "Ordination: 500 mg. Præparat: 250 mg pr. tablet. Hvor mange tabletter gives?", steps: ["500 mg ÷ 250 mg = 2 tabletter"], result: "2 tabletter" },
+    ],
+    relatedTopics: ["p-medicin", "med-5r"],
+  },
+];
+const caseById = (id) => CASES.find((c) => c.id === id);
+/* topic -> case, for "Øv dette i en case" */
+const TOPIC_CASE = { "p-kateter": "case-kateter", "p-medicin": "case-medicinsikkerhed", "obs-respiration": "case-respiration", "ern-obstipation": "case-obstipation", "diag-hjertesvigt": "case-hjerte-medicin", "diag-diabetes": "case-diabetes" };
+
+/* ---- Quiz + Case components ---- */
+function quizBand(score, total) {
+  const p = total > 0 ? score / total : 0;
+  if (p >= 0.8) return "Stærkt overblik";
+  if (p >= 0.5) return "Godt på vej";
+  return "Gennemgå emnet igen";
+}
+
+function Quiz({ quiz, onClose }) {
+  const [idx, setIdx] = useState(0);
+  const [sel, setSel] = useState([]);
+  const [checked, setChecked] = useState(false);
+  const [score, setScore] = useState(0);
+  const [wrong, setWrong] = useState([]);
+  const [phase, setPhase] = useState("quiz");
+  const qs = quiz.qs; const q = qs[idx];
+  const isMulti = q && q.type === "multi";
+  const eq = (a, b) => { const x = [...a].sort(), y = [...b].sort(); return x.length === y.length && x.every((v, i) => v === y[i]); };
+  const toggle = (i) => { if (checked) return; setSel((s) => isMulti ? (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]) : [i]); };
+  const check = () => { if (sel.length === 0) return; const ok = eq(sel, q.correct); setChecked(true); if (ok) setScore((s) => s + 1); else setWrong((w) => w.includes(idx) ? w : [...w, idx]); };
+  const next = () => { if (idx + 1 < qs.length) { setIdx(idx + 1); setSel([]); setChecked(false); } else setPhase("result"); };
+  const restart = () => { setIdx(0); setSel([]); setChecked(false); setScore(0); setWrong([]); setPhase("quiz"); };
+  const correctNow = checked && eq(sel, q.correct);
+  return (
+    <div role="dialog" aria-modal="true" aria-label={"Quiz: " + quiz.title} style={{ position: "absolute", inset: 0, zIndex: 40, background: C.bg, display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "13px 16px", borderBottom: `1px solid ${C.line}`, background: C.surface }}>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>Test din viden</div>
+          <div style={{ fontSize: 11.5, color: C.inkFaint }}>{quiz.title}{phase === "quiz" ? " · " + (idx + 1) + " af " + qs.length : ""}</div>
+        </div>
+        <button onClick={onClose} aria-label="Luk" style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={20} color={C.ink} /></button>
+      </div>
+      <div className="cscroll" style={{ flex: 1, overflowY: "auto", padding: "18px 16px 24px" }}>
+        {phase === "quiz" && q && (
+          <div className="anim" key={idx}>
+            <div style={{ height: 6, borderRadius: 99, background: C.line, marginBottom: 18, overflow: "hidden" }}><div style={{ height: "100%", width: ((idx + (checked ? 1 : 0)) / qs.length) * 100 + "%", background: C.primary, transition: "width .3s ease" }} /></div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, lineHeight: 1.35, marginBottom: 14 }}>{q.q}</div>
+            {isMulti && !checked && <div style={{ fontSize: 12.5, color: C.inkSoft, marginBottom: 10 }}>Vælg alle korrekte.</div>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {q.opts.map((o, i) => {
+                const isSel = sel.includes(i); const isCorrect = q.correct.includes(i);
+                let bd = C.line, bg = C.surface, col = C.ink;
+                if (checked) { if (isCorrect) { bd = "#0FAE9E"; bg = tint("#0FAE9E", "12"); } else if (isSel) { bd = RED; bg = tint(RED, "0E"); } }
+                else if (isSel) { bd = C.primary; bg = tint(C.primary, "0E"); }
+                return (
+                  <button key={i} onClick={() => toggle(i)} aria-pressed={isSel} style={{ textAlign: "left", border: `1.6px solid ${bd}`, background: bg, borderRadius: 14, padding: "14px 15px", cursor: checked ? "default" : "pointer", fontFamily: "inherit", fontSize: 15, fontWeight: 600, color: col, minHeight: 52, display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ flex: 1 }}>{o}</span>
+                    {checked && isCorrect && <ShieldCheck size={18} color="#0FAE9E" />}
+                    {checked && isSel && !isCorrect && <X size={18} color={RED} />}
+                  </button>
+                );
+              })}
+            </div>
+            {checked && (
+              <div style={{ marginTop: 14, background: correctNow ? tint("#0FAE9E", "10") : tint(RED, "0C"), border: `1px solid ${correctNow ? tint("#0FAE9E", "33") : tint(RED, "26")}`, borderRadius: 14, padding: "13px 14px" }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: correctNow ? "#1F5136" : "#7A2A28" }}>{correctNow ? "Rigtigt" : "Ikke helt"}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginTop: 8 }}>Hvorfor?</div>
+                <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.5, marginTop: 2 }}>{q.why}</div>
+              </div>
+            )}
+            <div style={{ marginTop: 16 }}>
+              {!checked ? (
+                <button onClick={check} disabled={sel.length === 0} style={{ width: "100%", border: "none", borderRadius: 13, padding: "14px", background: sel.length === 0 ? tint(C.ink, "14") : "linear-gradient(135deg,#3E78EE,#2457D6)", color: sel.length === 0 ? C.inkFaint : "#fff", fontFamily: "inherit", fontSize: 16, fontWeight: 800, cursor: sel.length === 0 ? "default" : "pointer", minHeight: 52 }}>Tjek svar</button>
+              ) : (
+                <button onClick={next} style={{ width: "100%", border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 16, fontWeight: 800, cursor: "pointer", minHeight: 52 }}>{idx + 1 < qs.length ? "Næste" : "Se resultat"}</button>
+              )}
+            </div>
+          </div>
+        )}
+        {phase === "result" && (
+          <div className="anim" style={{ textAlign: "center", paddingTop: 20 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>Resultat</div>
+            <div style={{ fontSize: 44, fontWeight: 900, color: C.ink, margin: "4px 0" }}>{score}/{qs.length}</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.primary, marginBottom: 22 }}>{quizBand(score, qs.length)}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320, margin: "0 auto" }}>
+              <button onClick={restart} style={{ border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Prøv igen</button>
+              {wrong.length > 0 && <button onClick={() => setPhase("review")} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Gennemgå fejl ({wrong.length})</button>}
+              <button onClick={onClose} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Luk</button>
+            </div>
+          </div>
+        )}
+        {phase === "review" && (
+          <div className="anim">
+            <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 14 }}>Gennemgå fejl</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {wrong.map((wi) => { const wq = qs[wi]; return (
+                <div key={wi} style={{ border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 14px", background: C.surface }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, lineHeight: 1.35 }}>{wq.q}</div>
+                  <div style={{ fontSize: 13, color: "#1F5136", marginTop: 8 }}>Korrekt: {wq.correct.map((ci) => wq.opts[ci]).join(", ")}</div>
+                  <div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.5, marginTop: 6 }}>{wq.why}</div>
+                </div>
+              ); })}
+            </div>
+            <button onClick={() => setPhase("result")} style={{ width: "100%", marginTop: 16, border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Tilbage til resultat</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TestButtons({ topicId, onQuiz, onCase }) {
+  const hasQuiz = onQuiz && QUIZZES[topicId];
+  const caseId = onCase && TOPIC_CASE[topicId];
+  if (!hasQuiz && !caseId) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 4 }}>
+      {hasQuiz && (
+        <button onClick={() => onQuiz(topicId)} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 13, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}>
+          <ShieldCheck size={18} color={C.primary} />
+          <span style={{ flex: 1, textAlign: "left", fontSize: 14, fontWeight: 700, color: C.primary }}>Test din viden</span>
+          <ChevronRight size={17} color={C.primary} />
+        </button>
+      )}
+      {caseId && (
+        <button onClick={() => onCase(caseId)} style={{ width: "100%", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}>
+          <ClipboardList size={18} color={C.inkSoft} />
+          <span style={{ flex: 1, textAlign: "left", fontSize: 14, fontWeight: 700, color: C.ink }}>Øv dette i en case</span>
+          <ChevronRight size={17} color={C.inkFaint} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CaseCard({ c, onOpen }) {
+  return (
+    <button onClick={() => onOpen(c.id)} aria-label={c.title} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 16, padding: 14, cursor: "pointer", boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+      <div style={{ display: "flex", gap: 7, marginBottom: 7, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.primary, background: tint(C.primary, "12"), padding: "2px 8px", borderRadius: 7 }}>{c.category}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft, background: tint(C.ink, "0A"), padding: "2px 8px", borderRadius: 7 }}>Niveau {c.level}</span>
+      </div>
+      <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{c.title}</div>
+      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.4 }}>{c.situation}</div>
+    </button>
+  );
+}
+
+function CaseQuestion({ q }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 14px", background: C.surface }}>
+      {q.section && <div style={{ fontSize: 11, fontWeight: 700, color: C.primary, marginBottom: 4 }}>{q.section}</div>}
+      <div style={{ fontSize: 14.5, fontWeight: 600, color: C.ink, lineHeight: 1.4 }}>{q.q}</div>
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ marginTop: 10, border: `1px solid ${C.line}`, background: tint(C.primary, "0A"), color: C.primary, borderRadius: 11, padding: "9px 14px", fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Se svar</button>
+      ) : (
+        <div style={{ marginTop: 10 }}>
+          {q.type === "calc" ? (
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginBottom: 6 }}>Udregning</div>
+              <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 6 }}>
+                {q.steps.map((s, i) => <li key={i} style={{ fontSize: 14, color: C.ink, lineHeight: 1.4 }}>{i + 1}. {s}</li>)}
+              </ol>
+              <div style={{ marginTop: 8, fontSize: 15, fontWeight: 800, color: C.ink }}>{q.result}</div>
+            </div>
+          ) : q.flagged ? (
+            <div style={{ display: "flex", gap: 9, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "2A")}`, borderRadius: 11, padding: "10px 12px" }}>
+              <Info size={16} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: 12.5, color: "#7A4E0A", lineHeight: 1.45 }}>{FLAG_NOTE}</span>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft }}>Forslag til svar</div>
+              <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.5, marginTop: 2 }}>{q.answer}</div>
+              {q.why && <><div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginTop: 8 }}>Hvorfor?</div><div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.5, marginTop: 2 }}>{q.why}</div></>}
+              {q.type === "doc" && <div style={{ fontSize: 12, color: C.inkFaint, marginTop: 8, lineHeight: 1.45 }}>Flere formuleringer kan være korrekte, så længe de er objektive og konkrete.</div>}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseDetail({ c, onTopic }) {
+  const sec = (label, text) => (
+    <div style={{ marginBottom: 12 }}>
+      <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: 0.2, textTransform: "uppercase", color: C.primary, background: tint(C.primary, "14"), padding: "3px 9px", borderRadius: 8, marginBottom: 6 }}>{label}</span>
+      <div style={{ fontSize: 14, lineHeight: 1.5, color: C.ink }}>{text}</div>
+    </div>
+  );
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 7, marginBottom: 12, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.primary, background: tint(C.primary, "12"), padding: "2px 8px", borderRadius: 7 }}>{c.category}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft, background: tint(C.ink, "0A"), padding: "2px 8px", borderRadius: 7 }}>{CASE_LEVELS[c.level]}</span>
+      </div>
+      <div style={{ display: "flex", gap: 10, background: tint(RED, "0C"), border: `1px solid ${tint(RED, "26")}`, borderRadius: 12, padding: "11px 13px", marginBottom: 14 }}>
+        <Siren size={17} color={RED} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.45 }}>{CASE_SAFETY}</span>
+      </div>
+      {sec("Borger", c.citizen)}
+      {sec("Situation", c.situation)}
+      {c.history && sec("Sygdomshistorie", c.history)}
+      {c.medications && c.medications.length > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: C.primary, background: tint(C.primary, "14"), padding: "3px 9px", borderRadius: 8, marginBottom: 6 }}>Medicinliste</span>
+          <Bullets items={c.medications} color={C.primary} />
+        </div>
+      )}
+      {c.observations && c.observations.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <span style={{ display: "inline-block", fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#2F6FAE", background: tint("#2F6FAE", "14"), padding: "3px 9px", borderRadius: 8, marginBottom: 6 }}>Aktuelle observationer</span>
+          <Bullets items={c.observations} color="#2F6FAE" />
+        </div>
+      )}
+      <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, margin: "4px 0 11px" }}>Spørgsmål</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {c.questions.map((q, i) => <CaseQuestion key={i} q={q} />)}
+      </div>
+      {c.relatedTopics && c.relatedTopics.length > 0 && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, marginBottom: 9 }}>Læs mere i Klario</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {c.relatedTopics.map((tid) => { const label = onTopic.label(tid); if (!label) return null; return (
+              <button key={tid} onClick={() => onTopic.go(tid)} style={{ border: `1px solid ${C.line}`, background: tint(C.primary, "0C"), color: C.primary, borderRadius: 99, padding: "7px 13px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{label}</button>
+            ); })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 /* ------------------------------ APP ------------------------------- */
 
 export default function Klario() {
@@ -1742,6 +2427,11 @@ export default function Klario() {
   const [termView, setTermView] = useState(null); // Fagligt sprog — open term id
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
+  const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
+  const [quizId, setQuizId] = useState(null); // Test din viden — open quiz overlay (topicId)
+  const [caseView, setCaseView] = useState(null); // Case-træning — open case id
+  const [caseCat, setCaseCat] = useState("Alle");
+  const [caseLevel, setCaseLevel] = useState(0);
   const [pbQuery, setPbQuery] = useState(""); // Akut telefonbog — instant local search
   const mainRef = useRef(null);
   const searchRef = useRef(null);
@@ -1764,7 +2454,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setQuizId(null); setScreen(tab); scrollTop(); };
   const startCall = (phone) => setCallPrompt({ phone });
 
   useEffect(() => {
@@ -1793,13 +2483,25 @@ export default function Klario() {
   const termResults = termQ ? TERMS.filter((t) => termText(t).includes(termQ)) : [];
   const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); scrollTop(); };
   const openTerm = (id) => { setScreen("fagligtsprog"); setTermView(id); setProcView(null); scrollTop(); };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog";
-  const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer") : (curTerm ? curTerm.term : "Fagligt sprog");
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening";
+  const curCase = caseView ? caseById(caseView) : null;
+  const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer")
+    : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : "Lommeregnere")
+    : screen === "casetraening" ? (curCase ? curCase.title : "Case-træning")
+    : (curTerm ? curTerm.term : "Fagligt sprog");
   const pfBack = () => {
     if (screen === "plejeprocedurer" && procView) { setProcView(null); scrollTop(); return; }
     if (screen === "fagligtsprog" && termView) { setTermView(null); scrollTop(); return; }
-    setScreen("kategorier"); setProcView(null); setTermView(null); scrollTop();
+    if (screen === "lommeregnere" && calcView) { setCalcView(null); scrollTop(); return; }
+    if (screen === "casetraening" && caseView) { setCaseView(null); scrollTop(); return; }
+    setScreen("kategorier"); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); scrollTop();
   };
+  const openCase = (id) => { setScreen("casetraening"); setCaseView(id); scrollTop(); };
+  const openTopicById = (id) => { if (procById(id)) { openProc(id); } else if (CARD_INDEX[id]) { openCard(id); } else if (termById(id)) { openTerm(id); } };
+  const topicLabel = (id) => { if (procById(id)) return procById(id).title; if (CARD_INDEX[id]) return CARD_INDEX[id].card.title; if (termById(id)) return termById(id).term; return null; };
+  const caseTopicNav = { go: openTopicById, label: topicLabel };
+  const caseResults = CASES.filter((c) => (caseCat === "Alle" || c.category === caseCat) && (caseLevel === 0 || c.level === caseLevel));
+  const CASE_CATS = ["Alle"].concat(CASES.map((c) => c.category).filter((v, i, a) => a.indexOf(v) === i));
   const regionName = region ? EMERGENCY_REGIONS.find((r) => r.id === region)?.name : null;
   const pbQ = pbQuery.trim().toLowerCase();
   const pbResults = pbQ ? PHONEBOOK.filter((e) => pbText(e).includes(pbQ)) : [];
@@ -1909,7 +2611,7 @@ export default function Klario() {
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                   {activeCatObj.cards.map((card) => (
-                    <ClinCard key={card.id} card={card} cat={activeCatObj} expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} />
+                    <ClinCard key={card.id} card={card} cat={activeCatObj} expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
                   ))}
                 </div>
                 <div style={{ marginTop: 16 }}><DisclaimerPill /></div>
@@ -2191,12 +2893,22 @@ export default function Klario() {
 
                 {query && (
                   <>
-                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{results.length} {results.length === 1 ? "resultat" : "resultater"}</div>
+                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{results.length + calcSearch(query).length} {(results.length + calcSearch(query).length) === 1 ? "resultat" : "resultater"}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                      {results.map(({ card, cat }) => (
-                        <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} />
+                      {calcSearch(query).map((c) => (
+                        <button key={c.id} onClick={() => { setCalcView(c.id); setScreen("lommeregnere"); scrollTop(); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><c.Icon size={20} color="#7A5AF5" strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "#7A5AF5", marginBottom: 1 }}>Lommeregnere</div>
+                            <div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>{c.title}</div>
+                          </div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
                       ))}
-                      {results.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
+                      {results.map(({ card, cat }) => (
+                        <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
+                      ))}
+                      {results.length === 0 && calcSearch(query).length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
                     </div>
                   </>
                 )}
@@ -2204,6 +2916,67 @@ export default function Klario() {
             )}
 
             {/* KATEGORIER */}
+            {/* CASE-TRÆNING — overview */}
+            {!activeCat && screen === "casetraening" && !caseView && (
+              <div className="anim">
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Øv dig som til skole, praktik og farmakologiopgaver.</p>
+                <div style={{ display: "flex", gap: 10, background: tint(RED, "0C"), border: `1px solid ${tint(RED, "26")}`, borderRadius: 13, padding: "12px 14px", marginBottom: 16 }}>
+                  <Siren size={17} color={RED} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>{CASE_SAFETY}</span>
+                </div>
+                <div className="hscroll" style={{ display: "flex", gap: 8, overflowX: "auto", margin: "0 -18px 10px", padding: "0 18px" }}>
+                  {CASE_CATS.map((cat) => { const on = caseCat === cat; return (
+                    <button key={cat} onClick={() => setCaseCat(cat)} style={{ flexShrink: 0, border: `1.5px solid ${on ? C.primary : C.line}`, background: on ? tint(C.primary, "0E") : C.surface, color: on ? C.primary : C.ink, borderRadius: 99, padding: "8px 13px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{cat}</button>
+                  ); })}
+                </div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                  {[{ v: 0, l: "Alle niveauer" }, { v: 1, l: "Niveau 1" }, { v: 2, l: "Niveau 2" }, { v: 3, l: "Niveau 3" }].map((o) => { const on = caseLevel === o.v; return (
+                    <button key={o.v} onClick={() => setCaseLevel(o.v)} style={{ border: `1.5px solid ${on ? C.primary : C.line}`, background: on ? tint(C.primary, "0E") : C.surface, color: on ? C.primary : C.ink, borderRadius: 10, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{o.l}</button>
+                  ); })}
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {caseResults.map((c) => <CaseCard key={c.id} c={c} onOpen={openCase} />)}
+                  {caseResults.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen cases i dette filter endnu.</p>}
+                </div>
+              </div>
+            )}
+
+            {/* CASE-TRÆNING — detail */}
+            {!activeCat && screen === "casetraening" && caseView && curCase && (
+              <div key={caseView} className="anim"><CaseDetail c={curCase} onTopic={caseTopicNav} /></div>
+            )}
+
+            {/* LOMMEREGNERE — landing */}
+            {!activeCat && screen === "lommeregnere" && !calcView && (
+              <div className="anim">
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Hurtige beregnere til hverdagen. Kontrollér altid resultatet mod ordination og lokale instrukser.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                  {CALC_TOOLS.map((t) => (
+                    <button key={t.id} onClick={() => { setCalcView(t.id); scrollTop(); }} aria-label={t.title} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 72 }}>
+                      <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><t.Icon size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>{t.title}</div>
+                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>{t.sub}</div>
+                      </div>
+                      <ChevronRight size={20} color={C.inkFaint} />
+                    </button>
+                  ))}
+                </div>
+                <p style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 16, lineHeight: 1.5 }}>Klario er et lærings- og støtteværktøj. Lokale procedurer har altid forrang, og resultatet skal verificeres, hvor det kræves.</p>
+              </div>
+            )}
+
+            {/* LOMMEREGNERE — tools */}
+            {!activeCat && screen === "lommeregnere" && calcView === "medicin" && (
+              <div key="c-medicin" className="anim"><MedicinBeregner /></div>
+            )}
+            {!activeCat && screen === "lommeregnere" && calcView === "infusion" && (
+              <div key="c-infusion" className="anim"><InfusionsBeregner /></div>
+            )}
+            {!activeCat && screen === "lommeregnere" && calcView === "bmi" && (
+              <div key="c-bmi" className="anim"><BmiBeregner /></div>
+            )}
+
             {/* PLEJEPROCEDURER — overview */}
             {!activeCat && screen === "plejeprocedurer" && !procView && (
               <div className="anim">
@@ -2223,7 +2996,7 @@ export default function Klario() {
             {/* PLEJEPROCEDURER — detail */}
             {!activeCat && screen === "plejeprocedurer" && procView && curProc && (
               <div key={procView} className="anim">
-                <ProcDetail p={curProc} onTerm={openTerm} />
+                <ProcDetail p={curProc} onTerm={openTerm} onQuiz={setQuizId} onCase={openCase} />
               </div>
             )}
 
@@ -2247,6 +3020,7 @@ export default function Klario() {
                   </>
                 ) : (
                   <>
+                    <div style={{ marginBottom: 16 }}><TestButtons topicId="fs" onQuiz={setQuizId} /></div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                       <Acc title="Sig det fagligt">
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -2325,6 +3099,22 @@ export default function Klario() {
                     </div>
                     <ChevronRight size={20} color={C.inkFaint} />
                   </button>
+                  <button onClick={() => { setCalcView(null); setScreen("lommeregnere"); scrollTop(); }} aria-label="Lommeregnere" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Calculator size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Lommeregnere</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Medicin, infusion og BMI.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
+                  <button onClick={() => { setCaseView(null); setScreen("casetraening"); scrollTop(); }} aria-label="Case-træning" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#D6336C", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ClipboardList size={23} color="#D6336C" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Case-træning</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Øv dig som til skole og praktik.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, marginBottom: 11 }}>KLINISKE KATEGORIER</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -2358,7 +3148,7 @@ export default function Klario() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                     {favCards.map(({ card, cat }) => (
-                      <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} />
+                      <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
                     ))}
                   </div>
                 )}
@@ -2527,6 +3317,11 @@ export default function Klario() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Quiz overlay — Test din viden */}
+          {quizId && QUIZZES[quizId] && (
+            <Quiz quiz={QUIZZES[quizId]} onClose={() => setQuizId(null)} />
           )}
         </div>
       </div>
