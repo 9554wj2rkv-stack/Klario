@@ -2040,50 +2040,203 @@ const CASE_SAFETY = "Case-træning er til læring og må ikke bruges som grundla
 const FLAG_NOTE = "Fagligt verificeret svar mangler. Slå præparatet op i en godkendt kilde (fx pro.medicin.dk eller arbejdsstedets instruks). Verificeret svar tilføjes, når det er bekræftet.";
 
 const T = "Sandt", F = "Falsk";
-const QUIZZES = {
-  "obs-respiration": { title: "Respiration", qs: [
-    { q: "Hvad er en normal respirationsfrekvens for en voksen i hvile?", type: "mc", opts: ["6–8 pr. min", "12–20 pr. min", "24–30 pr. min"], correct: [1], why: "Normalområdet for en voksen i hvile er ca. 12–20 vejrtrækninger pr. minut." },
-    { q: "Cyanose (blålige læber) er et advarselstegn ved respiration.", type: "tf", opts: [T, F], correct: [0], why: "Cyanose kan tyde på iltmangel og skal tages alvorligt." },
-    { q: "Hvad kalder man åndenød med et fagligt ord?", type: "mc", opts: ["Dyspnø", "Ødem", "Cyanose"], correct: [0], why: "Dyspnø betyder åndenød/besværet vejrtrækning." },
-    { q: "Hvad observerer du ved respiration? (vælg alle korrekte)", type: "multi", opts: ["Frekvens", "Dybde", "Hårfarve", "Brug af hjælpemuskler"], correct: [0, 1, 3], why: "Du vurderer frekvens, dybde, rytme og brug af hjælpemuskler — ikke hårfarve." },
-    { q: "Hvad gør du først ved pludselig svær åndenød?", type: "mc", opts: ["Dokumenterer i journalen", "Skaber ro, hjælper op i siddende stilling og tilkalder hjælp", "Venter og ser tiden an"], correct: [1], why: "Skab ro, siddende stilling og tilkald hjælp; ilt efter retningslinje. Ring 1-1-2 ved svær åndenød." },
+const QUIZ_LIST = [
+  { id: "q-hjerte", category: "Hjerte/kredsløb", title: "Hjerte/kredsløb", level: 2, topic: "diag-hjertesvigt", caseId: "case-hjerte-medicin", qs: [
+    { q: "Hvad kan være tegn på forværring ved hjertesvigt?", type: "mc", opts: ["Tiltagende åndenød og hævede ben", "Klar, lys urin", "Vægttab over natten"], correct: [0], why: "Tiltagende åndenød, hurtig vægtøgning og øgede ødemer kan tyde på forværring.", tag: "Observation" },
+    { q: "Hvad er det faglige ord for hævelse pga. væske i vævet?", type: "mc", opts: ["Ødem", "Cyanose", "Diurese"], correct: [0], why: "Ødem = væskeophobning i vævet.", tag: "Terminologi" },
+    { q: "Ved brystsmerter med mistanke om hjertetilfælde ringer du 1-1-2.", type: "tf", opts: [T, F], correct: [0], why: "Ring 1-1-2 ved mistanke om hjertetilfælde.", tag: "Reaktion" },
+    { q: "Hvad observerer du ved hjertesvigt? (vælg alle korrekte)", type: "multi", opts: ["Åndenød", "Hævede ben (ødem)", "Vægt", "Hårvækst"], correct: [0, 1, 2], why: "Åndenød, ødem, vægt og træthed — ikke hårvækst.", tag: "Observation" },
+    { q: "Hvad gør du ved hurtig vægtøgning og øget åndenød?", type: "mc", opts: ["Afventer en uge", "Observerer og kontakter ansvarlig", "Ignorerer det"], correct: [1], why: "Kontakt ansvarlig ved forværring.", tag: "Reaktion" },
   ] },
-  "saar-tryksaar": { title: "Tryksår", qs: [
-    { q: "Hvor opstår tryksår typisk?", type: "mc", opts: ["Over knoglefremspring som hæl og haleben", "Midt på maven", "På håndryggen"], correct: [0], why: "Tryksår opstår, hvor der er vedvarende tryk over knoglefremspring." },
-    { q: "Rødme, der ikke forsvinder ved tryk, kan være et tidligt tryksår.", type: "tf", opts: [T, F], correct: [0], why: "Vedvarende rødme (kategori 1) er et tidligt tegn." },
-    { q: "Hvad forebygger tryksår? (vælg alle korrekte)", type: "multi", opts: ["Trykaflastning og lejring", "Hudpleje", "At lade borgeren ligge længe i samme stilling", "Observation af huden"], correct: [0, 1, 3], why: "Lejring/trykaflastning, hudpleje og observation forebygger; langvarigt tryk gør det værre." },
-    { q: "Hvad gør du ved et nyopstået tryksår?", type: "mc", opts: ["Ignorerer det", "Kontakter ansvarlig og iværksætter trykaflastning", "Masserer området kraftigt"], correct: [1], why: "Kontakt ansvarlig og aflast; massage af tryksår anbefales ikke." },
-    { q: "Et fagligt ord for hudens tilstand er…", type: "mc", opts: ["Hudintegritet", "Diurese", "Dyspnø"], correct: [0], why: "Hudintegritet beskriver hudens hele/tilstand." },
+  { id: "q-respiration", category: "Respiration", title: "Respiration", level: 1, topic: "obs-respiration", caseId: "case-respiration", qs: [
+    { q: "Hvad er en normal respirationsfrekvens for en voksen i hvile?", type: "mc", opts: ["6–8 pr. min", "12–20 pr. min", "24–30 pr. min"], correct: [1], why: "Normalområdet er ca. 12–20 pr. minut.", tag: "Faglig" },
+    { q: "Cyanose (blålige læber) er et advarselstegn ved respiration.", type: "tf", opts: [T, F], correct: [0], why: "Cyanose kan tyde på iltmangel.", tag: "Observation" },
+    { q: "Hvad kalder man åndenød med et fagligt ord?", type: "mc", opts: ["Dyspnø", "Ødem", "Cyanose"], correct: [0], why: "Dyspnø = åndenød/besværet vejrtrækning.", tag: "Terminologi" },
+    { q: "Hvad observerer du ved respiration? (vælg alle korrekte)", type: "multi", opts: ["Frekvens", "Dybde", "Hårfarve", "Brug af hjælpemuskler"], correct: [0, 1, 3], why: "Frekvens, dybde, rytme og hjælpemuskler — ikke hårfarve.", tag: "Observation" },
+    { q: "Hvad gør du først ved pludselig svær åndenød?", type: "mc", opts: ["Dokumenterer", "Skaber ro, hjælper op i siddende stilling og tilkalder hjælp", "Venter"], correct: [1], why: "Skab ro, siddende stilling, tilkald hjælp; 1-1-2 ved svær åndenød.", tag: "Reaktion" },
   ] },
-  "p-kateter": { title: "Kateterpleje", qs: [
-    { q: "Hvor skal urinposen placeres?", type: "mc", opts: ["Højere end blæren", "Lavere end blæren", "Det er ligegyldigt"], correct: [1], why: "Posen placeres lavere end blæren, så urin ikke løber tilbage." },
-    { q: "Du bør undgå unødvendig åbning af det lukkede drænagesystem.", type: "tf", opts: [T, F], correct: [0], why: "Det lukkede system holdes lukket for at nedsætte infektionsrisiko." },
-    { q: "Hvad observerer du ved urinen? (vælg alle korrekte)", type: "multi", opts: ["Farve", "Klarhed", "Lugt", "Rumtemperatur"], correct: [0, 1, 2], why: "Farve, klarhed, lugt og evt. sediment/mængde — ikke rumtemperatur." },
-    { q: "Hvornår reagerer du og kontakter ansvarlig?", type: "mc", opts: ["Ved klar, lys urin", "Ved blod i urinen, feber eller stærk smerte", "Aldrig"], correct: [1], why: "Blod, feber eller stærk smerte kræver kontakt til ansvarlig." },
-    { q: "Hvad gør du for at undgå skade på kateteret?", type: "mc", opts: ["Trækker i det for at tjekke", "Undgår træk og knæk på slangen", "Klemmer slangen sammen"], correct: [1], why: "Undgå træk og knæk; håndtér nænsomt." },
+  { id: "q-diabetes", category: "Diabetes", title: "Diabetes", level: 2, topic: "diag-diabetes", caseId: "case-diabetes", qs: [
+    { q: "Hvilke tegn kan tyde på lavt blodsukker? (vælg alle korrekte)", type: "multi", opts: ["Sved", "Sløvhed", "Forvirring", "Kraftig tørst"], correct: [0, 1, 2], why: "Sved, sløvhed og forvirring kan tyde på lavt blodsukker.", tag: "Observation" },
+    { q: "Hvad gør du ved mistanke om lavt blodsukker?", type: "mc", opts: ["Gætter en dosis insulin", "Følger lokal instruks/ordineret plan og kontakter ansvarlig ved tvivl", "Venter til næste dag"], correct: [1], why: "Følg delegation og lokal instruks; gæt aldrig.", tag: "Reaktion" },
+    { q: "Diabetes handler om forhøjet blodsukker.", type: "tf", opts: [T, F], correct: [0], why: "Forhøjet blodsukker pga. mangel på/nedsat virkning af insulin.", tag: "Terminologi" },
+    { q: "Hvorfor er fodpleje vigtig ved diabetes?", type: "mc", opts: ["Negle vokser hurtigere", "Selv små fodsår kan blive alvorlige", "Det er den ikke"], correct: [1], why: "Diabetiske fodsår kan blive alvorlige.", tag: "Observation" },
+    { q: "Mest objektive dokumentation?", type: "mc", opts: ["Gerda har det skidt", "Gerda er sløv med klam hud og har ikke spist morgenmad", "Gerda er lidt underlig"], correct: [1], why: "Objektivt = konkret og observerbart.", tag: "Dokumentation" },
   ] },
-  "p-nedre": { title: "Nedre hygiejne", qs: [
-    { q: "Hvilket princip arbejder du efter?", type: "mc", opts: ["Fra urent mod rent", "Fra rent mod urent", "Tilfældigt"], correct: [1], why: "Arbejd fra rent mod urent for ikke at flytte smitte." },
-    { q: "Værdighed og privatliv er en vigtig del af nedre hygiejne.", type: "tf", opts: [T, F], correct: [0], why: "Bevar altid værdighed og privatliv og inddrag samtykke." },
-    { q: "Hvad observerer du på huden? (vælg alle korrekte)", type: "multi", opts: ["Rødme", "Sår", "Svampelignende forandringer", "Borgerens yndlingsfarve"], correct: [0, 1, 2], why: "Rødme, sår, fugt, svamp og tryksår m.m. — ikke yndlingsfarve." },
-    { q: "Hvad gør du efter vask?", type: "mc", opts: ["Lader huden være våd", "Tørrer huden omhyggeligt, også i hudfolder", "Bruger samme klud igen"], correct: [1], why: "Tør huden godt, især i folder; skift klud/flade løbende." },
-    { q: "Hvorfor skifter du klud/kontaktflade undervejs?", type: "mc", opts: ["For at spare tid", "For at undgå at flytte snavs/smitte", "Det er ligegyldigt"], correct: [1], why: "Skift forebygger krydskontaminering." },
+  { id: "q-ernaering", category: "Ernæring", title: "Ernæring", level: 1, topic: "obs-ernaering", caseId: null, qs: [
+    { q: "Hvad observerer du ved ernæring? (vælg alle korrekte)", type: "multi", opts: ["Appetit", "Mængde der spises", "Vægt", "Yndlingsret"], correct: [0, 1, 2], why: "Appetit, indtag, vægt og tygge-/synkebesvær.", tag: "Observation" },
+    { q: "Hvad kan utilsigtet vægttab være tegn på?", type: "mc", opts: ["God ernæringstilstand", "Dårlig ernæringstilstand", "Ingenting"], correct: [1], why: "Utilsigtet vægttab kan tyde på underernæring.", tag: "Observation" },
+    { q: "Fagligt ord for synkebesvær?", type: "mc", opts: ["Dysfagi", "Dyspnø", "Diurese"], correct: [0], why: "Dysfagi = synkebesvær.", tag: "Terminologi" },
+    { q: "Hoste under måltid kan være tegn på fejlsynkning.", type: "tf", opts: [T, F], correct: [0], why: "Hoste/harken ved måltid kan tyde på dysfagi.", tag: "Observation" },
+    { q: "Hvad gør du ved synkebesvær?", type: "mc", opts: ["Giver store bidder hurtigt", "Tilpasser konsistens, oprejst stilling og kontakter ansvarlig", "Ignorerer det"], correct: [1], why: "Tilpasset konsistens, oprejst stilling, ro; kontakt ansvarlig.", tag: "Reaktion" },
   ] },
-  "p-medicin": { title: "Medicinadministration", qs: [
-    { q: "Hvad hører til de rigtige kontroller? (vælg alle korrekte)", type: "multi", opts: ["Rigtig borger", "Rigtig dosis", "Rigtig administrationsvej", "Rigtig vejrudsigt"], correct: [0, 1, 2], why: "Borger, lægemiddel, dosis, tidspunkt, administrationsvej og dokumentation." },
-    { q: "Er du i tvivl om dosis, må du gætte.", type: "tf", opts: [T, F], correct: [1], why: "Ved tvivl: stop og kontakt ansvarlig — gæt aldrig." },
-    { q: "Hvad gør du ved en medicinfejl?", type: "mc", opts: ["Skjuler den", "Vurderer borger, kontakter ansvarlig og rapporterer som UTH", "Venter til næste vagt"], correct: [1], why: "Vurder borgeren, kontakt ansvarlig og rapportér som utilsigtet hændelse." },
-    { q: "Hvad skal du kende, før du giver medicin?", type: "mc", opts: ["Din kompetence og den delegation/instruks, du arbejder efter", "Kun borgerens navn", "Ingenting"], correct: [0], why: "Du skal kende din kompetence og delegation/instruks." },
-    { q: "Du skal observere borgeren efter medicingivning.", type: "tf", opts: [T, F], correct: [0], why: "Observér for virkning og bivirkning, og dokumentér." },
+  { id: "q-vaeske", category: "Væske", title: "Væske", level: 1, topic: "obs-vaeske", caseId: null, qs: [
+    { q: "Tegn på dehydrering? (vælg alle korrekte)", type: "multi", opts: ["Tørre slimhinder", "Tørst", "Nedsat/mørk urin", "Hævede ben"], correct: [0, 1, 2], why: "Tørre slimhinder, tørst, nedsat/mørk urin; hævede ben = ødem.", tag: "Observation" },
+    { q: "Vejledende væskebehov for en voksen?", type: "mc", opts: ["Ca. 10 ml/kg/døgn", "Ca. 30 ml/kg/døgn", "Ca. 100 ml/kg/døgn"], correct: [1], why: "Vejledende ca. 30 ml/kg/døgn (varierer).", tag: "Faglig" },
+    { q: "Fagligt ord for væskemangel?", type: "mc", opts: ["Dehydrering", "Ødem", "Obstipation"], correct: [0], why: "Dehydrering = væskemangel.", tag: "Terminologi" },
+    { q: "Nedsat urinmængde kan være tegn på dehydrering.", type: "tf", opts: [T, F], correct: [0], why: "Nedsat/mørk urin kan tyde på dehydrering.", tag: "Observation" },
+    { q: "Hvad gør du ved tegn på dehydrering?", type: "mc", opts: ["Tilbyder væske ofte, registrerer og kontakter ansvarlig", "Venter et par dage", "Giver mindre at drikke"], correct: [0], why: "Tilbyd væske, registrér, kontakt ved tegn.", tag: "Reaktion" },
   ] },
-  "fs": { title: "Fagligt sprog", qs: [
-    { q: "\u201EHan er forpustet\u201C beskrives fagligt som…", type: "mc", opts: ["Dyspnø", "Cyanose", "Ødem"], correct: [0], why: "Dyspnø = åndenød/besværet vejrtrækning." },
-    { q: "\u201EHævede ben\u201C hedder fagligt…", type: "mc", opts: ["Ødem", "Diurese", "Konfusion"], correct: [0], why: "Ødem = væskeophobning i vævet." },
-    { q: "\u201EForvirret\u201C beskrives fagligt som…", type: "mc", opts: ["Konfus", "Dyspnøisk", "Inkontinent"], correct: [0], why: "Konfusion = forvirring/nedsat klarhed." },
-    { q: "\u201EBorger fremstår ændret ift. habitualtilstand\u201C er en brugbar faglig formulering.", type: "tf", opts: [T, F], correct: [0], why: "Den henviser til borgerens vanlige tilstand — suppler gerne med konkrete observationer." },
-    { q: "Hvad er mest objektivt?", type: "mc", opts: ["Hun virker mærkelig", "Borger spiste ca. 1/4 af morgenmaden og deltager mindre i samtalen", "Hun har det skidt"], correct: [1], why: "Objektivt = konkret og observerbart." },
+  { id: "q-udskillelse", category: "Udskillelse", title: "Udskillelse", level: 1, topic: "obs-urin", caseId: null, qs: [
+    { q: "Hvad observerer du ved urin? (vælg alle korrekte)", type: "multi", opts: ["Farve", "Klarhed", "Lugt", "Rumtemperatur"], correct: [0, 1, 2], why: "Farve, klarhed, lugt, mængde og svie.", tag: "Observation" },
+    { q: "Fagligt ord for urinmængde/urinproduktion?", type: "mc", opts: ["Diurese", "Dysfagi", "Cyanose"], correct: [0], why: "Diurese = urinproduktion/urinmængde.", tag: "Terminologi" },
+    { q: "Blod i urinen skal altid tages alvorligt.", type: "tf", opts: [T, F], correct: [0], why: "Blod i urinen kræver kontakt til ansvarlig.", tag: "Reaktion" },
+    { q: "Fagligt ord for ufrivillig vandladning?", type: "mc", opts: ["Inkontinens", "Obstipation", "Ødem"], correct: [0], why: "Inkontinens = ufrivillig vandladning/afføring.", tag: "Terminologi" },
+    { q: "Uklar, ildelugtende urin med svie kan tyde på?", type: "mc", opts: ["Urinvejsinfektion", "God væskebalance", "Intet"], correct: [0], why: "Kan tyde på urinvejsinfektion (UVI) — kontakt ansvarlig.", tag: "Observation" },
   ] },
-};
+  { id: "q-obstipation", category: "Obstipation", title: "Obstipation", level: 1, topic: "ern-obstipation", caseId: "case-obstipation", qs: [
+    { q: "Fagligt ord for forstoppelse?", type: "mc", opts: ["Obstipation", "Diarré", "Diurese"], correct: [0], why: "Obstipation = forstoppelse.", tag: "Terminologi" },
+    { q: "Hvad observerer du ved obstipation? (vælg alle korrekte)", type: "multi", opts: ["Hvornår sidste afføring", "Konsistens", "Oppustethed", "Hårfarve"], correct: [0, 1, 2], why: "Seneste afføring, konsistens, mavegener og indtag.", tag: "Observation" },
+    { q: "Væske, fibre og mobilisering kan forebygge forstoppelse.", type: "tf", opts: [T, F], correct: [0], why: "Inden for planen: væske, fibre og mobilisering.", tag: "Faglig" },
+    { q: "Hvad gør du ved vedvarende obstipation?", type: "mc", opts: ["Ignorerer det", "Observerer og kontakter ansvarlig", "Giver afføringsmiddel uden ordination"], correct: [1], why: "Kontakt ansvarlig; medicin kun efter ordination/delegation.", tag: "Reaktion" },
+    { q: "Bristol-skalaen beskriver…", type: "mc", opts: ["Afføringens konsistens", "Blodtryk", "Respiration"], correct: [0], why: "Bristol-skalaen beskriver afføringens konsistens.", tag: "Faglig" },
+  ] },
+  { id: "q-hud", category: "Hud", title: "Hud", level: 1, topic: "obs-hudfarve", caseId: null, qs: [
+    { q: "Fagligt ord for hudens tilstand/hele overflade?", type: "mc", opts: ["Hudintegritet", "Diurese", "Dyspnø"], correct: [0], why: "Hudintegritet = hudens tilstand.", tag: "Terminologi" },
+    { q: "Hvad observerer du på huden? (vælg alle korrekte)", type: "multi", opts: ["Rødme", "Sår", "Fugt", "Rummets lys"], correct: [0, 1, 2], why: "Rødme, sår, fugt, tryksår og misfarvning.", tag: "Observation" },
+    { q: "Blålige læber (cyanose) kan tyde på?", type: "mc", opts: ["Iltmangel", "God iltning", "Sult"], correct: [0], why: "Cyanose = blålig misfarvning pga. iltmangel.", tag: "Observation" },
+    { q: "Vedvarende rødme over haleben kan være et tidligt tryksår.", type: "tf", opts: [T, F], correct: [0], why: "Rødme, der ikke forsvinder ved tryk (kategori 1).", tag: "Observation" },
+    { q: "Hvad gør du ved et nyopstået sår?", type: "mc", opts: ["Observerer, dokumenterer og kontakter ansvarlig", "Ignorerer det", "Masserer det"], correct: [0], why: "Observér, dokumentér, kontakt ansvarlig.", tag: "Reaktion" },
+  ] },
+  { id: "q-tryksaar", category: "Tryksår", title: "Tryksår", level: 1, topic: "saar-tryksaar", caseId: null, qs: [
+    { q: "Hvor opstår tryksår typisk?", type: "mc", opts: ["Over knoglefremspring som hæl og haleben", "Midt på maven", "På håndryggen"], correct: [0], why: "Hvor der er vedvarende tryk over knoglefremspring.", tag: "Faglig" },
+    { q: "Rødme, der ikke forsvinder ved tryk, kan være et tidligt tryksår.", type: "tf", opts: [T, F], correct: [0], why: "Vedvarende rødme (kategori 1) er et tidligt tegn.", tag: "Observation" },
+    { q: "Hvad forebygger tryksår? (vælg alle korrekte)", type: "multi", opts: ["Trykaflastning og lejring", "Hudpleje", "Langvarigt tryk i samme stilling", "Observation af huden"], correct: [0, 1, 3], why: "Lejring/trykaflastning, hudpleje og observation forebygger.", tag: "Faglig" },
+    { q: "Hvad gør du ved et nyopstået tryksår?", type: "mc", opts: ["Ignorerer det", "Kontakter ansvarlig og aflaster", "Masserer området kraftigt"], correct: [1], why: "Kontakt ansvarlig og aflast; massage anbefales ikke.", tag: "Reaktion" },
+    { q: "Et fagligt ord for hudens tilstand er…", type: "mc", opts: ["Hudintegritet", "Diurese", "Dyspnø"], correct: [0], why: "Hudintegritet beskriver hudens hele/tilstand.", tag: "Terminologi" },
+  ] },
+  { id: "q-personligpleje", category: "Personlig pleje", title: "Personlig pleje", level: 1, topic: "p-nedre", caseId: null, qs: [
+    { q: "Personlig pleje er også en anledning til faglig observation.", type: "tf", opts: [T, F], correct: [0], why: "Brug plejen til at observere hud, mund, hovedbund m.m.", tag: "Faglig" },
+    { q: "Hvad observerer du ved mundpleje? (vælg alle korrekte)", type: "multi", opts: ["Sår", "Blødning", "Belægninger", "Rumtemperatur"], correct: [0, 1, 2], why: "Sår, blødning, tørhed, belægninger og smerte.", tag: "Observation" },
+    { q: "Hvad er vigtigt ved al personlig pleje?", type: "mc", opts: ["Værdighed og samtykke", "At skynde sig", "At undlade at spørge"], correct: [0], why: "Bevar værdighed og privatliv; inddrag samtykke.", tag: "Faglig" },
+    { q: "Ved barbering skal du være ekstra forsigtig ved?", type: "mc", opts: ["Øget blødningsrisiko", "Godt humør", "Langt hår"], correct: [0], why: "Vær forsigtig ved øget blødningsrisiko; ingen medicinspecifik rådgivning.", tag: "Observation" },
+    { q: "Hvad observerer du ved hårpleje?", type: "mc", opts: ["Hovedbund, rødme og sår", "Kun frisuren", "Ingenting"], correct: [0], why: "Observér hovedbund, rødme, sår og skæl.", tag: "Observation" },
+  ] },
+  { id: "q-hygiejne", category: "Hygiejne", title: "Hygiejne", level: 1, topic: "hyg-hand", caseId: null, qs: [
+    { q: "Hvad er det vigtigste tiltag mod smittespredning?", type: "mc", opts: ["Håndhygiejne", "Nyt tøj", "Frisk luft"], correct: [0], why: "Håndhygiejne er det vigtigste tiltag.", tag: "Faglig" },
+    { q: "Handsker erstatter håndhygiejne.", type: "tf", opts: [T, F], correct: [1], why: "Handsker erstatter ikke håndhygiejne.", tag: "Faglig" },
+    { q: "Hvilket princip arbejder du efter?", type: "mc", opts: ["Fra rent mod urent", "Fra urent mod rent", "Tilfældigt"], correct: [0], why: "Fra rent mod urent for ikke at flytte smitte.", tag: "Faglig" },
+    { q: "Hvornår udfører du håndhygiejne? (vælg alle korrekte)", type: "multi", opts: ["Før borgerkontakt", "Efter borgerkontakt", "Efter handsker", "Kun om morgenen"], correct: [0, 1, 2], why: "Før/efter borgerkontakt, efter handsker, ved rene/urene opgaver.", tag: "Faglig" },
+    { q: "Hvor længe sprittes hænder som minimum?", type: "mc", opts: ["Ca. 5 sekunder", "Ca. 30 sekunder til tørre hænder", "2 minutter"], correct: [1], why: "Min. 30 sekunder til hænderne er tørre.", tag: "Faglig" },
+  ] },
+  { id: "q-kateter", category: "Kateterpleje", title: "Kateterpleje", level: 2, topic: "p-kateter", caseId: "case-kateter", qs: [
+    { q: "Hvor skal urinposen placeres?", type: "mc", opts: ["Højere end blæren", "Lavere end blæren", "Det er ligegyldigt"], correct: [1], why: "Lavere end blæren, så urin ikke løber tilbage.", tag: "Faglig" },
+    { q: "Du bør undgå unødvendig åbning af det lukkede drænagesystem.", type: "tf", opts: [T, F], correct: [0], why: "Hold det lukkede system lukket for at nedsætte infektionsrisiko.", tag: "Faglig" },
+    { q: "Hvad observerer du ved urinen? (vælg alle korrekte)", type: "multi", opts: ["Farve", "Klarhed", "Lugt", "Rumtemperatur"], correct: [0, 1, 2], why: "Farve, klarhed, lugt, sediment og mængde.", tag: "Observation" },
+    { q: "Hvornår kontakter du ansvarlig?", type: "mc", opts: ["Ved klar, lys urin", "Ved blod i urinen, feber eller stærk smerte", "Aldrig"], correct: [1], why: "Blod, feber eller stærk smerte kræver kontakt.", tag: "Reaktion" },
+    { q: "Hvad gør du for at undgå skade på kateteret?", type: "mc", opts: ["Trækker i det", "Undgår træk og knæk på slangen", "Klemmer slangen"], correct: [1], why: "Undgå træk og knæk; håndtér nænsomt.", tag: "Faglig" },
+  ] },
+  { id: "q-medicin", category: "Medicin", title: "Medicin", level: 2, topic: "p-medicin", caseId: "case-medicinsikkerhed", qs: [
+    { q: "Hvad hører til de rigtige kontroller? (vælg alle korrekte)", type: "multi", opts: ["Rigtig borger", "Rigtig dosis", "Rigtig administrationsvej", "Rigtig vejrudsigt"], correct: [0, 1, 2], why: "Borger, lægemiddel, dosis, tidspunkt, administrationsvej og dokumentation.", tag: "Faglig" },
+    { q: "Er du i tvivl om dosis, må du gætte.", type: "tf", opts: [T, F], correct: [1], why: "Ved tvivl: stop og kontakt ansvarlig — gæt aldrig.", tag: "Reaktion" },
+    { q: "Hvad gør du ved en medicinfejl?", type: "mc", opts: ["Skjuler den", "Vurderer borger, kontakter ansvarlig og rapporterer som UTH", "Venter til næste vagt"], correct: [1], why: "Vurder borger, kontakt ansvarlig, rapportér som UTH.", tag: "Reaktion" },
+    { q: "Hvad skal du kende, før du giver medicin?", type: "mc", opts: ["Din kompetence og delegation/instruks", "Kun borgerens navn", "Ingenting"], correct: [0], why: "Kend din kompetence og delegation/instruks.", tag: "Faglig" },
+    { q: "Du skal observere borgeren efter medicingivning.", type: "tf", opts: [T, F], correct: [0], why: "Observér for virkning og bivirkning; dokumentér.", tag: "Observation" },
+  ] },
+  { id: "q-farmakologi", category: "Farmakologi", title: "Farmakologi (begreber)", level: 3, topic: "p-medicin", caseId: "case-hjerte-medicin", qs: [
+    { q: "Hvad betyder farmakodynamik?", type: "mc", opts: ["Hvad lægemidlet gør ved kroppen", "Hvad kroppen gør ved lægemidlet", "Hvor medicin opbevares"], correct: [0], why: "Farmakodynamik = lægemidlets virkning på kroppen.", tag: "Faglig" },
+    { q: "Hvad betyder farmakokinetik?", type: "mc", opts: ["Hvad kroppen gør ved lægemidlet", "Lægemidlets pris", "Tablettens farve"], correct: [0], why: "Farmakokinetik = optagelse, fordeling, nedbrydning og udskillelse.", tag: "Faglig" },
+    { q: "Hvad hører til farmakokinetik? (vælg alle korrekte)", type: "multi", opts: ["Optagelse", "Fordeling", "Udskillelse", "Emballagens farve"], correct: [0, 1, 2], why: "Optagelse, fordeling, nedbrydning og udskillelse.", tag: "Faglig" },
+    { q: "En bivirkning er en uønsket virkning af et lægemiddel.", type: "tf", opts: [T, F], correct: [0], why: "Bivirkning = uønsket virkning.", tag: "Terminologi" },
+    { q: "Hvor slår du et præparats virkning og bivirkninger op?", type: "mc", opts: ["I en godkendt kilde (fx pro.medicin.dk) eller lokal instruks", "Gætter", "Spørger en tilfældig"], correct: [0], why: "Brug godkendte kilder; gæt aldrig lægemiddelfakta.", tag: "Faglig" },
+  ] },
+  { id: "q-mobilitet", category: "Mobilitet/forflytning", title: "Mobilitet/forflytning", level: 2, topic: "p-sejl-seng-stol", caseId: null, qs: [
+    { q: "Du skal altid bruge det sejl og den lift, der står i borgerens forflytningsplan.", type: "tf", opts: [T, F], correct: [0], why: "Følg altid forflytningsplanen samt producentens/arbejdsstedets instruktion.", tag: "Faglig" },
+    { q: "Hvad gør du FØRST ved en forflytning med lift?", type: "mc", opts: ["Løfter borgeren", "Læser forflytningsplanen og vurderer borgeren", "Fjerner sejlet"], correct: [1], why: "Læs plan, vurder borger, informér, klargør — før løft.", tag: "Prioritering" },
+    { q: "Hvad hører til sikkerhedstjek før løft? (vælg alle korrekte)", type: "multi", opts: ["Rigtigt sejl", "Rigtig størrelse", "Sejlet er intakt", "God musik"], correct: [0, 1, 2], why: "Rigtigt sejl, størrelse, intakt, korrekte fæstepunkter og fungerende lift.", tag: "Faglig" },
+    { q: "Hvorfor løfter du minimalt først?", type: "mc", opts: ["For at spare tid", "For at kunne udføre et sikkerhedstjek", "Det gør du ikke"], correct: [1], why: "Løft minimalt og tjek, at alt sidder korrekt.", tag: "Faglig" },
+    { q: "God ergonomi for dig?", type: "mc", opts: ["Vrid i ryggen", "Brug benene og hold ryggen neutral", "Løft med bøjet ryg"], correct: [1], why: "Brug benene, hold ryggen neutral, undgå vrid.", tag: "Faglig" },
+  ] },
+  { id: "q-demens", category: "Kognition/demens", title: "Kognition/demens", level: 1, topic: "diag-demens", caseId: null, qs: [
+    { q: "Fagligt ord for forvirring/nedsat klarhed?", type: "mc", opts: ["Konfusion", "Cyanose", "Dysfagi"], correct: [0], why: "Konfusion = forvirring.", tag: "Terminologi" },
+    { q: "Pludselig forværring hos en borger med demens kan skyldes fx infektion.", type: "tf", opts: [T, F], correct: [0], why: "Pludselig forværring bør give mistanke om fx infektion.", tag: "Observation" },
+    { q: "God kommunikation ved demens?", type: "mc", opts: ["Tal enkelt, én besked ad gangen, ro og tid", "Mange valg på én gang", "Skæld ud ved fejl"], correct: [0], why: "Enkel, rolig kommunikation; én besked ad gangen.", tag: "Faglig" },
+    { q: "Udadreagerende adfærd kan være udtryk for?", type: "mc", opts: ["Et uopfyldt behov eller mistrivsel", "Ondskab", "Ingenting"], correct: [0], why: "Ofte udtryk for uopfyldt behov (smerte, sult, uro).", tag: "Faglig" },
+    { q: "Hvad hjælper i hverdagen?", type: "mc", opts: ["Struktur og genkendelige rutiner", "Konstante ændringer", "Uro"], correct: [0], why: "Struktur, genkendelighed og ro støtter borgeren.", tag: "Faglig" },
+  ] },
+  { id: "q-kommunikation", category: "Kommunikation", title: "Kommunikation", level: 1, topic: "kom-isbar", caseId: null, qs: [
+    { q: "Hvad står ISBAR for (kort)?", type: "mc", opts: ["Identifikation, Situation, Baggrund, Analyse, Råd", "En medicin", "En diagnose"], correct: [0], why: "ISBAR: Identifikation, Situation, Baggrund, Analyse, Råd.", tag: "Terminologi" },
+    { q: "Aktiv lytning betyder at afbryde og rette borgeren.", type: "tf", opts: [T, F], correct: [1], why: "Aktiv lytning: lyt fuldt uden at afbryde eller dømme.", tag: "Faglig" },
+    { q: "God kommunikation med borger?", type: "mc", opts: ["Tal tydeligt, i øjenhøjde og uden fagsprog", "Tal hurtigt med fagsprog", "Undlad at tjekke forståelse"], correct: [0], why: "Tydeligt, i øjenhøjde; tjek forståelse.", tag: "Faglig" },
+    { q: "Hvornår bruger du ISBAR?", type: "mc", opts: ["Ved sikker mundtlig overlevering til fx spl./læge", "Aldrig", "Kun til pårørende"], correct: [0], why: "ISBAR bruges ved overlevering, især ved forværring.", tag: "Faglig" },
+    { q: "Ved svære samtaler bør du?", type: "mc", opts: ["Være nærværende og give plads til følelser", "Skynde dig", "Love ting du ikke kan holde"], correct: [0], why: "Vær nærværende, tal klart, giv plads; henvis ved behov.", tag: "Faglig" },
+  ] },
+  { id: "q-dokumentation", category: "Dokumentation", title: "Dokumentation", level: 2, topic: "dok-hvad", caseId: null, qs: [
+    { q: "Mest objektive dokumentation?", type: "mc", opts: ["Han er sur", "Borger afviser morgenmad og oplyser kvalme", "Han er besværlig"], correct: [1], why: "Objektivt = konkret og observerbart; medtag borgerens udsagn.", tag: "Dokumentation" },
+    { q: "Hvad er subjektivt?", type: "mc", opts: ["Temperatur 38,2 °C", "Borger angiver smerter 6/10", "Rød hud på læg"], correct: [1], why: "Subjektivt = borgerens egne udsagn.", tag: "Terminologi" },
+    { q: "Det, der ikke er dokumenteret, regnes ofte som ikke udført.", type: "tf", opts: [T, F], correct: [0], why: "Dokumentér rettidigt.", tag: "Faglig" },
+    { q: "Hvad bør en god note indeholde? (vælg alle korrekte)", type: "multi", opts: ["Tidspunkt", "Objektive fund", "Handling/kontakt", "Din private mening"], correct: [0, 1, 2], why: "Tid, fund, handling, kontakt og initialer — objektivt.", tag: "Dokumentation" },
+    { q: "\u201EBorger fremstår ændret ift. …?\u201C", type: "mc", opts: ["habitualtilstand", "diurese", "dyspnø"], correct: [0], why: "Habitualtilstand = borgerens vanlige tilstand.", tag: "Terminologi" },
+  ] },
+  { id: "q-fagligtsprog", category: "Fagligt sprog", title: "Fagligt sprog", level: 1, topic: "fs", caseId: null, qs: [
+    { q: "\u201EHan er forpustet\u201C beskrives fagligt som…", type: "mc", opts: ["Dyspnø", "Cyanose", "Ødem"], correct: [0], why: "Dyspnø = åndenød.", tag: "Terminologi" },
+    { q: "\u201EHævede ben\u201C hedder fagligt…", type: "mc", opts: ["Ødem", "Diurese", "Konfusion"], correct: [0], why: "Ødem = væskeophobning i vævet.", tag: "Terminologi" },
+    { q: "\u201EForvirret\u201C beskrives fagligt som…", type: "mc", opts: ["Konfus", "Dyspnøisk", "Inkontinent"], correct: [0], why: "Konfusion = forvirring.", tag: "Terminologi" },
+    { q: "\u201EBorger fremstår ændret ift. habitualtilstand\u201C er en brugbar faglig formulering.", type: "tf", opts: [T, F], correct: [0], why: "Suppler gerne med konkrete observationer.", tag: "Faglig" },
+    { q: "Hvad er mest objektivt?", type: "mc", opts: ["Hun virker mærkelig", "Borger spiste ca. 1/4 af morgenmaden og deltager mindre", "Hun har det skidt"], correct: [1], why: "Objektivt = konkret og observerbart.", tag: "Dokumentation" },
+  ] },
+  { id: "q-akut", category: "Akut/ABCDE", title: "Akut / ABCDE", level: 2, topic: "akut-abcde", caseId: null, qs: [
+    { q: "Hvad er den rigtige rækkefølge i ABCDE?", type: "mc", opts: ["A luftvej, B vejrtrækning, C kredsløb, D bevidsthed, E helkrop", "C, A, B, D, E", "E, D, C, B, A"], correct: [0], why: "ABCDE: Airway, Breathing, Circulation, Disability, Exposure.", tag: "Prioritering" },
+    { q: "Hvad står B for i ABCDE?", type: "mc", opts: ["Breathing (vejrtrækning)", "Blodtryk", "Bevidsthed"], correct: [0], why: "B = Breathing/vejrtrækning.", tag: "Terminologi" },
+    { q: "Ved påvirket ABCDE tilkalder du hjælp og ringer 1-1-2 ved livsfare.", type: "tf", opts: [T, F], correct: [0], why: "Tilkald hjælp; 1-1-2 ved livstruende tegn.", tag: "Reaktion" },
+    { q: "Hvad gør du FØRST ved en bevidstløs borger, der ikke trækker vejret normalt?", type: "mc", opts: ["Dokumenterer", "Tilkalder hjælp/ringer 1-1-2 og starter relevant førstehjælp", "Går efter kaffe"], correct: [1], why: "Ring 1-1-2 og start førstehjælp; behandl som hjertestop.", tag: "Prioritering" },
+    { q: "Hvad betyder D i ABCDE?", type: "mc", opts: ["Disability (bevidsthed)", "Drop", "Diurese"], correct: [0], why: "D = Disability/bevidsthed.", tag: "Terminologi" },
+  ] },
+];
+const quizById = (id) => QUIZ_LIST.find((q) => q.id === id);
+const quizForTopic = (t) => QUIZ_LIST.find((q) => q.topic === t);
+const QUIZ_CATS = ["Alle"].concat(QUIZ_LIST.map((q) => q.category).filter((v, i, a) => a.indexOf(v) === i));
+
+const EXTRA_QUIZZES = [
+  { id: "q-mikrobiologi", category: "Bakterier & virus", title: "Bakterier & virus", level: 1, topic: "", caseId: null, qs: [
+    { q: "Virker antibiotika mod virus?", type: "mc", opts: ["Ja", "Nej", "Kun nogle gange"], correct: [1], why: "Antibiotika virker ikke mod virus.", tag: "Faglig" },
+    { q: "Hvad er den hyppigste smittevej?", type: "mc", opts: ["Kontaktsmitte (hænder/flader)", "Via tanker", "Via lys"], correct: [0], why: "Kontaktsmitte er den hyppigste — brydes med håndhygiejne.", tag: "Faglig" },
+    { q: "God håndhygiejne forebygger både bakterie- og virusinfektioner.", type: "tf", opts: [T, F], correct: [0], why: "God hygiejne forebygger begge.", tag: "Faglig" },
+    { q: "Typiske infektionstegn? (vælg alle korrekte)", type: "multi", opts: ["Feber", "Rødme/varme/hævelse", "Almen utilpashed", "Altid blålige negle"], correct: [0, 1, 2], why: "Feber, lokale tegn og almen utilpashed; hos ældre evt. forvirring.", tag: "Observation" },
+    { q: "CRP er…", type: "mc", opts: ["En blodprøve, der stiger ved infektion/betændelse", "En medicin", "En diagnose"], correct: [0], why: "CRP stiger ved infektion; vurderes sammen med symptomer.", tag: "Faglig" },
+  ] },
+  { id: "q-normalvaerdier", category: "Normalværdier", title: "Normalværdier", level: 1, topic: "", caseId: null, qs: [
+    { q: "Normal hvilepuls hos en voksen?", type: "mc", opts: ["30–50", "60–100", "110–140"], correct: [1], why: "Ca. 60–100 slag/min.", tag: "Faglig" },
+    { q: "Normal iltmætning (SpO₂)?", type: "mc", opts: ["70–80 %", "85–90 %", "95–100 %"], correct: [2], why: "Normalt ca. 95–100 % (KOL: individuel grænse).", tag: "Faglig" },
+    { q: "Normal kropstemperatur?", type: "mc", opts: ["34–35 °C", "36,5–37,5 °C", "39–40 °C"], correct: [1], why: "Ca. 36,5–37,5 °C.", tag: "Faglig" },
+    { q: "Vejledende normalt blodtryk?", type: "mc", opts: ["Ca. 90/50", "Ca. 120/80", "Ca. 160/100"], correct: [1], why: "Ca. 120/80 mmHg (variation er normalt).", tag: "Faglig" },
+    { q: "Værdier skal altid vurderes sammen med borgerens vante niveau.", type: "tf", opts: [T, F], correct: [0], why: "Normalværdier er vejledende; sammenhold med habitualtilstand.", tag: "Faglig" },
+  ] },
+  { id: "q-love", category: "Love & regler", title: "Love & regler", level: 2, topic: "", caseId: null, qs: [
+    { q: "Tavshedspligten gælder også uden for arbejdet.", type: "tf", opts: [T, F], correct: [0], why: "Den gælder også uden for arbejdet og efter ansættelsen.", tag: "Faglig" },
+    { q: "Du må udføre en opgave, selvom du ikke er oplært og delegeret til den.", type: "tf", opts: [T, F], correct: [1], why: "Du må kun udføre opgaver, du er oplært og delegeret til.", tag: "Faglig" },
+    { q: "Borgeren siger nej til pleje. Hvad gør du?", type: "mc", opts: ["Gennemfører alligevel", "Respekterer nej'et og dokumenterer", "Ignorerer borgeren"], correct: [1], why: "Selvbestemmelse; respektér og dokumentér. Tvang kræver særlige regler.", tag: "Reaktion" },
+    { q: "Hvorfor rapporteres utilsigtede hændelser (UTH)?", type: "mc", opts: ["For at straffe", "For at lære og forebygge", "For sjov"], correct: [1], why: "UTH handler om læring, ikke skyld.", tag: "Faglig" },
+    { q: "Magtanvendelse er…", type: "mc", opts: ["Første valg", "Sidste udvej efter særlige regler", "Altid forbudt"], correct: [1], why: "Sidste udvej; kræver hjemmel, dokumentation og indberetning.", tag: "Faglig" },
+  ] },
+  { id: "q-psykiatri", category: "Psykiatri", title: "Psykiatri", level: 2, topic: "", caseId: null, qs: [
+    { q: "Ved tegn på selvmordsrisiko gør du?", type: "mc", opts: ["Venter og ser tiden an", "Tager det altid alvorligt, bliver hos borgeren og kontakter spl./læge straks", "Ignorerer det"], correct: [1], why: "Tag det ALTID alvorligt; bliv hos borgeren; kontakt straks.", tag: "Reaktion" },
+    { q: "Ved et panikanfald kan du?", type: "mc", opts: ["Skabe ro og hjælpe med rolig vejrtrækning", "Skælde ud", "Gå din vej"], correct: [0], why: "Skab ro og tryghed; bliv hos borgeren.", tag: "Reaktion" },
+    { q: "Professionelle grænser beskytter både borger og medarbejder.", type: "tf", opts: [T, F], correct: [0], why: "Grænser beskytter begge; hold fokus på borgerens behov.", tag: "Faglig" },
+    { q: "God tilgang ved skizofreni?", type: "mc", opts: ["Modsig alle vrangforestillinger kraftigt", "Vær rolig og konkret, modsig ikke unødigt, kontakt spl.", "Lad borgeren være alene"], correct: [1], why: "Vær rolig og konkret; modsig ikke vrangforestillinger unødigt.", tag: "Faglig" },
+    { q: "Ændret adfærd hos borgeren bør du?", type: "mc", opts: ["Observere og kontakte ansvarlig ved bekymring", "Ignorere", "Selv behandle"], correct: [0], why: "Observér, dokumentér og kontakt ved bekymring.", tag: "Observation" },
+  ] },
+  { id: "q-vaerktoejer", category: "Kliniske værktøjer", title: "Kliniske værktøjer", level: 2, topic: "", caseId: "case-medicinsikkerhed", qs: [
+    { q: "ISBAR bruges til?", type: "mc", opts: ["Sikker mundtlig overlevering", "Blodtryksmåling", "Sårpleje"], correct: [0], why: "ISBAR: struktur til sikker overlevering.", tag: "Terminologi" },
+    { q: "Braden Score vurderer?", type: "mc", opts: ["Risiko for tryksår", "Blodsukker", "Respiration"], correct: [0], why: "Braden vurderer risiko for tryksår.", tag: "Faglig" },
+    { q: "NEWS2 bruges til?", type: "mc", opts: ["Tidlig opsporing af forværring", "At måle vægt", "At give medicin"], correct: [0], why: "NEWS2: Early Warning Score til tidlig opsporing.", tag: "Faglig" },
+    { q: "BMI beregnes som?", type: "mc", opts: ["Vægt (kg) ÷ højde² (m)", "Højde ÷ vægt", "Vægt × højde"], correct: [0], why: "BMI = vægt/højde².", tag: "Beregning" },
+    { q: "500 mg ordineret, tablet 250 mg. Hvor mange tabletter?", type: "mc", opts: ["1", "2", "4"], correct: [1], why: "500 ÷ 250 = 2 tabletter.", tag: "Beregning" },
+  ] },
+];
+const ALL_QUIZ = QUIZ_LIST.concat(EXTRA_QUIZZES);
+const QUIZ_CATMAP = { "q-respiration": "observationer", "q-udskillelse": "observationer", "q-hjerte": "diagnoser", "q-diabetes": "diagnoser", "q-hud": "saarpleje", "q-tryksaar": "saarpleje", "q-hygiejne": "hygiejne", "q-personligpleje": "hygiejne", "q-dokumentation": "dokumentation", "q-kommunikation": "kommunikation", "q-akut": "akut", "q-ernaering": "ernaering", "q-vaeske": "ernaering", "q-obstipation": "ernaering", "q-demens": "demens", "q-medicin": "medicin", "q-farmakologi": "medicin", "q-mikrobiologi": "mikrobiologi", "q-normalvaerdier": "normalvaerdier", "q-love": "love", "q-psykiatri": "psykiatri", "q-vaerktoejer": "vaerktoejer" };
+const CAT_CASE = { observationer: "case-respiration", diagnoser: "case-hjerte-medicin", ernaering: "case-obstipation", medicin: "case-medicinsikkerhed", akut: "case-respiration" };
+const catTitleById = (id) => (DATA.find((c) => c.id === id) || {}).title || id;
+const makeTopicQuiz = (topicId) => ALL_QUIZ.find((x) => x.topic === topicId) || null;
+const quizForTopic2 = (topicId) => ALL_QUIZ.find((x) => x.topic === topicId) || null;
+function makeCategoryQuiz(catId) {
+  const qs = ALL_QUIZ.filter((x) => QUIZ_CATMAP[x.id] === catId).reduce((acc, x) => acc.concat(x.qs.map((qq) => Object.assign({}, qq, { topic: x.topic }))), []);
+  if (qs.length === 0) return null;
+  return { title: "Test din viden om " + catTitleById(catId), category: catTitleById(catId), catId, level: 0, caseId: CAT_CASE[catId] || null, qs: qs.slice(0, 10) };
+}
+/* categories that have a quiz (all top-level clinical categories) */
+const CAT_QUIZ_IDS = DATA.map((c) => c.id).filter((id) => makeCategoryQuiz(id));
+
 
 const CASE_LEVELS = { 1: "Niveau 1 – Grundlæggende", 2: "Niveau 2 – Praktik", 3: "Niveau 3 – Farmakologi" };
 
@@ -2192,7 +2345,7 @@ function quizBand(score, total) {
   return "Gennemgå emnet igen";
 }
 
-function Quiz({ quiz, onClose }) {
+function Quiz({ quiz, onClose, onCase, onCategory }) {
   const [idx, setIdx] = useState(0);
   const [sel, setSel] = useState([]);
   const [checked, setChecked] = useState(false);
@@ -2208,15 +2361,15 @@ function Quiz({ quiz, onClose }) {
   const restart = () => { setIdx(0); setSel([]); setChecked(false); setScore(0); setWrong([]); setPhase("quiz"); };
   const correctNow = checked && eq(sel, q.correct);
   return (
-    <div role="dialog" aria-modal="true" aria-label={"Quiz: " + quiz.title} style={{ position: "absolute", inset: 0, zIndex: 40, background: C.bg, display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "13px 16px", borderBottom: `1px solid ${C.line}`, background: C.surface }}>
+    <div role="dialog" aria-modal="true" aria-label={"Quiz: " + quiz.title} style={{ position: "absolute", inset: 0, zIndex: 1000, background: C.surface, display: "flex", flexDirection: "column", overscrollBehavior: "contain" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "calc(13px + env(safe-area-inset-top)) 16px 13px", borderBottom: `1px solid ${C.line}`, background: C.surface }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>Test din viden</div>
           <div style={{ fontSize: 11.5, color: C.inkFaint }}>{quiz.title}{phase === "quiz" ? " · " + (idx + 1) + " af " + qs.length : ""}</div>
         </div>
         <button onClick={onClose} aria-label="Luk" style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><X size={20} color={C.ink} /></button>
       </div>
-      <div className="cscroll" style={{ flex: 1, overflowY: "auto", padding: "18px 16px 24px" }}>
+      <div className="cscroll" style={{ flex: 1, overflowY: "auto", padding: "18px 16px calc(28px + env(safe-area-inset-bottom))" }}>
         {phase === "quiz" && q && (
           <div className="anim" key={idx}>
             <div style={{ height: 6, borderRadius: 99, background: C.line, marginBottom: 18, overflow: "hidden" }}><div style={{ height: "100%", width: ((idx + (checked ? 1 : 0)) / qs.length) * 100 + "%", background: C.primary, transition: "width .3s ease" }} /></div>
@@ -2253,18 +2406,48 @@ function Quiz({ quiz, onClose }) {
             </div>
           </div>
         )}
-        {phase === "result" && (
-          <div className="anim" style={{ textAlign: "center", paddingTop: 20 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>Resultat</div>
-            <div style={{ fontSize: 44, fontWeight: 900, color: C.ink, margin: "4px 0" }}>{score}/{qs.length}</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: C.primary, marginBottom: 22 }}>{quizBand(score, qs.length)}</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320, margin: "0 auto" }}>
+        {phase === "result" && (() => {
+          const wrongTags = Array.from(new Set(wrong.map((i) => qs[i].tag).filter(Boolean)));
+          const rightTags = Array.from(new Set(qs.map((q, i) => (!wrong.includes(i) ? q.tag : null)).filter(Boolean)));
+          const strengths = rightTags.filter((t) => !wrongTags.includes(t));
+          const lvlLabel = quiz.level === 0 ? "Blandet niveau" : quiz.level ? "Niveau " + quiz.level : "";
+          return (
+          <div className="anim" style={{ paddingTop: 12 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>Dit resultat</div>
+              <div style={{ fontSize: 44, fontWeight: 900, color: C.ink, margin: "4px 0" }}>{score} / {qs.length}</div>
+              <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 4 }}>{quiz.category}{lvlLabel ? " · " + lvlLabel : ""}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: C.primary, marginBottom: 20 }}>{quizBand(score, qs.length)}</div>
+            </div>
+            {(strengths.length > 0 || wrongTags.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
+                {strengths.length > 0 && (
+                  <div style={{ background: tint("#0FAE9E", "0E"), border: `1px solid ${tint("#0FAE9E", "2A")}`, borderRadius: 13, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1F5136", marginBottom: 5 }}>Styrker</div>
+                    <div style={{ fontSize: 13.5, color: C.ink }}>{strengths.join(" · ")}</div>
+                  </div>
+                )}
+                {wrongTags.length > 0 && (
+                  <div style={{ background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "2A")}`, borderRadius: 13, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#7A4E0A", marginBottom: 5 }}>Gennemgå igen</div>
+                    <div style={{ fontSize: 13.5, color: C.ink }}>{wrongTags.join(" · ")}</div>
+                  </div>
+                )}
+              </div>
+            )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "0 auto" }}>
               <button onClick={restart} style={{ border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Prøv igen</button>
               {wrong.length > 0 && <button onClick={() => setPhase("review")} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Gennemgå fejl ({wrong.length})</button>}
-              <button onClick={onClose} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Luk</button>
+              {quiz.caseId && onCase && <button onClick={() => { onClose(); onCase(quiz.caseId); }} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Øv dette i en case</button>}
+              {quiz.catId && onCategory ? (
+                <button onClick={() => { onClose(); onCategory(quiz.catId); }} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Tilbage til kategori</button>
+              ) : (
+                <button onClick={onClose} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Luk</button>
+              )}
             </div>
           </div>
-        )}
+          );
+        })()}
         {phase === "review" && (
           <div className="anim">
             <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 14 }}>Gennemgå fejl</div>
@@ -2286,15 +2469,15 @@ function Quiz({ quiz, onClose }) {
 }
 
 function TestButtons({ topicId, onQuiz, onCase }) {
-  const hasQuiz = onQuiz && QUIZZES[topicId];
-  const caseId = onCase && TOPIC_CASE[topicId];
-  if (!hasQuiz && !caseId) return null;
+  const quiz = onQuiz ? quizForTopic(topicId) : null;
+  const caseId = onCase ? TOPIC_CASE[topicId] : null;
+  if (!quiz && !caseId) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 4 }}>
-      {hasQuiz && (
-        <button onClick={() => onQuiz(topicId)} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 13, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}>
+      {quiz && (
+        <button onClick={() => onQuiz(quiz)} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 13, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontFamily: "inherit" }}>
           <ShieldCheck size={18} color={C.primary} />
-          <span style={{ flex: 1, textAlign: "left", fontSize: 14, fontWeight: 700, color: C.primary }}>Test din viden</span>
+          <span style={{ flex: 1, textAlign: "left", fontSize: 14, fontWeight: 700, color: C.primary }}>Test din viden om dette emne</span>
           <ChevronRight size={17} color={C.primary} />
         </button>
       )}
@@ -2428,7 +2611,7 @@ export default function Klario() {
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
   const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
-  const [quizId, setQuizId] = useState(null); // Test din viden — open quiz overlay (topicId)
+  const [activeQuiz, setActiveQuiz] = useState(null); // Test din viden — open quiz overlay (topicId)
   const [caseView, setCaseView] = useState(null); // Case-træning — open case id
   const [caseCat, setCaseCat] = useState("Alle");
   const [caseLevel, setCaseLevel] = useState(0);
@@ -2454,7 +2637,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setQuizId(null); setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setActiveQuiz(null); setScreen(tab); scrollTop(); };
   const startCall = (phone) => setCallPrompt({ phone });
 
   useEffect(() => {
@@ -2483,11 +2666,12 @@ export default function Klario() {
   const termResults = termQ ? TERMS.filter((t) => termText(t).includes(termQ)) : [];
   const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); scrollTop(); };
   const openTerm = (id) => { setScreen("fagligtsprog"); setTermView(id); setProcView(null); scrollTop(); };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening";
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt";
   const curCase = caseView ? caseById(caseView) : null;
   const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer")
     : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : "Lommeregnere")
     : screen === "casetraening" ? (curCase ? curCase.title : "Case-træning")
+    : screen === "quizoversigt" ? "Test din viden"
     : (curTerm ? curTerm.term : "Fagligt sprog");
   const pfBack = () => {
     if (screen === "plejeprocedurer" && procView) { setProcView(null); scrollTop(); return; }
@@ -2609,9 +2793,16 @@ export default function Klario() {
                     <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: C.inkSoft }}>{activeCatObj.banner}</p>
                   </div>
                 )}
+                {makeCategoryQuiz(activeCatObj.id) && (
+                  <button onClick={() => setActiveQuiz(makeCategoryQuiz(activeCatObj.id))} aria-label={"Test din viden om " + activeCatObj.title} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 14, padding: "13px 15px", cursor: "pointer", display: "flex", alignItems: "center", gap: 11, marginBottom: 14, fontFamily: "inherit" }}>
+                    <ShieldCheck size={19} color={C.primary} />
+                    <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 700, color: C.primary }}>Test din viden om {activeCatObj.title}</span>
+                    <ChevronRight size={18} color={C.primary} />
+                  </button>
+                )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                   {activeCatObj.cards.map((card) => (
-                    <ClinCard key={card.id} card={card} cat={activeCatObj} expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
+                    <ClinCard key={card.id} card={card} cat={activeCatObj} expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setActiveQuiz} onCase={openCase} />
                   ))}
                 </div>
                 <div style={{ marginTop: 16 }}><DisclaimerPill /></div>
@@ -2891,10 +3082,30 @@ export default function Klario() {
                   </div>
                 )}
 
-                {query && (
+                {query && (() => {
+                  const qs2 = query.trim().toLowerCase();
+                  const quizHub = qs2.includes("quiz") || qs2.includes("test din viden") || qs2 === "test";
+                  const quizCats = DATA.filter((c) => makeCategoryQuiz(c.id) && qs2.includes(c.title.toLowerCase()) && (qs2.includes("quiz") || qs2.includes("test") || true)).map((c) => c.id);
+                  const showHub = quizHub && quizCats.length === 0;
+                  const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0);
+                  return (
                   <>
-                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{results.length + calcSearch(query).length} {(results.length + calcSearch(query).length) === 1 ? "resultat" : "resultater"}</div>
+                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{total} {total === 1 ? "resultat" : "resultater"}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                      {showHub && (
+                        <button onClick={() => { setScreen("quizoversigt"); scrollTop(); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={20} color={C.primary} strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: C.primary, marginBottom: 1 }}>Læring</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>Test din viden</div></div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
+                      )}
+                      {quizCats.map((cid) => { const qz = makeCategoryQuiz(cid); return (
+                        <button key={"qz-" + cid} onClick={() => setActiveQuiz(qz)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={20} color={C.primary} strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: C.primary, marginBottom: 1 }}>Quiz</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>Test din viden om {qz.category}</div></div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
+                      ); })}
                       {calcSearch(query).map((c) => (
                         <button key={c.id} onClick={() => { setCalcView(c.id); setScreen("lommeregnere"); scrollTop(); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
                           <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><c.Icon size={20} color="#7A5AF5" strokeWidth={2.1} /></div>
@@ -2906,16 +3117,40 @@ export default function Klario() {
                         </button>
                       ))}
                       {results.map(({ card, cat }) => (
-                        <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
+                        <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setActiveQuiz} onCase={openCase} />
                       ))}
-                      {results.length === 0 && calcSearch(query).length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
+                      {total === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
                     </div>
                   </>
-                )}
+                  );
+                })()}
               </div>
             )}
 
             {/* KATEGORIER */}
+            {/* TEST DIN VIDEN — quiz hub */}
+            {!activeCat && screen === "quizoversigt" && (
+              <div className="anim">
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Vælg et emne og se, hvor godt du kan stoffet.</p>
+                <div style={{ display: "flex", gap: 10, background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 13, padding: "12px 14px", marginBottom: 16 }}>
+                  <Info size={17} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>Quizzer i Klario er til læring og erstatter ikke lokale instrukser, ordinationer eller sundhedsfaglig vurdering.</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {CAT_QUIZ_IDS.map((cid) => { const qz = makeCategoryQuiz(cid); if (!qz) return null; return (
+                    <button key={cid} onClick={() => setActiveQuiz(qz)} aria-label={"Test din viden om " + qz.category} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 16, padding: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 60 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={20} color={C.primary} strokeWidth={2.1} /></div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{qz.category}</div>
+                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>{qz.qs.length} spørgsmål</div>
+                      </div>
+                      <ChevronRight size={18} color={C.inkFaint} />
+                    </button>
+                  ); })}
+                </div>
+              </div>
+            )}
+
             {/* CASE-TRÆNING — overview */}
             {!activeCat && screen === "casetraening" && !caseView && (
               <div className="anim">
@@ -2996,7 +3231,7 @@ export default function Klario() {
             {/* PLEJEPROCEDURER — detail */}
             {!activeCat && screen === "plejeprocedurer" && procView && curProc && (
               <div key={procView} className="anim">
-                <ProcDetail p={curProc} onTerm={openTerm} onQuiz={setQuizId} onCase={openCase} />
+                <ProcDetail p={curProc} onTerm={openTerm} onQuiz={setActiveQuiz} onCase={openCase} />
               </div>
             )}
 
@@ -3020,7 +3255,7 @@ export default function Klario() {
                   </>
                 ) : (
                   <>
-                    <div style={{ marginBottom: 16 }}><TestButtons topicId="fs" onQuiz={setQuizId} /></div>
+                    <div style={{ marginBottom: 16 }}><TestButtons topicId="fs" onQuiz={setActiveQuiz} /></div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                       <Acc title="Sig det fagligt">
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -3115,6 +3350,14 @@ export default function Klario() {
                     </div>
                     <ChevronRight size={20} color={C.inkFaint} />
                   </button>
+                  <button onClick={() => { setScreen("quizoversigt"); scrollTop(); }} aria-label="Test din viden" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint(C.primary, "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={23} color={C.primary} strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Test din viden</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Quiz i alle kategorier.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, marginBottom: 11 }}>KLINISKE KATEGORIER</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -3148,7 +3391,7 @@ export default function Klario() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                     {favCards.map(({ card, cat }) => (
-                      <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} onQuiz={setQuizId} onCase={openCase} />
+                      <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} onQuiz={setActiveQuiz} onCase={openCase} />
                     ))}
                   </div>
                 )}
@@ -3320,8 +3563,8 @@ export default function Klario() {
           )}
 
           {/* Quiz overlay — Test din viden */}
-          {quizId && QUIZZES[quizId] && (
-            <Quiz quiz={QUIZZES[quizId]} onClose={() => setQuizId(null)} />
+          {activeQuiz && (
+            <Quiz quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onCase={openCase} onCategory={openCategory} />
           )}
         </div>
       </div>
