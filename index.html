@@ -534,6 +534,13 @@ const _ICONDATA = {
   }], ["path", {
     "d": "M12 5a2.5 2.5 0 0 1 4.9-.6A2.6 2.6 0 0 1 20 7a2.5 2.5 0 0 1 .4 4.6A2.6 2.6 0 0 1 19 16.2 2.5 2.5 0 0 1 14.5 18 2 2 0 0 1 12 19z"
   }]],
+  "GraduationCap": [["path", {
+    "d": "M12 4 2 9l10 5 10-5z"
+  }], ["path", {
+    "d": "M6 11.4V16c0 1.2 2.7 2.5 6 2.5s6-1.3 6-2.5v-4.6"
+  }], ["path", {
+    "d": "M21 9v5"
+  }]],
   "Calculator": [["rect", {
     "x": 5,
     "y": 2,
@@ -613,6 +620,7 @@ const Utensils = _icon(_ICONDATA.Utensils);
 const Puzzle = _icon(_ICONDATA.Puzzle);
 const Pill = _icon(_ICONDATA.Pill);
 const Brain = _icon(_ICONDATA.Brain);
+const GraduationCap = _icon(_ICONDATA.GraduationCap);
 const Calculator = _icon(_ICONDATA.Calculator);
 
 /* ================================================================== *
@@ -8323,6 +8331,118 @@ function CaseDetail({
   }))));
 }
 
+/* ===== EXTERNAL RESOURCES (quick-access shortcuts) =====================
+ * One place to edit these links. To replace the UddData+ login URL later,
+ * change UDDDATA_URL below — it is used nowhere else. */
+const UDDDATA_URL = "https://all.uddataplus.dk/login/doLogin?returURL=L3Jlc3NvdXJjZXIvP2lkPWlkX21lbnVfcmVzcyNyZXNzb3VyY2VyOkNISUxEX0NPTlRBSU5FUjo0ODUxMQ%3D%3D";
+const EXTERNAL_RESOURCES = {
+  medicine: [{
+    name: "Pro.medicin.dk",
+    sub: "Fagligt medicinopslag",
+    url: "https://pro.medicin.dk/",
+    aria: "Åbn Pro.medicin.dk – eksternt link",
+    Icon: Pill,
+    color: "#7A5AF5"
+  }, {
+    name: "Min.medicin.dk",
+    sub: "Medicin forklaret til borgere",
+    url: "https://min.medicin.dk/",
+    aria: "Åbn Min.medicin.dk – eksternt link",
+    Icon: Pill,
+    color: "#7A5AF5"
+  }],
+  study: [{
+    name: "UddData+",
+    sub: "Uddannelse og praktik",
+    url: UDDDATA_URL,
+    aria: "Åbn UddData+ – eksternt link",
+    Icon: GraduationCap,
+    color: "#0FAE9E"
+  }, {
+    name: "EduAdm",
+    sub: "Uddannelsesadministration",
+    url: "https://eduadm.dk/",
+    aria: "Åbn EduAdm – eksternt link",
+    Icon: GraduationCap,
+    color: "#0FAE9E"
+  }]
+};
+function ExtLinkCard({
+  r
+}) {
+  return /*#__PURE__*/React.createElement("a", {
+    href: r.url,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    "aria-label": r.aria,
+    style: {
+      textDecoration: "none",
+      position: "relative",
+      border: `1px solid ${C.line}`,
+      background: `linear-gradient(160deg, ${tint(r.color, "10")}, #fff)`,
+      borderRadius: 18,
+      padding: 14,
+      display: "flex",
+      flexDirection: "column",
+      gap: 11,
+      minHeight: 104,
+      justifyContent: "space-between"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 38,
+      height: 38,
+      borderRadius: 12,
+      background: tint(r.color, "16"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement(r.Icon, {
+    size: 20,
+    color: r.color,
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingRight: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink,
+      lineHeight: 1.2
+    }
+  }, r.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      fontWeight: 600,
+      color: C.inkSoft,
+      marginTop: 2,
+      lineHeight: 1.3
+    }
+  }, r.sub)), /*#__PURE__*/React.createElement("svg", {
+    width: 16,
+    height: 16,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: C.inkFaint,
+    strokeWidth: 2.2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    style: {
+      position: "absolute",
+      top: 14,
+      right: 14
+    },
+    "aria-hidden": "true"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M7 17 17 7"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M8 7h9v9"
+  })));
+}
+
 /* ------------------------------ APP ------------------------------- */
 
 function Klario() {
@@ -9542,174 +9662,35 @@ function Klario() {
     }
   }, "Tryk p\xE5 stjernen p\xE5 et kort for at gemme det her."))), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 24
+      marginBottom: 22
     }
   }, /*#__PURE__*/React.createElement(SectionHead, {
     title: "Medicinopslag"
   }), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: C.surface,
-      border: `1px solid ${C.line}`,
-      borderRadius: 18,
-      padding: 16,
-      boxShadow: "0 1px 3px rgba(21,33,43,0.05)"
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 11
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, EXTERNAL_RESOURCES.medicine.map(r => /*#__PURE__*/React.createElement(ExtLinkCard, {
+    key: r.url,
+    r: r
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
-      display: "flex",
-      alignItems: "center",
-      gap: 12,
-      marginBottom: 13
+      marginBottom: 22
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(SectionHead, {
+    title: "Studie"
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
-      width: 42,
-      height: 42,
-      borderRadius: 13,
-      background: tint("#7A5AF5", "14"),
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      flexShrink: 0
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 11
     }
-  }, /*#__PURE__*/React.createElement(Pill, {
-    size: 22,
-    color: "#7A5AF5",
-    strokeWidth: 2.1
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16,
-      fontWeight: 700,
-      color: C.ink
-    }
-  }, "Medicinopslag"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: C.inkSoft,
-      marginTop: 2
-    }
-  }, "Sl\xE5 l\xE6gemidler hurtigt op"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      flexDirection: "column",
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement("a", {
-    href: "https://pro.medicin.dk/",
-    target: "_blank",
-    rel: "noopener noreferrer",
-    "aria-label": "\xC5bn Pro.medicin.dk \u2013 eksternt link",
-    style: {
-      textDecoration: "none",
-      display: "flex",
-      alignItems: "center",
-      gap: 11,
-      border: `1px solid ${C.line}`,
-      background: tint(C.ink, "04"),
-      borderRadius: 14,
-      padding: "13px 14px",
-      minHeight: 58
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14.5,
-      fontWeight: 700,
-      color: C.ink,
-      letterSpacing: 0.2
-    }
-  }, "PRO.MEDICIN.DK"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: C.inkSoft,
-      marginTop: 2,
-      lineHeight: 1.35
-    }
-  }, "Fagligt medicinopslag")), /*#__PURE__*/React.createElement("svg", {
-    width: 17,
-    height: 17,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: C.inkFaint,
-    strokeWidth: 2.2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    style: {
-      flexShrink: 0
-    },
-    "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M7 17 17 7"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M8 7h9v9"
-  }))), /*#__PURE__*/React.createElement("a", {
-    href: "https://min.medicin.dk/",
-    target: "_blank",
-    rel: "noopener noreferrer",
-    "aria-label": "\xC5bn Min.medicin.dk \u2013 eksternt link",
-    style: {
-      textDecoration: "none",
-      display: "flex",
-      alignItems: "center",
-      gap: 11,
-      border: `1px solid ${C.line}`,
-      background: tint(C.ink, "04"),
-      borderRadius: 14,
-      padding: "13px 14px",
-      minHeight: 58
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14.5,
-      fontWeight: 700,
-      color: C.ink,
-      letterSpacing: 0.2
-    }
-  }, "MIN.MEDICIN.DK"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: C.inkSoft,
-      marginTop: 2,
-      lineHeight: 1.35
-    }
-  }, "Medicin forklaret til borgere")), /*#__PURE__*/React.createElement("svg", {
-    width: 17,
-    height: 17,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: C.inkFaint,
-    strokeWidth: 2.2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    style: {
-      flexShrink: 0
-    },
-    "aria-hidden": "true"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M7 17 17 7"
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M8 7h9v9"
-  })))), /*#__PURE__*/React.createElement("p", {
-    style: {
-      margin: "11px 0 0",
-      fontSize: 11.5,
-      color: C.inkFaint,
-      lineHeight: 1.45
-    }
-  }, "Eksterne links til de officielle sider p\xE5 medicin.dk. KLARIO viser eller gemmer ikke selv oplysningerne."))), /*#__PURE__*/React.createElement("div", {
+  }, EXTERNAL_RESOURCES.study.map(r => /*#__PURE__*/React.createElement(ExtLinkCard, {
+    key: r.url,
+    r: r
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 22
     }

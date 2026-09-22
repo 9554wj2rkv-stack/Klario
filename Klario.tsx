@@ -4,7 +4,7 @@ import {
   Activity, Droplets, Heart, Microscope, ClipboardList,
   MessageCircle, Siren, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Plus, Info, ShieldCheck, X,
-  Gauge, Scale, Stethoscope, Utensils, Puzzle, Pill, Brain, Calculator,
+  Gauge, Scale, Stethoscope, Utensils, Puzzle, Pill, Brain, Calculator, GraduationCap,
 } from "lucide-react";
 
 /* ================================================================== *
@@ -2593,6 +2593,35 @@ function CaseDetail({ c, onTopic }) {
 }
 
 
+/* ===== EXTERNAL RESOURCES (quick-access shortcuts) =====================
+ * One place to edit these links. To replace the UddData+ login URL later,
+ * change UDDDATA_URL below — it is used nowhere else. */
+const UDDDATA_URL = "https://all.uddataplus.dk/login/doLogin?returURL=L3Jlc3NvdXJjZXIvP2lkPWlkX21lbnVfcmVzcyNyZXNzb3VyY2VyOkNISUxEX0NPTlRBSU5FUjo0ODUxMQ%3D%3D";
+const EXTERNAL_RESOURCES = {
+  medicine: [
+    { name: "Pro.medicin.dk", sub: "Fagligt medicinopslag", url: "https://pro.medicin.dk/", aria: "Åbn Pro.medicin.dk – eksternt link", Icon: Pill, color: "#7A5AF5" },
+    { name: "Min.medicin.dk", sub: "Medicin forklaret til borgere", url: "https://min.medicin.dk/", aria: "Åbn Min.medicin.dk – eksternt link", Icon: Pill, color: "#7A5AF5" },
+  ],
+  study: [
+    { name: "UddData+", sub: "Uddannelse og praktik", url: UDDDATA_URL, aria: "Åbn UddData+ – eksternt link", Icon: GraduationCap, color: "#0FAE9E" },
+    { name: "EduAdm", sub: "Uddannelsesadministration", url: "https://eduadm.dk/", aria: "Åbn EduAdm – eksternt link", Icon: GraduationCap, color: "#0FAE9E" },
+  ],
+};
+function ExtLinkCard({ r }) {
+  return (
+    <a href={r.url} target="_blank" rel="noopener noreferrer" aria-label={r.aria} style={{ textDecoration: "none", position: "relative", border: `1px solid ${C.line}`, background: `linear-gradient(160deg, ${tint(r.color, "10")}, #fff)`, borderRadius: 18, padding: 14, display: "flex", flexDirection: "column", gap: 11, minHeight: 104, justifyContent: "space-between" }}>
+      <div style={{ width: 38, height: 38, borderRadius: 12, background: tint(r.color, "16"), display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <r.Icon size={20} color={r.color} strokeWidth={2.1} />
+      </div>
+      <div style={{ paddingRight: 18 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{r.name}</div>
+        <div style={{ fontSize: 11.5, fontWeight: 600, color: C.inkSoft, marginTop: 2, lineHeight: 1.3 }}>{r.sub}</div>
+      </div>
+      <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={C.inkFaint} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ position: "absolute", top: 14, right: 14 }} aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+    </a>
+  );
+}
+
 /* ------------------------------ APP ------------------------------- */
 
 export default function Klario() {
@@ -3033,35 +3062,18 @@ export default function Klario() {
                 </div>
 
                 {/* MEDICINOPSLAG — external links to medicin.dk */}
-                <div style={{ marginBottom: 24 }}>
+                <div style={{ marginBottom: 22 }}>
                   <SectionHead title="Medicinopslag" />
-                  <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: 16, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 13 }}>
-                      <div style={{ width: 42, height: 42, borderRadius: 13, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        <Pill size={22} color="#7A5AF5" strokeWidth={2.1} />
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Medicinopslag</div>
-                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Slå lægemidler hurtigt op</div>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" aria-label="Åbn Pro.medicin.dk – eksternt link" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 11, border: `1px solid ${C.line}`, background: tint(C.ink, "04"), borderRadius: 14, padding: "13px 14px", minHeight: 58 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, letterSpacing: 0.2 }}>PRO.MEDICIN.DK</div>
-                          <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2, lineHeight: 1.35 }}>Fagligt medicinopslag</div>
-                        </div>
-                        <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={C.inkFaint} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
-                      </a>
-                      <a href="https://min.medicin.dk/" target="_blank" rel="noopener noreferrer" aria-label="Åbn Min.medicin.dk – eksternt link" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 11, border: `1px solid ${C.line}`, background: tint(C.ink, "04"), borderRadius: 14, padding: "13px 14px", minHeight: 58 }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, letterSpacing: 0.2 }}>MIN.MEDICIN.DK</div>
-                          <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2, lineHeight: 1.35 }}>Medicin forklaret til borgere</div>
-                        </div>
-                        <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={C.inkFaint} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
-                      </a>
-                    </div>
-                    <p style={{ margin: "11px 0 0", fontSize: 11.5, color: C.inkFaint, lineHeight: 1.45 }}>Eksterne links til de officielle sider på medicin.dk. KLARIO viser eller gemmer ikke selv oplysningerne.</p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+                    {EXTERNAL_RESOURCES.medicine.map((r) => <ExtLinkCard key={r.url} r={r} />)}
+                  </div>
+                </div>
+
+                {/* STUDIE — external education shortcuts */}
+                <div style={{ marginBottom: 22 }}>
+                  <SectionHead title="Studie" />
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+                    {EXTERNAL_RESOURCES.study.map((r) => <ExtLinkCard key={r.url} r={r} />)}
                   </div>
                 </div>
 
