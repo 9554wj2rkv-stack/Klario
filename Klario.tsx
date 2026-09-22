@@ -2622,6 +2622,29 @@ function ExtLinkCard({ r }) {
   );
 }
 
+/* ===== HUSK AT TJEKKE — local quick-notes ==============================
+ * Personal study/work reminders. Stored only in the browser (localStorage)
+ * on this device; no server, no login. Guarded so it degrades gracefully
+ * where storage is unavailable. */
+const NOTES_KEY = "klario_notes_v1";
+function loadNotes() { try { const r = localStorage.getItem(NOTES_KEY); const a = r ? JSON.parse(r) : []; return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function saveNotes(a) { try { localStorage.setItem(NOTES_KEY, JSON.stringify(a)); } catch (e) { /* storage unavailable — stays in-session */ } }
+function noteId() { return "n-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7); }
+function fmtNoteDate(iso) {
+  const d = new Date(iso); if (isNaN(d.getTime())) return "";
+  const now = new Date(); const y = new Date(now); y.setDate(now.getDate() - 1);
+  const same = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const hhmm = d.toLocaleTimeString("da-DK", { hour: "2-digit", minute: "2-digit" });
+  if (same(d, now)) return "I dag " + hhmm;
+  if (same(d, y)) return "I går";
+  return d.toLocaleDateString("da-DK", { day: "numeric", month: "short" });
+}
+function noteSearchTerm(text) {
+  let t = (text || "").trim();
+  t = t.replace(/^(tjek forskellen på|tjek|læs om|læs|undersøg|se på|se|find|slå op på|slå op|kig på)\s+/i, "");
+  return t.trim() || (text || "").trim();
+}
+
 /* ------------------------------ APP ------------------------------- */
 
 export default function Klario() {
@@ -2642,6 +2665,10 @@ export default function Klario() {
   const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
   const [activeQuiz, setActiveQuiz] = useState(null); // Test din viden — open quiz overlay (topicId)
   const [caseView, setCaseView] = useState(null); // Case-træning — open case id
+  const [notes, setNotes] = useState(() => loadNotes()); // Husk at tjekke — persisted locally
+  const [noteModal, setNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [deleteNoteId, setDeleteNoteId] = useState(null);
   const [caseCat, setCaseCat] = useState("Alle");
   const [caseLevel, setCaseLevel] = useState(0);
   const [pbQuery, setPbQuery] = useState(""); // Akut telefonbog — instant local search
@@ -2666,7 +2693,14 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setActiveQuiz(null); setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setActiveQuiz(null); setNoteModal(false); setDeleteNoteId(null); setScreen(tab); scrollTop(); };
+  useEffect(() => { saveNotes(notes); }, [notes]);
+  const openNotes = notes.filter((n) => !n.completed);
+  const doneNotes = notes.filter((n) => n.completed);
+  const addNote = () => { const t = noteText.trim(); if (!t) return; setNotes((prev) => [{ id: noteId(), text: t, createdAt: new Date().toISOString(), completed: false }, ...prev]); setNoteText(""); setNoteModal(false); };
+  const toggleNote = (id) => setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, completed: !n.completed } : n)));
+  const removeNote = (id) => { setNotes((prev) => prev.filter((n) => n.id !== id)); setDeleteNoteId(null); };
+  const searchNote = (text) => { setQuery(noteSearchTerm(text)); goTab("soeg"); };
   const startCall = (phone) => setCallPrompt({ phone });
 
   useEffect(() => {
@@ -2791,6 +2825,16 @@ export default function Klario() {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: -0.2 }}>{akutCatObj?.name}</div>
                   <div style={{ fontSize: 11.5, color: C.inkFaint }}>Akut hjælp</div>
+                </div>
+              </>
+            ) : screen === "husk" ? (
+              <>
+                <button onClick={() => goTab("hjem")} aria-label="Tilbage" style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+                  <ChevronLeft size={20} color={C.ink} />
+                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 17, fontWeight: 700, color: C.ink, letterSpacing: -0.2 }}>Husk at tjekke</div>
+                  <div style={{ fontSize: 11.5, color: C.inkFaint }}>Personlige noter</div>
                 </div>
               </>
             ) : (
@@ -3061,6 +3105,36 @@ export default function Klario() {
                   )}
                 </div>
 
+                {/* HUSK AT TJEKKE — local quick-notes */}
+                <div style={{ marginBottom: 22 }}>
+                  <SectionHead title="Husk at tjekke" action={notes.length > 0 ? "Se alle" : null} onAction={() => goTab("husk")} />
+                  <div style={{ marginTop: -6, marginBottom: 12, fontSize: 12.5, color: C.inkSoft }}>Ting jeg skal undersøge senere</div>
+                  {openNotes.length === 0 ? (
+                    <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 15px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                      <span style={{ fontSize: 13.5, color: C.inkSoft }}>Intet du skal tjekke lige nu</span>
+                      <button onClick={() => setNoteModal(true)} aria-label="Tilføj note" style={{ border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), color: C.primary, borderRadius: 11, padding: "8px 13px", fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>+ Tilføj</button>
+                    </div>
+                  ) : (
+                    <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
+                      {openNotes.slice(0, 3).map((n, i) => (
+                        <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 11, padding: "12px 14px", borderTop: i ? `1px solid ${C.line}` : "none" }}>
+                          <button onClick={() => toggleNote(n.id)} aria-label={`Markér ${n.text} som færdig`} style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", marginTop: 1, flexShrink: 0 }}>
+                            <span style={{ display: "block", width: 20, height: 20, borderRadius: "50%", border: `2px solid ${C.inkFaint}` }} />
+                          </button>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 14.5, color: C.ink, lineHeight: 1.35, wordBreak: "break-word" }}>{n.text}</div>
+                            <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 2 }}>{fmtNoteDate(n.createdAt)}</div>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "10px 14px", borderTop: `1px solid ${C.line}`, background: tint(C.ink, "03") }}>
+                        <button onClick={() => setNoteModal(true)} aria-label="Tilføj note" style={{ border: "none", background: "transparent", color: C.primary, fontSize: 13.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>+ Tilføj</button>
+                        <button onClick={() => goTab("husk")} style={{ border: "none", background: "transparent", color: C.primary, fontSize: 13.5, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 1 }}>Se alle <ChevronRight size={15} /></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* MEDICINOPSLAG — external links to medicin.dk */}
                 <div style={{ marginBottom: 22 }}>
                   <SectionHead title="Medicinopslag" />
@@ -3097,6 +3171,62 @@ export default function Klario() {
                 </div>
 
                 <DisclaimerPill />
+              </div>
+            )}
+
+            {/* HUSK AT TJEKKE — full page (Se alle) */}
+            {!activeCat && screen === "husk" && (
+              <div className="anim">
+                <button onClick={() => setNoteModal(true)} aria-label="Ny note" style={{ width: "100%", border: "none", borderRadius: 14, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 52, marginBottom: 20 }}>+ Ny note</button>
+
+                <SectionHead title="Skal tjekkes" />
+                {openNotes.length === 0 ? (
+                  <p style={{ fontSize: 13.5, color: C.inkFaint, margin: "0 0 24px" }}>Ingen noter lige nu.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 26 }}>
+                    {openNotes.map((n) => (
+                      <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 11, border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 14px" }}>
+                        <button onClick={() => toggleNote(n.id)} aria-label={`Markér ${n.text} som færdig`} style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", marginTop: 1, flexShrink: 0 }}>
+                          <span style={{ display: "block", width: 22, height: 22, borderRadius: "50%", border: `2px solid ${C.inkFaint}` }} />
+                        </button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14.5, color: C.ink, lineHeight: 1.35, wordBreak: "break-word" }}>{n.text}</div>
+                          <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 2 }}>{fmtNoteDate(n.createdAt)}</div>
+                          <div style={{ display: "flex", gap: 16, marginTop: 9 }}>
+                            <button onClick={() => searchNote(n.text)} aria-label={`Søg i KLARIO efter ${noteSearchTerm(n.text)}`} style={{ border: "none", background: "transparent", padding: 0, color: C.primary, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 4 }}><Search size={14} /> Søg i KLARIO</button>
+                            <button onClick={() => setDeleteNoteId(n.id)} aria-label="Slet note" style={{ border: "none", background: "transparent", padding: 0, color: RED, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Slet</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <SectionHead title="Færdige" />
+                {doneNotes.length === 0 ? (
+                  <p style={{ fontSize: 13.5, color: C.inkFaint, margin: "0 0 16px" }}>Ingen færdige noter endnu.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                    {doneNotes.map((n) => (
+                      <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 11, border: `1px solid ${C.line}`, borderRadius: 14, padding: "13px 14px", background: tint(C.ink, "03") }}>
+                        <button onClick={() => toggleNote(n.id)} aria-label={`Genåbn ${n.text}`} style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", marginTop: 1, flexShrink: 0 }}>
+                          <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 22, height: 22, borderRadius: "50%", background: "#0FAE9E" }}>
+                            <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="m5 12 4 4 9-10" /></svg>
+                          </span>
+                        </button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14.5, color: C.inkSoft, textDecoration: "line-through", lineHeight: 1.35, wordBreak: "break-word" }}>{n.text}</div>
+                          <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 2 }}>Færdig</div>
+                          <div style={{ display: "flex", gap: 16, marginTop: 9 }}>
+                            <button onClick={() => toggleNote(n.id)} aria-label={`Genåbn ${n.text}`} style={{ border: "none", background: "transparent", padding: 0, color: C.primary, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Genåbn</button>
+                            <button onClick={() => setDeleteNoteId(n.id)} aria-label="Slet note" style={{ border: "none", background: "transparent", padding: 0, color: RED, fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Slet</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div style={{ marginTop: 16 }}><DisclaimerPill /></div>
               </div>
             )}
 
@@ -3580,7 +3710,7 @@ export default function Klario() {
           {/* BOTTOM NAV */}
           <nav style={{ display: "flex", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(12px)", borderTop: `1px solid ${C.line}`, padding: "8px 6px 10px" }}>
             {nav.map((n) => {
-              const active = !activeCat && (screen === n.id || (n.id === "kategorier" && inPF));
+              const active = !activeCat && (screen === n.id || (n.id === "kategorier" && inPF) || (n.id === "hjem" && screen === "husk"));
               return (
                 <button key={n.id} onClick={() => goTab(n.id)} style={{ flex: 1, border: "none", background: "transparent", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, padding: "5px 0" }}>
                   <n.Icon size={22} strokeWidth={active ? 2.5 : 2} color={n.danger ? RED : (active ? C.primary : C.inkFaint)} fill={active && n.id === "favoritter" ? C.primary : "none"} />
@@ -3610,6 +3740,35 @@ export default function Klario() {
           {/* Quiz overlay — Test din viden */}
           {activeQuiz && (
             <Quiz quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onCase={openCase} onCategory={openCategory} />
+          )}
+
+          {/* HUSK AT TJEKKE — add note */}
+          {noteModal && (
+            <div role="dialog" aria-modal="true" aria-label="Tilføj note" onClick={() => { setNoteModal(false); setNoteText(""); }} style={{ position: "absolute", inset: 0, zIndex: 35, background: "rgba(12,20,26,0.55)", display: "flex", alignItems: "flex-start", justifyContent: "center", padding: 16, paddingTop: "calc(env(safe-area-inset-top) + 54px)" }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, background: C.surface, borderRadius: 20, padding: 18, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Hvad skal du huske at tjekke?</div>
+                <input autoFocus value={noteText} onChange={(e) => setNoteText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addNote(); }} placeholder="Fx Tjek Furix…" aria-label="Note" maxLength={200} style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px 14px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit", outline: "none" }} />
+                <p style={{ margin: "8px 2px 0", fontSize: 11.5, color: C.inkFaint, lineHeight: 1.4 }}>Skriv ikke personfølsomme oplysninger om borgere.</p>
+                <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                  <button onClick={() => { setNoteModal(false); setNoteText(""); }} style={{ flex: 1, border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "14px", fontFamily: "inherit", fontSize: 15, fontWeight: 700, color: C.ink, cursor: "pointer", minHeight: 50 }}>Annuller</button>
+                  <button onClick={addNote} disabled={!noteText.trim()} aria-label="Gem note" style={{ flex: 1, border: "none", borderRadius: 13, padding: "14px", background: noteText.trim() ? "linear-gradient(135deg,#3E78EE,#2457D6)" : tint(C.ink, "14"), color: noteText.trim() ? "#fff" : C.inkFaint, fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: noteText.trim() ? "pointer" : "default", minHeight: 50 }}>Gem</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* HUSK AT TJEKKE — delete confirm */}
+          {deleteNoteId && (
+            <div role="dialog" aria-modal="true" aria-label="Slet note" onClick={() => setDeleteNoteId(null)} style={{ position: "absolute", inset: 0, zIndex: 36, background: "rgba(12,20,26,0.55)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+              <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 380, background: C.surface, borderRadius: 20, padding: 20, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}>
+                <div style={{ textAlign: "center", fontSize: 17, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Slet note?</div>
+                <div style={{ textAlign: "center", fontSize: 13, color: C.inkSoft, marginBottom: 18 }}>Denne note bliver slettet permanent.</div>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setDeleteNoteId(null)} style={{ flex: 1, border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "14px", fontFamily: "inherit", fontSize: 15, fontWeight: 700, color: C.ink, cursor: "pointer", minHeight: 50 }}>Annuller</button>
+                  <button onClick={() => removeNote(deleteNoteId)} aria-label="Slet note permanent" style={{ flex: 1, border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#F0625E,#C22F2C)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Slet</button>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
