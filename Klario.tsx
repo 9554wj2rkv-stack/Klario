@@ -3032,6 +3032,39 @@ export default function Klario() {
                   )}
                 </div>
 
+                {/* MEDICINOPSLAG — external links to medicin.dk */}
+                <div style={{ marginBottom: 24 }}>
+                  <SectionHead title="Medicinopslag" />
+                  <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: 16, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 13 }}>
+                      <div style={{ width: 42, height: 42, borderRadius: 13, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <Pill size={22} color="#7A5AF5" strokeWidth={2.1} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Medicinopslag</div>
+                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Slå lægemidler hurtigt op</div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" aria-label="Åbn Pro.medicin.dk – eksternt link" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 11, border: `1px solid ${C.line}`, background: tint(C.ink, "04"), borderRadius: 14, padding: "13px 14px", minHeight: 58 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, letterSpacing: 0.2 }}>PRO.MEDICIN.DK</div>
+                          <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2, lineHeight: 1.35 }}>Fagligt medicinopslag</div>
+                        </div>
+                        <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={C.inkFaint} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+                      </a>
+                      <a href="https://min.medicin.dk/" target="_blank" rel="noopener noreferrer" aria-label="Åbn Min.medicin.dk – eksternt link" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 11, border: `1px solid ${C.line}`, background: tint(C.ink, "04"), borderRadius: 14, padding: "13px 14px", minHeight: 58 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink, letterSpacing: 0.2 }}>MIN.MEDICIN.DK</div>
+                          <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2, lineHeight: 1.35 }}>Medicin forklaret til borgere</div>
+                        </div>
+                        <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={C.inkFaint} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }} aria-hidden="true"><path d="M7 17 17 7" /><path d="M8 7h9v9" /></svg>
+                      </a>
+                    </div>
+                    <p style={{ margin: "11px 0 0", fontSize: 11.5, color: C.inkFaint, lineHeight: 1.45 }}>Eksterne links til de officielle sider på medicin.dk. KLARIO viser eller gemmer ikke selv oplysningerne.</p>
+                  </div>
+                </div>
+
                 {/* MOST USED TOOLS */}
                 <div style={{ marginBottom: 22 }}>
                   <SectionHead title="Mest brugte værktøjer" />
