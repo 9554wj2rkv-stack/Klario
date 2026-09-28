@@ -4,7 +4,7 @@ import {
   Activity, Droplets, Heart, Microscope, ClipboardList,
   MessageCircle, Siren, ChevronDown, ChevronLeft, ChevronRight,
   Clock, Plus, Info, ShieldCheck, X,
-  Gauge, Scale, Stethoscope, Utensils, Puzzle, Pill, Brain, Calculator, GraduationCap,
+  Gauge, Scale, Stethoscope, Utensils, Puzzle, Pill, Brain, Calculator, GraduationCap, FileText, Folder,
 } from "lucide-react";
 
 /* ================================================================== *
@@ -2028,6 +2028,27 @@ const CALC_TOOLS = [
 ];
 const calcSearch = (q) => { const s = (q || "").trim().toLowerCase(); return s ? CALC_TOOLS.filter((c) => (c.title + " " + c.sub + " " + c.kw).toLowerCase().includes(s)) : []; };
 
+/* Pseudo-categories so Fagligt sprog, Plejeprocedurer and Test Viden appear in the
+   KLINISKE KATEGORIER grid with the same card design (they keep their own screens). */
+const FAGLIGT_CAT = { id: "fagligtsprog", title: "Fagligt sprog", subtitle: "Fra hverdagssprog til SSA-sprog.", color: "#0FAE9E", g1: "#2BC7B4", g2: "#0B9488", Icon: MessageCircle };
+const PLEJE_CAT = { id: "plejeprocedurer", title: "Plejeprocedurer", subtitle: "Trin-for-trin til pleje, observation og dokumentation.", color: "#2E68E0", g1: "#4F86F4", g2: "#2257D8", Icon: ClipboardList };
+const TESTVIDEN_CAT = { id: "testviden", title: "Test Viden", subtitle: "Quiz og case-træning til studie.", color: "#6741D9", g1: "#8B6DF0", g2: "#5B37C7", Icon: GraduationCap };
+
+function GridTile({ cat, count, onClick }) {
+  return (
+    <button onClick={onClick} aria-label={cat.title} style={{ textAlign: "left", border: "none", borderRadius: 20, padding: 15, cursor: "pointer", background: `linear-gradient(160deg, ${tint(cat.color, "1A")}, ${tint(cat.color, "08")})`, display: "flex", flexDirection: "column", gap: 12, minHeight: 138, justifyContent: "space-between" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Chip cat={cat} size={42} radius={13} />
+        {count != null && <span style={{ fontSize: 12, fontWeight: 700, color: cat.color, background: "rgba(255,255,255,0.7)", padding: "2px 8px", borderRadius: 8 }}>{count}</span>}
+      </div>
+      <div>
+        <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, lineHeight: 1.2 }}>{cat.title}</div>
+        <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.35 }}>{cat.subtitle}</div>
+      </div>
+    </button>
+  );
+}
+
 
 /* ========================= QUIZ + CASE-TRÆNING ========================= *
  *  Læringslag. Quizindhold er generel SSA-viden (proces, observation,
@@ -2645,6 +2666,139 @@ function noteSearchTerm(text) {
   return t.trim() || (text || "").trim();
 }
 
+/* ===== MINE DOKUMENTER ================================================= *
+ *  Personal local document library. Binary files live in IndexedDB on THIS
+ *  device only — never uploaded anywhere. Clean storage abstraction so the
+ *  backend could later be swapped (e.g. encrypted/cloud) without touching UI.
+ *  Metadata store: docs. Binary store: blobs. Folders store: folders.
+ * ===================================================================== */
+const DOCS_DB = "klario_docs";
+const docStore = {
+  _db: null,
+  open() {
+    return new Promise((resolve, reject) => {
+      if (this._db) return resolve(this._db);
+      if (typeof indexedDB === "undefined") return reject(new Error("no-idb"));
+      let req;
+      try { req = indexedDB.open(DOCS_DB, 1); } catch (e) { return reject(e); }
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains("folders")) db.createObjectStore("folders", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("docs")) db.createObjectStore("docs", { keyPath: "id" });
+        if (!db.objectStoreNames.contains("blobs")) db.createObjectStore("blobs", { keyPath: "id" });
+      };
+      req.onsuccess = () => { this._db = req.result; resolve(this._db); };
+      req.onerror = () => reject(req.error || new Error("idb-open"));
+    });
+  },
+  _all(store) { return this.open().then((db) => new Promise((res, rej) => { const r = db.transaction(store, "readonly").objectStore(store).getAll(); r.onsuccess = () => res(r.result || []); r.onerror = () => rej(r.error); })); },
+  _tx(stores, mode, fn) { return this.open().then((db) => new Promise((res, rej) => { const tx = db.transaction(stores, mode); fn(tx); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error("abort")); })); },
+  async init(defaults) {
+    let folders = await this._all("folders");
+    if (folders.length === 0 && defaults && defaults.length) {
+      await this._tx("folders", "readwrite", (tx) => { const os = tx.objectStore("folders"); defaults.forEach((f) => os.put(f)); });
+      folders = defaults.slice();
+    }
+    const docs = await this._all("docs");
+    return [folders, docs];
+  },
+  putFolder(f) { return this._tx("folders", "readwrite", (tx) => tx.objectStore("folders").put(f)); },
+  deleteFolder(id) { return this._tx("folders", "readwrite", (tx) => tx.objectStore("folders").delete(id)); },
+  putDoc(meta, blob) { return this._tx(["docs", "blobs"], "readwrite", (tx) => { tx.objectStore("docs").put(meta); tx.objectStore("blobs").put({ id: meta.id, blob }); }); },
+  putDocMeta(meta) { return this._tx("docs", "readwrite", (tx) => tx.objectStore("docs").put(meta)); },
+  deleteDoc(id) { return this._tx(["docs", "blobs"], "readwrite", (tx) => { tx.objectStore("docs").delete(id); tx.objectStore("blobs").delete(id); }); },
+  getBlob(id) { return this.open().then((db) => new Promise((res, rej) => { const r = db.transaction("blobs", "readonly").objectStore("blobs").get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); },
+};
+
+const DEFAULT_FOLDERS = ["Skole", "Opgaver", "Farmakologi", "Praktik", "Procedurer", "Egne noter", "Fagligt"].map((n, i) => ({ id: "f-def-" + i, name: n, createdAt: new Date().toISOString() }));
+
+const DOC_ERRORS = {
+  kunne_ikke_indlaese: "Dokumenterne kunne ikke indlæses. Prøv at genindlæse KLARIO.",
+  kunne_ikke_gemme: "Dokumentet kunne ikke gemmes. Prøv igen.",
+  kunne_ikke_aabne: "Dokumentet kunne ikke åbnes.",
+  kunne_ikke_slette: "Handlingen kunne ikke gennemføres. Prøv igen.",
+  kvote: "Der er ikke mere plads på enheden til flere dokumenter.",
+  ingen_lager: "Denne enhed understøtter ikke lokal dokumentlagring i browseren.",
+};
+
+function docUid() { return "d-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 7); }
+function nowISO() { return new Date().toISOString(); }
+function fmtBytes(n) { if (!(n > 0)) return "0 B"; if (n < 1024) return n + " B"; if (n < 1048576) return Math.round(n / 1024) + " KB"; return (n / 1048576).toFixed(1).replace(".", ",") + " MB"; }
+function fmtDocDate(iso) { const d = new Date(iso); if (isNaN(d.getTime())) return ""; return d.toLocaleDateString("da-DK", { day: "numeric", month: "short", year: "numeric" }); }
+function stripExt(n) { const i = (n || "").lastIndexOf("."); return i > 0 ? n.slice(0, i) : (n || ""); }
+function extOf(n) { const i = (n || "").lastIndexOf("."); return i > 0 ? n.slice(i) : ""; }
+function downloadName(display, original) { const d = (display || original || "dokument").trim(); return /\.[a-z0-9]{1,6}$/i.test(d) ? d : d + extOf(original); }
+const MIME_BY_EXT = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp", heic: "image/heic", txt: "text/plain", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", csv: "text/csv" };
+function guessMime(name) { const e = (name || "").toLowerCase().split(".").pop(); return MIME_BY_EXT[e] || ""; }
+function docKind(mime, name) {
+  const m = (mime || "").toLowerCase(); const n = (name || "").toLowerCase(); const ext = n.includes(".") ? n.split(".").pop() : "";
+  if (m === "application/pdf" || ext === "pdf") return { label: "PDF", color: "#E5484D" };
+  if (m.startsWith("image/") || ["jpg", "jpeg", "png", "gif", "webp", "heic"].indexOf(ext) >= 0) return { label: "Billede", color: "#7A5AF5" };
+  if (["doc", "docx"].indexOf(ext) >= 0 || m.indexOf("word") >= 0) return { label: "Word", color: "#2B6CB0" };
+  if (["xls", "xlsx", "csv"].indexOf(ext) >= 0 || m.indexOf("sheet") >= 0 || m.indexOf("excel") >= 0) return { label: "Regneark", color: "#1F9D57" };
+  if (["ppt", "pptx"].indexOf(ext) >= 0 || m.indexOf("presentation") >= 0 || m.indexOf("powerpoint") >= 0) return { label: "Slides", color: "#D97706" };
+  if (ext === "txt" || m === "text/plain") return { label: "Tekst", color: "#5B6A73" };
+  return { label: "Fil", color: "#5B6A73" };
+}
+
+/* ---- reusable modal shell ---- */
+function Sheet({ label, onClose, children, top }) {
+  return (
+    <div role="dialog" aria-modal="true" aria-label={label} onClick={onClose} style={{ position: "absolute", inset: 0, zIndex: 38, background: "rgba(12,20,26,0.55)", display: "flex", alignItems: top ? "flex-start" : "center", justifyContent: "center", padding: 16, paddingTop: top ? "calc(env(safe-area-inset-top) + 54px)" : 16 }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, background: C.surface, borderRadius: 20, padding: 18, boxShadow: "0 20px 50px rgba(0,0,0,0.3)", maxHeight: "82vh", overflowY: "auto" }}>{children}</div>
+    </div>
+  );
+}
+const dInput = { width: "100%", boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px 14px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit", outline: "none" };
+const dBtnPri = (on) => ({ flex: 1, border: "none", borderRadius: 13, padding: "14px", background: on ? "linear-gradient(135deg,#3E78EE,#2457D6)" : tint(C.ink, "14"), color: on ? "#fff" : C.inkFaint, fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: on ? "pointer" : "default", minHeight: 50 });
+const dBtnSec = { flex: 1, border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "14px", fontFamily: "inherit", fontSize: 15, fontWeight: 700, color: C.ink, cursor: "pointer", minHeight: 50 };
+
+function DocRow({ d, folderName, onOpen, onMenu }) {
+  const k = docKind(d.mimeType, d.displayName);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "12px 6px 12px 12px" }}>
+      <button onClick={onOpen} aria-label={`Åbn ${d.displayName}`} style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 12, textAlign: "left", border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: "inherit" }}>
+        <div style={{ width: 40, height: 40, borderRadius: 11, background: tint(k.color, "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <FileText size={20} color={k.color} strokeWidth={2.1} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 600, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{d.displayName}</div>
+          <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{k.label} · Tilføjet {fmtDocDate(d.createdAt)}{folderName ? " · " + folderName : ""}</div>
+        </div>
+      </button>
+      <button onClick={onMenu} aria-label={`Valgmuligheder for ${d.displayName}`} style={{ border: "none", background: "transparent", padding: 8, cursor: "pointer", flexShrink: 0, borderRadius: 10 }}>
+        <MoreHorizontal size={20} color={C.inkFaint} />
+      </button>
+    </div>
+  );
+}
+
+function DocPreview({ preview, onClose }) {
+  const isPdf = preview.mime === "application/pdf";
+  const isImg = (preview.mime || "").startsWith("image/");
+  return (
+    <div role="dialog" aria-modal="true" aria-label={"Forhåndsvisning: " + preview.name} style={{ position: "absolute", inset: 0, zIndex: 1000, background: C.surface, display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 11, padding: "calc(13px + env(safe-area-inset-top)) 14px 13px", borderBottom: `1px solid ${C.line}`, background: C.surface }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{preview.name}</div>
+        </div>
+        <a href={preview.url} target="_blank" rel="noopener noreferrer" aria-label="Åbn i ny fane" style={{ textDecoration: "none", fontSize: 13, fontWeight: 700, color: C.primary, padding: "8px 10px" }}>Ny fane</a>
+        <button onClick={onClose} aria-label="Luk" style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}><X size={20} color={C.ink} /></button>
+      </div>
+      <div style={{ flex: 1, overflow: "auto", background: "#33414B", display: "flex", alignItems: isImg ? "center" : "stretch", justifyContent: "center" }}>
+        {isPdf ? (
+          <iframe src={preview.url} title={preview.name} style={{ width: "100%", height: "100%", border: "none", background: "#fff" }} />
+        ) : isImg ? (
+          <img src={preview.url} alt={preview.name} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", padding: 10, boxSizing: "border-box" }} />
+        ) : (
+          <div style={{ color: "#fff", padding: 30, textAlign: "center", alignSelf: "center", fontSize: 14 }}>Denne filtype kan ikke forhåndsvises. Brug “Ny fane” for at åbne den.</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 /* ------------------------------ APP ------------------------------- */
 
 export default function Klario() {
@@ -2663,12 +2817,34 @@ export default function Klario() {
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
   const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
+  const [calcGroup, setCalcGroup] = useState(null); // which calculator group is being shown (medicin | bmi)
+  const [calcBack, setCalcBack] = useState(null);   // where to return from a calculator (hjem | vaerktoejer | soeg)
   const [activeQuiz, setActiveQuiz] = useState(null); // Test din viden — open quiz overlay (topicId)
   const [caseView, setCaseView] = useState(null); // Case-træning — open case id
   const [notes, setNotes] = useState(() => loadNotes()); // Husk at tjekke — persisted locally
   const [noteModal, setNoteModal] = useState(false);
   const [noteText, setNoteText] = useState("");
   const [deleteNoteId, setDeleteNoteId] = useState(null);
+  // Mine dokumenter (IndexedDB)
+  const [docs, setDocs] = useState([]);
+  const [folders, setFolders] = useState([]);
+  const [docsReady, setDocsReady] = useState(false);
+  const [docErr, setDocErr] = useState(null);
+  const [docFolder, setDocFolder] = useState("alle");
+  const [docQuery, setDocQuery] = useState("");
+  const [docSort, setDocSort] = useState("nyeste");
+  const [docMenu, setDocMenu] = useState(null);      // id → options sheet
+  const [preview, setPreview] = useState(null);      // {url,mime,name}
+  const [pendingFile, setPendingFile] = useState(null); // {file,name,folderId,note}
+  const [folderModal, setFolderModal] = useState(false);
+  const [folderNameInput, setFolderNameInput] = useState("");
+  const [renameFolderT, setRenameFolderT] = useState(null); // {id,name}
+  const [deleteFolderT, setDeleteFolderT] = useState(null); // id
+  const [renameDocT, setRenameDocT] = useState(null); // {id,name}
+  const [moveDocT, setMoveDocT] = useState(null);     // id
+  const [noteDocT, setNoteDocT] = useState(null);     // {id,note}
+  const [deleteDocT, setDeleteDocT] = useState(null); // id
+  const fileInputRef = useRef(null);
   const [caseCat, setCaseCat] = useState("Alle");
   const [caseLevel, setCaseLevel] = useState(0);
   const [pbQuery, setPbQuery] = useState(""); // Akut telefonbog — instant local search
@@ -2693,7 +2869,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); setActiveQuiz(null); setNoteModal(false); setDeleteNoteId(null); setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setScreen(tab); scrollTop(); };
   useEffect(() => { saveNotes(notes); }, [notes]);
   const openNotes = notes.filter((n) => !n.completed);
   const doneNotes = notes.filter((n) => n.completed);
@@ -2701,6 +2877,71 @@ export default function Klario() {
   const toggleNote = (id) => setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, completed: !n.completed } : n)));
   const removeNote = (id) => { setNotes((prev) => prev.filter((n) => n.id !== id)); setDeleteNoteId(null); };
   const searchNote = (text) => { setQuery(noteSearchTerm(text)); goTab("soeg"); };
+
+  // ---- Mine dokumenter ----
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const [fs, ds] = await docStore.init(DEFAULT_FOLDERS);
+        if (!alive) return;
+        setFolders(fs); setDocs(ds); setDocsReady(true);
+      } catch (e) { if (alive) { setDocErr(typeof indexedDB === "undefined" ? "ingen_lager" : "kunne_ikke_indlaese"); setDocsReady(true); } }
+    })();
+    return () => { alive = false; };
+  }, []);
+  const folderName = (id) => { const f = folders.find((x) => x.id === id); return f ? f.name : null; };
+  const docsFiltered = (() => {
+    let list = docs.slice();
+    if (docFolder !== "alle") list = list.filter((d) => (docFolder === "ingen" ? !d.folderId : d.folderId === docFolder));
+    const q = docQuery.trim().toLowerCase();
+    if (q) list = list.filter((d) => (d.displayName || "").toLowerCase().includes(q) || (d.note || "").toLowerCase().includes(q) || (folderName(d.folderId) || "").toLowerCase().includes(q));
+    list.sort((a, b) => {
+      if (docSort === "navn") return (a.displayName || "").localeCompare(b.displayName || "", "da");
+      if (docSort === "navnrev") return (b.displayName || "").localeCompare(a.displayName || "", "da");
+      const t = (x) => new Date(x.createdAt).getTime() || 0;
+      return docSort === "aeldste" ? t(a) - t(b) : t(b) - t(a);
+    });
+    return list;
+  })();
+  const pickFile = () => { if (fileInputRef.current) fileInputRef.current.click(); };
+  const onFilePicked = (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ""; if (!f) return; setPendingFile({ file: f, name: stripExt(f.name), folderId: docFolder !== "alle" && docFolder !== "ingen" ? docFolder : "", note: "" }); };
+  const saveDoc = async () => {
+    const p = pendingFile; if (!p) return;
+    const meta = { id: docUid(), originalName: p.file.name, displayName: (p.name.trim() || p.file.name), mimeType: p.file.type || guessMime(p.file.name), size: p.file.size, createdAt: nowISO(), updatedAt: nowISO(), folderId: p.folderId || null, note: p.note.trim() };
+    try { await docStore.putDoc(meta, p.file); setDocs((prev) => [meta, ...prev]); setPendingFile(null); }
+    catch (e) { setDocErr(e && e.name === "QuotaExceededError" ? "kvote" : "kunne_ikke_gemme"); }
+  };
+  const openDoc = async (id) => {
+    try {
+      const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id);
+      if (!rec || !rec.blob) throw new Error("missing");
+      const url = URL.createObjectURL(rec.blob); const mime = (meta && meta.mimeType) || rec.blob.type || "";
+      if (mime === "application/pdf" || mime.startsWith("image/")) { setPreview({ url, mime, name: (meta && meta.displayName) || "Dokument" }); }
+      else { const a = document.createElement("a"); a.href = url; a.download = downloadName(meta && meta.displayName, meta && meta.originalName); a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000); }
+    } catch (e) { setDocErr("kunne_ikke_aabne"); }
+  };
+  const closePreview = () => { if (preview) { try { URL.revokeObjectURL(preview.url); } catch (x) {} } setPreview(null); };
+  const shareDoc = async (id) => {
+    try {
+      const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id); if (!rec || !rec.blob) return;
+      const fname = downloadName(meta && meta.displayName, meta && meta.originalName);
+      const file = new File([rec.blob], fname, { type: (meta && meta.mimeType) || rec.blob.type || "application/octet-stream" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: meta && meta.displayName }); }
+      else { const url = URL.createObjectURL(rec.blob); const a = document.createElement("a"); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000); }
+    } catch (e) { if (!(e && e.name === "AbortError")) setDocErr("kunne_ikke_slette"); }
+  };
+  const doRenameDoc = async () => { const t = renameDocT; if (!t || !t.name.trim()) return; const meta = docs.find((d) => d.id === t.id); if (!meta) return; const nd = { ...meta, displayName: t.name.trim(), updatedAt: nowISO() }; try { await docStore.putDocMeta(nd); setDocs((p) => p.map((d) => (d.id === t.id ? nd : d))); setRenameDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const doMoveDoc = async (fid) => { const id = moveDocT; const meta = docs.find((d) => d.id === id); if (!meta) return; const nd = { ...meta, folderId: fid || null, updatedAt: nowISO() }; try { await docStore.putDocMeta(nd); setDocs((p) => p.map((d) => (d.id === id ? nd : d))); setMoveDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const doSaveNote = async () => { const t = noteDocT; const meta = docs.find((d) => d.id === t.id); if (!meta) return; const nd = { ...meta, note: t.note.trim(), updatedAt: nowISO() }; try { await docStore.putDocMeta(nd); setDocs((p) => p.map((d) => (d.id === t.id ? nd : d))); setNoteDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const doDeleteDoc = async () => { const id = deleteDocT; try { await docStore.deleteDoc(id); setDocs((p) => p.filter((d) => d.id !== id)); setDeleteDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const createFolder = async () => { const n = folderNameInput.trim(); if (!n) return; const f = { id: "f-" + Date.now().toString(36), name: n, createdAt: nowISO() }; try { await docStore.putFolder(f); setFolders((p) => [...p, f]); setFolderNameInput(""); setFolderModal(false); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const doRenameFolder = async () => { const t = renameFolderT; if (!t || !t.name.trim()) return; const f = folders.find((x) => x.id === t.id); if (!f) return; const nf = { ...f, name: t.name.trim() }; try { await docStore.putFolder(nf); setFolders((p) => p.map((x) => (x.id === t.id ? nf : x))); setRenameFolderT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
+  const doDeleteFolder = async () => {
+    const fid = deleteFolderT; const inFolder = docs.filter((d) => d.folderId === fid);
+    try { for (const d of inFolder) { await docStore.putDocMeta({ ...d, folderId: null, updatedAt: nowISO() }); } await docStore.deleteFolder(fid); setFolders((p) => p.filter((x) => x.id !== fid)); setDocs((p) => p.map((d) => (d.folderId === fid ? { ...d, folderId: null } : d))); if (docFolder === fid) setDocFolder("alle"); setDeleteFolderT(null); }
+    catch (e) { setDocErr("kunne_ikke_slette"); }
+  };
   const startCall = (phone) => setCallPrompt({ phone });
 
   useEffect(() => {
@@ -2729,19 +2970,28 @@ export default function Klario() {
   const termResults = termQ ? TERMS.filter((t) => termText(t).includes(termQ)) : [];
   const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); scrollTop(); };
   const openTerm = (id) => { setScreen("fagligtsprog"); setTermView(id); setProcView(null); scrollTop(); };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt";
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden";
   const curCase = caseView ? caseById(caseView) : null;
   const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer")
-    : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : "Lommeregnere")
+    : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : (calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere"))
     : screen === "casetraening" ? (curCase ? curCase.title : "Case-træning")
     : screen === "quizoversigt" ? "Test din viden"
+    : screen === "testviden" ? "Test Viden"
+    : screen === "dokumenter" ? "Mine dokumenter"
     : (curTerm ? curTerm.term : "Fagligt sprog");
   const pfBack = () => {
     if (screen === "plejeprocedurer" && procView) { setProcView(null); scrollTop(); return; }
     if (screen === "fagligtsprog" && termView) { setTermView(null); scrollTop(); return; }
-    if (screen === "lommeregnere" && calcView) { setCalcView(null); scrollTop(); return; }
+    if (screen === "lommeregnere") {
+      if (calcView && calcGroup === "medicin") { setCalcView(null); scrollTop(); return; }
+      const back = calcBack; setCalcView(null); setCalcGroup(null); setCalcBack(null);
+      if (back === "hjem") { setScreen("hjem"); scrollTop(); return; }
+      if (back === "soeg") { setScreen("soeg"); scrollTop(); return; }
+      if (back === "vaerktoejer") { setScreen("kategorier"); setActiveCat("vaerktoejer"); scrollTop(); return; }
+      setScreen("kategorier"); scrollTop(); return;
+    }
     if (screen === "casetraening" && caseView) { setCaseView(null); scrollTop(); return; }
-    setScreen("kategorier"); setProcView(null); setTermView(null); setCalcView(null); setCaseView(null); scrollTop();
+    setScreen("kategorier"); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); scrollTop();
   };
   const openCase = (id) => { setScreen("casetraening"); setCaseView(id); scrollTop(); };
   const openTopicById = (id) => { if (procById(id)) { openProc(id); } else if (CARD_INDEX[id]) { openCard(id); } else if (termById(id)) { openTerm(id); } };
@@ -2871,6 +3121,13 @@ export default function Klario() {
                     <ShieldCheck size={19} color={C.primary} />
                     <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 700, color: C.primary }}>Test din viden om {activeCatObj.title}</span>
                     <ChevronRight size={18} color={C.primary} />
+                  </button>
+                )}
+                {activeCatObj.id === "vaerktoejer" && (
+                  <button onClick={() => { setCalcGroup("bmi"); setCalcView("bmi"); setCalcBack("vaerktoejer"); setActiveCat(null); setScreen("lommeregnere"); scrollTop(); }} aria-label="BMI-beregner" style={{ width: "100%", border: `1px solid ${tint("#7A5AF5", "33")}`, background: tint("#7A5AF5", "0C"), borderRadius: 14, padding: "13px 15px", cursor: "pointer", display: "flex", alignItems: "center", gap: 11, marginBottom: 14, fontFamily: "inherit" }}>
+                    <Gauge size={19} color="#7A5AF5" />
+                    <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 700, color: "#7A5AF5" }}>BMI-beregner</span>
+                    <ChevronRight size={18} color="#7A5AF5" />
                   </button>
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
@@ -3135,9 +3392,17 @@ export default function Klario() {
                   )}
                 </div>
 
-                {/* MEDICINOPSLAG — external links to medicin.dk */}
+                {/* MEDICINOPSLAG — external links to medicin.dk + Medicinberegner */}
                 <div style={{ marginBottom: 22 }}>
                   <SectionHead title="Medicinopslag" />
+                  <button onClick={() => { setCalcGroup("medicin"); setCalcView(null); setCalcBack("hjem"); setScreen("lommeregnere"); scrollTop(); }} aria-label="Medicinberegner" style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 66, marginBottom: 11 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Calculator size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Medicinberegner</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Dosis, styrke og infusion.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
                     {EXTERNAL_RESOURCES.medicine.map((r) => <ExtLinkCard key={r.url} r={r} />)}
                   </div>
@@ -3230,6 +3495,103 @@ export default function Klario() {
               </div>
             )}
 
+            {/* TEST VIDEN — parent for the two learning functions */}
+            {!activeCat && screen === "testviden" && (
+              <div className="anim">
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Øv og repetér med quizzer og cases — til skole og praktik.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                  <button onClick={() => { setScreen("quizoversigt"); scrollTop(); }} aria-label="Test din viden" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint(C.primary, "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={23} color={C.primary} strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Test din viden</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Quiz i alle kategorier.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
+                  <button onClick={() => { setCaseView(null); setScreen("casetraening"); scrollTop(); }} aria-label="Case-træning" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#D6336C", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ClipboardList size={23} color="#D6336C" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Case-træning</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Øv dig som til skole og praktik.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* MINE DOKUMENTER */}
+            {!activeCat && screen === "dokumenter" && (
+              <div className="anim">
+                <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Dine egne studie- og faglige dokumenter samlet ét sted.</p>
+
+                {docErr && (
+                  <div style={{ display: "flex", gap: 9, alignItems: "flex-start", background: tint(RED, "0C"), border: `1px solid ${tint(RED, "26")}`, borderRadius: 12, padding: "11px 13px", marginBottom: 14 }}>
+                    <Info size={16} color={RED} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ flex: 1, fontSize: 13, color: "#7A2A28", lineHeight: 1.45 }}>{DOC_ERRORS[docErr] || "Der opstod en fejl."}</span>
+                    <button onClick={() => setDocErr(null)} aria-label="Luk" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 2 }}><X size={16} color={RED} /></button>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
+                  <button onClick={pickFile} aria-label="Tilføj dokument" style={{ flex: 2, border: "none", borderRadius: 13, padding: "13px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}><Plus size={18} /> Tilføj dokument</button>
+                  <button onClick={() => { setFolderNameInput(""); setFolderModal(true); }} aria-label="Ny mappe" style={{ flex: 1, border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "13px", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: C.ink, cursor: "pointer", minHeight: 50, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Folder size={17} color={C.inkSoft} /> Ny mappe</button>
+                </div>
+
+                <div style={{ position: "relative", marginBottom: 11 }}>
+                  <Search size={17} color={C.inkFaint} style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)" }} />
+                  <input value={docQuery} onChange={(e) => setDocQuery(e.target.value)} placeholder="Søg i dokumenter…" aria-label="Søg i dokumenter" style={{ width: "100%", boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px 12px 38px", fontSize: 15, color: C.ink, background: C.surface, fontFamily: "inherit", outline: "none" }} />
+                </div>
+
+                <div className="hscroll" style={{ display: "flex", gap: 8, overflowX: "auto", margin: "0 -18px 10px", padding: "0 18px" }}>
+                  {[{ id: "alle", name: "Alle" }].concat(folders).concat(docs.some((d) => !d.folderId) ? [{ id: "ingen", name: "Ingen mappe" }] : []).map((f) => { const on = docFolder === f.id; return (
+                    <button key={f.id} onClick={() => setDocFolder(f.id)} style={{ flexShrink: 0, border: `1.5px solid ${on ? C.primary : C.line}`, background: on ? tint(C.primary, "0E") : C.surface, color: on ? C.primary : C.ink, borderRadius: 99, padding: "8px 13px", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>{f.name}</button>
+                  ); })}
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 14 }}>
+                  {docFolder !== "alle" && docFolder !== "ingen" ? (
+                    <div style={{ display: "flex", gap: 14 }}>
+                      <button onClick={() => { const f = folders.find((x) => x.id === docFolder); setRenameFolderT({ id: docFolder, name: f ? f.name : "" }); }} style={{ border: "none", background: "transparent", padding: 0, color: C.primary, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Omdøb mappe</button>
+                      <button onClick={() => setDeleteFolderT(docFolder)} style={{ border: "none", background: "transparent", padding: 0, color: RED, fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Slet mappe</button>
+                    </div>
+                  ) : <span />}
+                  <select value={docSort} onChange={(e) => setDocSort(e.target.value)} aria-label="Sortér" style={{ border: `1px solid ${C.line}`, borderRadius: 10, padding: "8px 10px", fontSize: 13, color: C.ink, background: C.surface, fontFamily: "inherit", cursor: "pointer" }}>
+                    <option value="nyeste">Nyeste</option>
+                    <option value="aeldste">Ældste</option>
+                    <option value="navn">Navn A–Å</option>
+                    <option value="navnrev">Navn Å–A</option>
+                  </select>
+                </div>
+
+                {!docsReady ? (
+                  <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Indlæser…</p>
+                ) : docs.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "24px 16px", border: `1px solid ${C.line}`, borderRadius: 16 }}>
+                    <div style={{ width: 52, height: 52, borderRadius: 15, background: tint("#2B6CB0", "12"), display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}><FileText size={26} color="#2B6CB0" strokeWidth={2} /></div>
+                    <div style={{ fontSize: 15.5, fontWeight: 700, color: C.ink, marginBottom: 4 }}>Du har endnu ikke tilføjet dokumenter</div>
+                    <div style={{ fontSize: 13, color: C.inkSoft, lineHeight: 1.5, marginBottom: 16 }}>Gem opgaver, undervisningsmateriale og faglige dokumenter her, så du nemt kan finde dem igen.</div>
+                    <button onClick={pickFile} style={{ border: "none", borderRadius: 13, padding: "13px 20px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 48 }}>+ Tilføj dokument</button>
+                  </div>
+                ) : docsFiltered.length === 0 ? (
+                  <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen dokumenter matcher.</p>
+                ) : (
+                  <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
+                    {docsFiltered.map((d, i) => (
+                      <div key={d.id} style={{ borderTop: i ? `1px solid ${C.line}` : "none" }}>
+                        <DocRow d={d} folderName={folderName(d.folderId)} onOpen={() => openDoc(d.id)} onMenu={() => setDocMenu(d.id)} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <p style={{ margin: 0, fontSize: 11.5, color: C.inkFaint, lineHeight: 1.45 }}>Dokumenter gemmes lokalt på denne enhed. Sørg for at beholde en kopi af vigtige dokumenter.</p>
+                  <p style={{ margin: 0, fontSize: 11.5, color: C.inkFaint, lineHeight: 1.45 }}>Mine dokumenter er beregnet til studie- og fagligt materiale. Gem ikke dokumenter med personfølsomme borgeroplysninger her.</p>
+                </div>
+              </div>
+            )}
+
             {/* SØG */}
             {!activeCat && screen === "soeg" && (
               <div className="anim">
@@ -3282,7 +3644,7 @@ export default function Klario() {
                         </button>
                       ); })}
                       {calcSearch(query).map((c) => (
-                        <button key={c.id} onClick={() => { setCalcView(c.id); setScreen("lommeregnere"); scrollTop(); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                        <button key={c.id} onClick={() => { setCalcView(c.id); setCalcGroup(c.id === "bmi" ? "bmi" : "medicin"); setCalcBack("soeg"); setScreen("lommeregnere"); scrollTop(); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
                           <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><c.Icon size={20} color="#7A5AF5" strokeWidth={2.1} /></div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 11, fontWeight: 700, color: "#7A5AF5", marginBottom: 1 }}>Lommeregnere</div>
@@ -3361,7 +3723,7 @@ export default function Klario() {
               <div className="anim">
                 <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Hurtige beregnere til hverdagen. Kontrollér altid resultatet mod ordination og lokale instrukser.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                  {CALC_TOOLS.map((t) => (
+                  {CALC_TOOLS.filter((t) => (calcGroup === "bmi" ? t.id === "bmi" : (t.id === "medicin" || t.id === "infusion"))).map((t) => (
                     <button key={t.id} onClick={() => { setCalcView(t.id); scrollTop(); }} aria-label={t.title} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 72 }}>
                       <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><t.Icon size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
                       <div style={{ flex: 1 }}>
@@ -3493,49 +3855,19 @@ export default function Klario() {
               <div className="anim">
                 <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Kategorier</h2>
                 <div style={{ display: "flex", flexDirection: "column", gap: 11, marginBottom: 18 }}>
-                  <button onClick={() => { setProcView(null); setScreen("plejeprocedurer"); scrollTop(); }} aria-label="Plejeprocedurer" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint(C.primary, "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ClipboardList size={23} color={C.primary} strokeWidth={2.1} /></div>
+                  <button onClick={() => { setScreen("dokumenter"); scrollTop(); }} aria-label="Mine dokumenter" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#2B6CB0", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><FileText size={23} color="#2B6CB0" strokeWidth={2.1} /></div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Plejeprocedurer</div>
-                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Trin-for-trin til pleje, observation og dokumentation.</div>
-                    </div>
-                    <ChevronRight size={20} color={C.inkFaint} />
-                  </button>
-                  <button onClick={() => { setTermView(null); setScreen("fagligtsprog"); scrollTop(); }} aria-label="Fagligt sprog" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#0FAE9E", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><MessageCircle size={23} color="#0FAE9E" strokeWidth={2.1} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Fagligt sprog</div>
-                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Fra hverdagssprog til SSA-sprog.</div>
-                    </div>
-                    <ChevronRight size={20} color={C.inkFaint} />
-                  </button>
-                  <button onClick={() => { setCalcView(null); setScreen("lommeregnere"); scrollTop(); }} aria-label="Lommeregnere" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Calculator size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Lommeregnere</div>
-                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Medicin, infusion og BMI.</div>
-                    </div>
-                    <ChevronRight size={20} color={C.inkFaint} />
-                  </button>
-                  <button onClick={() => { setCaseView(null); setScreen("casetraening"); scrollTop(); }} aria-label="Case-træning" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#D6336C", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ClipboardList size={23} color="#D6336C" strokeWidth={2.1} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Case-træning</div>
-                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Øv dig som til skole og praktik.</div>
-                    </div>
-                    <ChevronRight size={20} color={C.inkFaint} />
-                  </button>
-                  <button onClick={() => { setScreen("quizoversigt"); scrollTop(); }} aria-label="Test din viden" style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 68 }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint(C.primary, "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={23} color={C.primary} strokeWidth={2.1} /></div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Test din viden</div>
-                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Quiz i alle kategorier.</div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: C.ink }}>Mine dokumenter</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Dine egne dokumenter samlet ét sted.</div>
                     </div>
                     <ChevronRight size={20} color={C.inkFaint} />
                   </button>
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, marginBottom: 11 }}>KLINISKE KATEGORIER</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <GridTile cat={FAGLIGT_CAT} count={TERMS.length} onClick={() => { setTermView(null); setScreen("fagligtsprog"); scrollTop(); }} />
+                  <GridTile cat={PLEJE_CAT} count={PLEJE_PROCS.length} onClick={() => { setProcView(null); setScreen("plejeprocedurer"); scrollTop(); }} />
                   {DATA.map((cat) => (
                     <button key={cat.id} onClick={() => openCategory(cat.id)} style={{ textAlign: "left", border: "none", borderRadius: 20, padding: 15, cursor: "pointer", background: `linear-gradient(160deg, ${tint(cat.color, "1A")}, ${tint(cat.color, "08")})`, display: "flex", flexDirection: "column", gap: 12, minHeight: 138, justifyContent: "space-between" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3548,6 +3880,7 @@ export default function Klario() {
                       </div>
                     </button>
                   ))}
+                  <GridTile cat={TESTVIDEN_CAT} count={2} onClick={() => { setScreen("testviden"); scrollTop(); }} />
                 </div>
               </div>
             )}
@@ -3770,6 +4103,136 @@ export default function Klario() {
               </div>
             </div>
           )}
+
+          {/* MINE DOKUMENTER — file input (hidden) */}
+          <input ref={fileInputRef} type="file" onChange={onFilePicked} aria-hidden="true" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,image/*,application/pdf" style={{ display: "none" }} />
+
+          {/* MINE DOKUMENTER — preview */}
+          {preview && <DocPreview preview={preview} onClose={closePreview} />}
+
+          {/* MINE DOKUMENTER — add confirm */}
+          {pendingFile && (
+            <Sheet label="Gem dokument" top onClose={() => setPendingFile(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Gem dokument</div>
+              <div style={{ display: "flex", gap: 8, fontSize: 12.5, color: C.inkSoft, marginBottom: 14, flexWrap: "wrap" }}>
+                <span>{docKind(pendingFile.file.type, pendingFile.file.name).label}</span><span>·</span><span>{fmtBytes(pendingFile.file.size)}</span><span>·</span><span style={{ minWidth: 0, wordBreak: "break-word" }}>{pendingFile.file.name}</span>
+              </div>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: C.inkSoft, marginBottom: 6 }}>Navn</div>
+              <input value={pendingFile.name} onChange={(e) => setPendingFile({ ...pendingFile, name: e.target.value })} placeholder="Dokumentets navn" aria-label="Dokumentnavn" style={dInput} />
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: C.inkSoft, margin: "12px 0 6px" }}>Mappe</div>
+              <select value={pendingFile.folderId} onChange={(e) => setPendingFile({ ...pendingFile, folderId: e.target.value })} aria-label="Vælg mappe" style={{ ...dInput, cursor: "pointer" }}>
+                <option value="">Ingen mappe</option>
+                {folders.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
+              </select>
+              <div style={{ fontSize: 12.5, fontWeight: 600, color: C.inkSoft, margin: "12px 0 6px" }}>Note (valgfri)</div>
+              <input value={pendingFile.note} onChange={(e) => setPendingFile({ ...pendingFile, note: e.target.value })} placeholder="Kort note…" aria-label="Note" maxLength={280} style={dInput} />
+              <p style={{ margin: "8px 2px 0", fontSize: 11.5, color: C.inkFaint, lineHeight: 1.4 }}>Skriv ikke personfølsomme oplysninger om borgere.</p>
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setPendingFile(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={saveDoc} style={dBtnPri(true)}>Gem dokument</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — options / detail */}
+          {docMenu && (() => { const md = docs.find((d) => d.id === docMenu); if (!md) return null; const k = docKind(md.mimeType, md.displayName); const act = { border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%" }; return (
+            <Sheet label={md.displayName} onClose={() => setDocMenu(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.3, wordBreak: "break-word" }}>{md.displayName}</div>
+              <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.6 }}>{k.label} · {fmtBytes(md.size)}<br />Tilføjet {fmtDocDate(md.createdAt)}{folderName(md.folderId) ? " · " + folderName(md.folderId) : " · Ingen mappe"}</div>
+              {md.note && <div style={{ fontSize: 13, color: C.ink, marginTop: 8, background: tint(C.ink, "04"), borderRadius: 10, padding: "9px 11px", lineHeight: 1.45, wordBreak: "break-word" }}>{md.note}</div>}
+              <button onClick={() => { setDocMenu(null); openDoc(md.id); }} style={{ width: "100%", border: "none", borderRadius: 13, padding: "13px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 48, margin: "14px 0 6px" }}>Åbn dokument</button>
+              <button onClick={() => { setRenameDocT({ id: md.id, name: md.displayName }); setDocMenu(null); }} style={act}>Omdøb</button>
+              <button onClick={() => { setMoveDocT(md.id); setDocMenu(null); }} style={act}>Flyt til mappe</button>
+              <button onClick={() => { setNoteDocT({ id: md.id, note: md.note || "" }); setDocMenu(null); }} style={act}>Rediger note</button>
+              <button onClick={() => { setDocMenu(null); shareDoc(md.id); }} style={act}>Del / eksportér</button>
+              <button onClick={() => { setDocMenu(null); setDeleteDocT(md.id); }} style={{ ...act, color: RED }}>Slet</button>
+            </Sheet>
+          ); })()}
+
+          {/* MINE DOKUMENTER — rename doc */}
+          {renameDocT && (
+            <Sheet label="Omdøb dokument" top onClose={() => setRenameDocT(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Omdøb dokument</div>
+              <input value={renameDocT.name} onChange={(e) => setRenameDocT({ ...renameDocT, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") doRenameDoc(); }} aria-label="Nyt navn" autoFocus style={dInput} />
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setRenameDocT(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={doRenameDoc} disabled={!renameDocT.name.trim()} style={dBtnPri(!!renameDocT.name.trim())}>Gem</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — move doc */}
+          {moveDocT && (
+            <Sheet label="Flyt til mappe" onClose={() => setMoveDocT(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Flyt til mappe</div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <button onClick={() => doMoveDoc("")} style={{ border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", width: "100%" }}>Ingen mappe</button>
+                {folders.map((f) => <button key={f.id} onClick={() => doMoveDoc(f.id)} style={{ border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%", display: "flex", alignItems: "center", gap: 10 }}><Folder size={17} color={C.inkSoft} /> {f.name}</button>)}
+              </div>
+              <button onClick={() => setMoveDocT(null)} style={{ ...dBtnSec, width: "100%", marginTop: 14 }}>Annuller</button>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — edit note */}
+          {noteDocT && (
+            <Sheet label="Rediger note" top onClose={() => setNoteDocT(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Rediger note</div>
+              <textarea value={noteDocT.note} onChange={(e) => setNoteDocT({ ...noteDocT, note: e.target.value })} placeholder="Kort note…" aria-label="Note" maxLength={280} rows={3} style={{ ...dInput, resize: "vertical", fontSize: 15 }} />
+              <p style={{ margin: "8px 2px 0", fontSize: 11.5, color: C.inkFaint, lineHeight: 1.4 }}>Skriv ikke personfølsomme oplysninger om borgere.</p>
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setNoteDocT(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={doSaveNote} style={dBtnPri(true)}>Gem</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — delete doc */}
+          {deleteDocT && (
+            <Sheet label="Slet dokument" onClose={() => setDeleteDocT(null)}>
+              <div style={{ textAlign: "center", fontSize: 17, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Vil du slette dette dokument fra Klario?</div>
+              <div style={{ textAlign: "center", fontSize: 13, color: C.inkSoft, marginBottom: 18 }}>Dokumentet slettes permanent fra denne enhed.</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setDeleteDocT(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={doDeleteDoc} style={{ flex: 1, border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#F0625E,#C22F2C)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Slet</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — new folder */}
+          {folderModal && (
+            <Sheet label="Ny mappe" top onClose={() => setFolderModal(false)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Ny mappe</div>
+              <input value={folderNameInput} onChange={(e) => setFolderNameInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") createFolder(); }} placeholder="Fx Medicin" aria-label="Mappenavn" autoFocus style={dInput} />
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setFolderModal(false)} style={dBtnSec}>Annuller</button>
+                <button onClick={createFolder} disabled={!folderNameInput.trim()} style={dBtnPri(!!folderNameInput.trim())}>Gem</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — rename folder */}
+          {renameFolderT && (
+            <Sheet label="Omdøb mappe" top onClose={() => setRenameFolderT(null)}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 12 }}>Omdøb mappe</div>
+              <input value={renameFolderT.name} onChange={(e) => setRenameFolderT({ ...renameFolderT, name: e.target.value })} onKeyDown={(e) => { if (e.key === "Enter") doRenameFolder(); }} aria-label="Nyt mappenavn" autoFocus style={dInput} />
+              <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+                <button onClick={() => setRenameFolderT(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={doRenameFolder} disabled={!renameFolderT.name.trim()} style={dBtnPri(!!renameFolderT.name.trim())}>Gem</button>
+              </div>
+            </Sheet>
+          )}
+
+          {/* MINE DOKUMENTER — delete folder */}
+          {deleteFolderT && (() => { const cnt = docs.filter((d) => d.folderId === deleteFolderT).length; return (
+            <Sheet label="Slet mappe" onClose={() => setDeleteFolderT(null)}>
+              <div style={{ textAlign: "center", fontSize: 17, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Slet mappe?</div>
+              <div style={{ textAlign: "center", fontSize: 13, color: C.inkSoft, marginBottom: 18, lineHeight: 1.5 }}>{cnt > 0 ? `${cnt} dokument${cnt === 1 ? "" : "er"} i mappen flyttes til “Ingen mappe” og bliver ikke slettet.` : "Mappen er tom og slettes."}</div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={() => setDeleteFolderT(null)} style={dBtnSec}>Annuller</button>
+                <button onClick={doDeleteFolder} style={{ flex: 1, border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#F0625E,#C22F2C)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Slet mappe</button>
+              </div>
+            </Sheet>
+          ); })()}
         </div>
       </div>
     </>
