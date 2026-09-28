@@ -8744,6 +8744,15 @@ function guessMime(name) {
   const e = (name || "").toLowerCase().split(".").pop();
   return MIME_BY_EXT[e] || "";
 }
+function mimeFor(meta, blob) {
+  const src = meta && meta.originalName || meta && meta.displayName || "";
+  const ext = extOf(src).replace(".", "").toLowerCase();
+  if (MIME_BY_EXT[ext]) return MIME_BY_EXT[ext];
+  return meta && meta.mimeType || blob && blob.type || "application/octet-stream";
+}
+function isPreviewableMime(m) {
+  return m === "application/pdf" || (m || "").indexOf("image/") === 0;
+}
 function docKind(mime, name) {
   const m = (mime || "").toLowerCase();
   const n = (name || "").toLowerCase();
@@ -9258,32 +9267,59 @@ function Klario() {
       setDocErr(e && e.name === "QuotaExceededError" ? "kvote" : "kunne_ikke_gemme");
     }
   };
+  const shareBlob = async (meta, blob) => {
+    const fname = downloadName(meta && meta.displayName, meta && meta.originalName);
+    const type = mimeFor(meta, blob);
+    try {
+      const file = new File([blob], fname, {
+        type
+      });
+      if (navigator.canShare && navigator.share && navigator.canShare({
+        files: [file]
+      })) {
+        await navigator.share({
+          files: [file],
+          title: meta && meta.displayName || fname
+        });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // user cancelled the share sheet
+      // any other share failure → fall through to the download fallback
+    }
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fname;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch (x) {}
+      }, 15000);
+    } catch (e2) {
+      setDocErr("kunne_ikke_aabne");
+    }
+  };
   const openDoc = async id => {
     try {
       const rec = await docStore.getBlob(id);
       const meta = docs.find(d => d.id === id);
       if (!rec || !rec.blob) throw new Error("missing");
-      const url = URL.createObjectURL(rec.blob);
-      const mime = meta && meta.mimeType || rec.blob.type || "";
-      if (mime === "application/pdf" || mime.startsWith("image/")) {
+      const mime = mimeFor(meta, rec.blob);
+      if (isPreviewableMime(mime)) {
+        const url = URL.createObjectURL(rec.blob);
         setPreview({
           url,
           mime,
           name: meta && meta.displayName || "Dokument"
         });
       } else {
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = downloadName(meta && meta.displayName, meta && meta.originalName);
-        a.rel = "noopener";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => {
-          try {
-            URL.revokeObjectURL(url);
-          } catch (x) {}
-        }, 15000);
+        await shareBlob(meta, rec.blob); // Word/Excel/PowerPoint/other → hand to iOS share sheet
       }
     } catch (e) {
       setDocErr("kunne_ikke_aabne");
@@ -9302,33 +9338,9 @@ function Klario() {
       const rec = await docStore.getBlob(id);
       const meta = docs.find(d => d.id === id);
       if (!rec || !rec.blob) return;
-      const fname = downloadName(meta && meta.displayName, meta && meta.originalName);
-      const file = new File([rec.blob], fname, {
-        type: meta && meta.mimeType || rec.blob.type || "application/octet-stream"
-      });
-      if (navigator.canShare && navigator.canShare({
-        files: [file]
-      })) {
-        await navigator.share({
-          files: [file],
-          title: meta && meta.displayName
-        });
-      } else {
-        const url = URL.createObjectURL(rec.blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fname;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => {
-          try {
-            URL.revokeObjectURL(url);
-          } catch (x) {}
-        }, 15000);
-      }
+      await shareBlob(meta, rec.blob);
     } catch (e) {
-      if (!(e && e.name === "AbortError")) setDocErr("kunne_ikke_slette");
+      setDocErr("kunne_ikke_aabne");
     }
   };
   const doRenameDoc = async () => {
@@ -13575,6 +13587,7 @@ function Klario() {
     const md = docs.find(d => d.id === docMenu);
     if (!md) return null;
     const k = docKind(md.mimeType, md.displayName);
+    const canPreview = isPreviewableMime(mimeFor(md, null));
     const act = {
       border: "none",
       background: "transparent",
@@ -13636,7 +13649,7 @@ function Klario() {
         minHeight: 48,
         margin: "14px 0 6px"
       }
-    }, "\xC5bn dokument"), /*#__PURE__*/React.createElement("button", {
+    }, canPreview ? "Åbn dokument" : "Åbn / del dokument"), /*#__PURE__*/React.createElement("button", {
       onClick: () => {
         setRenameDocT({
           id: md.id,

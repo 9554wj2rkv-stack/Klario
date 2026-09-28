@@ -2730,6 +2730,13 @@ function extOf(n) { const i = (n || "").lastIndexOf("."); return i > 0 ? n.slice
 function downloadName(display, original) { const d = (display || original || "dokument").trim(); return /\.[a-z0-9]{1,6}$/i.test(d) ? d : d + extOf(original); }
 const MIME_BY_EXT = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", gif: "image/gif", webp: "image/webp", heic: "image/heic", txt: "text/plain", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", ppt: "application/vnd.ms-powerpoint", pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation", csv: "text/csv" };
 function guessMime(name) { const e = (name || "").toLowerCase().split(".").pop(); return MIME_BY_EXT[e] || ""; }
+function mimeFor(meta, blob) {
+  const src = (meta && meta.originalName) || (meta && meta.displayName) || "";
+  const ext = extOf(src).replace(".", "").toLowerCase();
+  if (MIME_BY_EXT[ext]) return MIME_BY_EXT[ext];
+  return (meta && meta.mimeType) || (blob && blob.type) || "application/octet-stream";
+}
+function isPreviewableMime(m) { return m === "application/pdf" || (m || "").indexOf("image/") === 0; }
 function docKind(mime, name) {
   const m = (mime || "").toLowerCase(); const n = (name || "").toLowerCase(); const ext = n.includes(".") ? n.split(".").pop() : "";
   if (m === "application/pdf" || ext === "pdf") return { label: "PDF", color: "#E5484D" };
@@ -2912,24 +2919,46 @@ export default function Klario() {
     try { await docStore.putDoc(meta, p.file); setDocs((prev) => [meta, ...prev]); setPendingFile(null); }
     catch (e) { setDocErr(e && e.name === "QuotaExceededError" ? "kvote" : "kunne_ikke_gemme"); }
   };
+  const shareBlob = async (meta, blob) => {
+    const fname = downloadName(meta && meta.displayName, meta && meta.originalName);
+    const type = mimeFor(meta, blob);
+    try {
+      const file = new File([blob], fname, { type });
+      if (navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: (meta && meta.displayName) || fname });
+        return;
+      }
+    } catch (e) {
+      if (e && e.name === "AbortError") return; // user cancelled the share sheet
+      // any other share failure → fall through to the download fallback
+    }
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = fname; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000);
+    } catch (e2) { setDocErr("kunne_ikke_aabne"); }
+  };
   const openDoc = async (id) => {
     try {
       const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id);
       if (!rec || !rec.blob) throw new Error("missing");
-      const url = URL.createObjectURL(rec.blob); const mime = (meta && meta.mimeType) || rec.blob.type || "";
-      if (mime === "application/pdf" || mime.startsWith("image/")) { setPreview({ url, mime, name: (meta && meta.displayName) || "Dokument" }); }
-      else { const a = document.createElement("a"); a.href = url; a.download = downloadName(meta && meta.displayName, meta && meta.originalName); a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000); }
+      const mime = mimeFor(meta, rec.blob);
+      if (isPreviewableMime(mime)) {
+        const url = URL.createObjectURL(rec.blob);
+        setPreview({ url, mime, name: (meta && meta.displayName) || "Dokument" });
+      } else {
+        await shareBlob(meta, rec.blob); // Word/Excel/PowerPoint/other → hand to iOS share sheet
+      }
     } catch (e) { setDocErr("kunne_ikke_aabne"); }
   };
   const closePreview = () => { if (preview) { try { URL.revokeObjectURL(preview.url); } catch (x) {} } setPreview(null); };
   const shareDoc = async (id) => {
     try {
-      const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id); if (!rec || !rec.blob) return;
-      const fname = downloadName(meta && meta.displayName, meta && meta.originalName);
-      const file = new File([rec.blob], fname, { type: (meta && meta.mimeType) || rec.blob.type || "application/octet-stream" });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: meta && meta.displayName }); }
-      else { const url = URL.createObjectURL(rec.blob); const a = document.createElement("a"); a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000); }
-    } catch (e) { if (!(e && e.name === "AbortError")) setDocErr("kunne_ikke_slette"); }
+      const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id);
+      if (!rec || !rec.blob) return;
+      await shareBlob(meta, rec.blob);
+    } catch (e) { setDocErr("kunne_ikke_aabne"); }
   };
   const doRenameDoc = async () => { const t = renameDocT; if (!t || !t.name.trim()) return; const meta = docs.find((d) => d.id === t.id); if (!meta) return; const nd = { ...meta, displayName: t.name.trim(), updatedAt: nowISO() }; try { await docStore.putDocMeta(nd); setDocs((p) => p.map((d) => (d.id === t.id ? nd : d))); setRenameDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
   const doMoveDoc = async (fid) => { const id = moveDocT; const meta = docs.find((d) => d.id === id); if (!meta) return; const nd = { ...meta, folderId: fid || null, updatedAt: nowISO() }; try { await docStore.putDocMeta(nd); setDocs((p) => p.map((d) => (d.id === id ? nd : d))); setMoveDocT(null); } catch (e) { setDocErr("kunne_ikke_slette"); } };
@@ -4135,12 +4164,12 @@ export default function Klario() {
           )}
 
           {/* MINE DOKUMENTER — options / detail */}
-          {docMenu && (() => { const md = docs.find((d) => d.id === docMenu); if (!md) return null; const k = docKind(md.mimeType, md.displayName); const act = { border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%" }; return (
+          {docMenu && (() => { const md = docs.find((d) => d.id === docMenu); if (!md) return null; const k = docKind(md.mimeType, md.displayName); const canPreview = isPreviewableMime(mimeFor(md, null)); const act = { border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%" }; return (
             <Sheet label={md.displayName} onClose={() => setDocMenu(null)}>
               <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.3, wordBreak: "break-word" }}>{md.displayName}</div>
               <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.6 }}>{k.label} · {fmtBytes(md.size)}<br />Tilføjet {fmtDocDate(md.createdAt)}{folderName(md.folderId) ? " · " + folderName(md.folderId) : " · Ingen mappe"}</div>
               {md.note && <div style={{ fontSize: 13, color: C.ink, marginTop: 8, background: tint(C.ink, "04"), borderRadius: 10, padding: "9px 11px", lineHeight: 1.45, wordBreak: "break-word" }}>{md.note}</div>}
-              <button onClick={() => { setDocMenu(null); openDoc(md.id); }} style={{ width: "100%", border: "none", borderRadius: 13, padding: "13px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 48, margin: "14px 0 6px" }}>Åbn dokument</button>
+              <button onClick={() => { setDocMenu(null); openDoc(md.id); }} style={{ width: "100%", border: "none", borderRadius: 13, padding: "13px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 48, margin: "14px 0 6px" }}>{canPreview ? "Åbn dokument" : "Åbn / del dokument"}</button>
               <button onClick={() => { setRenameDocT({ id: md.id, name: md.displayName }); setDocMenu(null); }} style={act}>Omdøb</button>
               <button onClick={() => { setMoveDocT(md.id); setDocMenu(null); }} style={act}>Flyt til mappe</button>
               <button onClick={() => { setNoteDocT({ id: md.id, note: md.note || "" }); setDocMenu(null); }} style={act}>Rediger note</button>
