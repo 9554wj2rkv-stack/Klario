@@ -2257,6 +2257,125 @@ function makeCategoryQuiz(catId) {
 }
 /* categories that have a quiz (all top-level clinical categories) */
 const CAT_QUIZ_IDS = DATA.map((c) => c.id).filter((id) => makeCategoryQuiz(id));
+/* ===== TEST DIN VIDEN — learning engine ================================ *
+ *  Turns the existing question pool into a per-category bank with stable
+ *  IDs, generates several spread-out tests per category, randomizes order
+ *  and options (correct tracked by VALUE, not position), and stores
+ *  progress + mistakes locally so the user can practise what they got wrong.
+ *  Existing questions are reused untouched; new questions below are grounded
+ *  in Klario's existing clinical content (terminology, actions, concepts).
+ * ===================================================================== */
+const QUIZ_KEY = "klario_quiz_v1";
+function loadQuizStore() { try { const r = localStorage.getItem(QUIZ_KEY); const o = r ? JSON.parse(r) : null; if (o && typeof o === "object") return { tests: o.tests || {}, mistakes: o.mistakes || {}, seen: o.seen || {} }; } catch (e) {} return { tests: {}, mistakes: {}, seen: {} }; }
+function saveQuizStore(o) { try { localStorage.setItem(QUIZ_KEY, JSON.stringify(o)); } catch (e) { /* storage unavailable — stays in session */ } }
+
+/* Additional questions — each grounded in clinical content already in Klario
+   (terminology, observations, safe SSA actions, hygiene, documentation…). */
+const NEW_QS = [
+  // observationer
+  { qid: "n-obs-1", catId: "observationer", q: "Hvad betyder cyanose?", type: "mc", opts: ["Blålig hud/læber pga. iltmangel", "Hævelse pga. væske i vævet", "Feber"], correct: [0], why: "Cyanose = blålig misfarvning pga. iltmangel og er et advarselstegn.", tag: "Terminologi" },
+  { qid: "n-obs-2", catId: "observationer", q: "En borger bliver pludselig konfus og utilpas. Hvad er den mest relevante SSA-handling?", type: "mc", opts: ["Observere og videregive til ansvarlig", "Vente til næste dag", "Ignorere det"], correct: [0], why: "Ændringer i tilstand observeres og videregives til ansvarlig.", tag: "Handling" },
+  { qid: "n-obs-3", catId: "observationer", q: "Hvad er formålet med systematisk observation?", type: "mc", opts: ["At opdage ændringer i borgerens tilstand tidligt", "At spare tid", "At undgå dokumentation"], correct: [0], why: "Systematisk observation opdager ændringer tidligt.", tag: "Faglig" },
+  { qid: "n-obs-4", catId: "observationer", q: "Ændringer i bevidsthedsniveau bør altid videregives.", type: "tf", opts: [T, F], correct: [0], why: "Ændret bevidsthed kan være alvorligt og skal videregives.", tag: "Handling" },
+  // hygiejne
+  { qid: "n-hyg-1", catId: "hygiejne", q: "Hvornår er håndhygiejne særligt vigtigt?", type: "mc", opts: ["Før og efter borgerkontakt", "Kun ved synligt snavs", "Kun om morgenen"], correct: [0], why: "Håndhygiejne før og efter borgerkontakt bryder smittekæden.", tag: "Hygiejne" },
+  { qid: "n-hyg-2", catId: "hygiejne", q: "Hvad er formålet med værnemidler?", type: "mc", opts: ["At beskytte borger og personale mod smitte", "At se professionel ud", "At spare håndsprit"], correct: [0], why: "Værnemidler beskytter mod smitte begge veje.", tag: "Hygiejne" },
+  { qid: "n-hyg-3", catId: "hygiejne", q: "God håndhygiejne bryder smittekæden.", type: "tf", opts: [T, F], correct: [0], why: "Håndhygiejne er den vigtigste enkeltstående forebyggelse.", tag: "Hygiejne" },
+  { qid: "n-hyg-4", catId: "hygiejne", q: "Hvad menes med ren og uren arbejdsgang?", type: "mc", opts: ["At adskille rene og urene opgaver for at undgå smittespredning", "At vaske gulv til sidst", "At bruge handsker hele tiden"], correct: [0], why: "Adskillelse af rent og urent forebygger smittespredning.", tag: "Hygiejne" },
+  // saarpleje
+  { qid: "n-saar-1", catId: "saarpleje", q: "Hvad observerer du ved et sår?", type: "multi", opts: ["Rødme", "Hævelse og varme", "Sekret og smerte", "Borgerens yndlingsfarve"], correct: [0, 1, 2], why: "Rødme, varme, hævelse, sekret og smerte er relevante observationer.", tag: "Observation" },
+  { qid: "n-saar-2", catId: "saarpleje", q: "Hvad kan være tegn på infektion i et sår?", type: "mc", opts: ["Øget rødme, varme, hævelse og pus", "Tør, lys hud", "Normal temperatur"], correct: [0], why: "Tiltagende rødme/varme/hævelse og pus kan tyde på infektion.", tag: "Observation" },
+  { qid: "n-saar-3", catId: "saarpleje", q: "Hvad er et tryksår?", type: "mc", opts: ["Vævsskade pga. vedvarende tryk", "Et rent kirurgisk sår", "En hudinfektion fra bakterier"], correct: [0], why: "Tryksår opstår ved vedvarende tryk mod vævet.", tag: "Terminologi" },
+  { qid: "n-saar-4", catId: "saarpleje", q: "Regelmæssig lejringsskift kan forebygge tryksår.", type: "tf", opts: [T, F], correct: [0], why: "Skift af stilling aflaster udsatte steder og forebygger tryksår.", tag: "Handling" },
+  // mikrobiologi
+  { qid: "n-mik-1", catId: "mikrobiologi", q: "Hvad er en central forskel på bakterier og virus?", type: "mc", opts: ["Antibiotika virker mod bakterier, ikke mod virus", "De er helt ens", "Virus er altid størst"], correct: [0], why: "Antibiotika virker mod bakterier — ikke mod virus.", tag: "Faglig" },
+  { qid: "n-mik-2", catId: "mikrobiologi", q: "Hvad er den hyppigste smittevej?", type: "mc", opts: ["Kontaktsmitte via hænder/flader", "Via lys", "Via tanker"], correct: [0], why: "Kontaktsmitte er hyppigst og brydes med håndhygiejne.", tag: "Faglig" },
+  { qid: "n-mik-3", catId: "mikrobiologi", q: "CRP kan stige ved infektion/betændelse.", type: "tf", opts: [T, F], correct: [0], why: "CRP stiger ved infektion og vurderes sammen med symptomer.", tag: "Faglig" },
+  // dokumentation
+  { qid: "n-dok-1", catId: "dokumentation", q: "Hvad er objektiv dokumentation?", type: "mc", opts: ["Det du kan måle eller observere", "Din personlige mening", "Et gæt om fremtiden"], correct: [0], why: "Objektiv dokumentation bygger på det målbare/observerbare.", tag: "Dokumentation" },
+  { qid: "n-dok-2", catId: "dokumentation", q: "Hvad kendetegner subjektiv dokumentation?", type: "mc", opts: ["Det borgeren selv fortæller/oplever", "Dine egne følelser om borgeren", "At det er unødvendigt"], correct: [0], why: "Subjektivt = borgerens egne oplevelser/udsagn.", tag: "Dokumentation" },
+  { qid: "n-dok-3", catId: "dokumentation", q: "Dokumentation skal være relevant, saglig og rettidig.", type: "tf", opts: [T, F], correct: [0], why: "God dokumentation er relevant, saglig og skrives rettidigt.", tag: "Dokumentation" },
+  // kommunikation
+  { qid: "n-kom-1", catId: "kommunikation", q: "Hvad kendetegner professionel kommunikation?", type: "mc", opts: ["Respekt, tydelighed og aktiv lytning", "At tale hurtigt", "At afbryde borgeren"], correct: [0], why: "Respekt, tydelighed og aktiv lytning bærer god kommunikation.", tag: "Kommunikation" },
+  { qid: "n-kom-2", catId: "kommunikation", q: "Hvad er aktiv lytning?", type: "mc", opts: ["At lytte opmærksomt og vise forståelse", "At tjekke telefonen imens", "At svare før borgeren er færdig"], correct: [0], why: "Aktiv lytning viser nærvær og forståelse.", tag: "Kommunikation" },
+  { qid: "n-kom-3", catId: "kommunikation", q: "Kropssprog er en del af kommunikationen.", type: "tf", opts: [T, F], correct: [0], why: "Nonverbal kommunikation (kropssprog) påvirker budskabet.", tag: "Kommunikation" },
+  // akut
+  { qid: "n-akut-1", catId: "akut", q: "Ved mistanke om alvorlig, pludselig tilstand — hvad gør du?", type: "mc", opts: ["Ringer 1-1-2 og bliver hos borgeren", "Venter til i morgen", "Giver mad og drikke"], correct: [0], why: "Ring 1-1-2 ved akut alvorlig tilstand og bliv hos borgeren.", tag: "Handling" },
+  { qid: "n-akut-2", catId: "akut", q: "Hvad står ABC for i akut sammenhæng?", type: "mc", opts: ["Luftvej, vejrtrækning, kredsløb", "Arm, ben, cirkel", "Altid, bagefter, ciffer"], correct: [0], why: "ABC = luftvej (Airway), vejrtrækning (Breathing), kredsløb (Circulation).", tag: "Faglig" },
+  { qid: "n-akut-3", catId: "akut", q: "Ved fund af en bevidstløs borger tilkalder du altid hjælp.", type: "tf", opts: [T, F], correct: [0], why: "Tilkald hjælp med det samme ved bevidstløshed.", tag: "Handling" },
+  // ernaering
+  { qid: "n-ern-1", catId: "ernaering", q: "Hvad kan være tegn på dehydrering?", type: "mc", opts: ["Tørre slimhinder, mørk urin og træthed", "Klar, rigelig urin", "Vægtøgning over natten"], correct: [0], why: "Tørre slimhinder, mørk urin og træthed kan tyde på væskemangel.", tag: "Observation" },
+  { qid: "n-ern-2", catId: "ernaering", q: "Hvad betyder obstipation?", type: "mc", opts: ["Forstoppelse", "Diarré", "Feber"], correct: [0], why: "Obstipation = forstoppelse.", tag: "Terminologi" },
+  { qid: "n-ern-3", catId: "ernaering", q: "Tilstrækkeligt væske- og energiindtag er vigtigt for trivsel.", type: "tf", opts: [T, F], correct: [0], why: "Nok væske og energi/protein er centralt for trivsel, især hos ældre.", tag: "Faglig" },
+  { qid: "n-ern-4", catId: "ernaering", q: "Hvad er vigtigt ved risiko for underernæring hos ældre?", type: "mc", opts: ["Tidlig opsporing og tilstrækkelig energi/protein", "Faste i flere dage", "Kun at give væske"], correct: [0], why: "Tidlig opsporing og nok energi/protein forebygger underernæring.", tag: "Handling" },
+  // demens
+  { qid: "n-dem-1", catId: "demens", q: "Hvad er en god tilgang til en person med demens?", type: "mc", opts: ["Rolig, tryg og anerkendende kommunikation", "At rette hver eneste fejl", "At tale hurtigt og højt"], correct: [0], why: "Ro, tryghed og anerkendelse støtter personen med demens.", tag: "Tilgang" },
+  { qid: "n-dem-2", catId: "demens", q: "Hvad kan udløse uro hos en person med demens?", type: "mc", opts: ["Utryghed, smerte eller for mange indtryk", "God søvn", "Rolige, kendte omgivelser"], correct: [0], why: "Utryghed, smerte og overstimulering kan give uro.", tag: "Observation" },
+  { qid: "n-dem-3", catId: "demens", q: "Genkendelige rutiner kan skabe tryghed ved demens.", type: "tf", opts: [T, F], correct: [0], why: "Faste, kendte rutiner giver tryghed.", tag: "Tilgang" },
+  // medicin
+  { qid: "n-med-1", catId: "medicin", q: "Hvad hører til de rigtige ved medicingivning?", type: "mc", opts: ["Rigtig borger, medicin, dosis, tid og måde", "Rigtig farve og smag", "Rigtig pris"], correct: [0], why: "De 'rigtige': rigtig borger, medicin, dosis, tidspunkt og administrationsmåde.", tag: "Medicinsikkerhed" },
+  { qid: "n-med-2", catId: "medicin", q: "Hvad gør du, hvis en ordination er uklar?", type: "mc", opts: ["Spørger ansvarlig før du giver medicinen", "Gætter dig frem", "Springer over uden at sige det"], correct: [0], why: "Ved tvivl: spørg ansvarlig, før du giver medicinen.", tag: "Medicinsikkerhed" },
+  { qid: "n-med-3", catId: "medicin", q: "Du må kun give medicin, du er oplært og delegeret til.", type: "tf", opts: [T, F], correct: [0], why: "Medicinhåndtering kræver oplæring og delegation.", tag: "Ansvar" },
+  { qid: "n-med-4", catId: "medicin", q: "Hvad dokumenterer du ved medicingivning?", type: "mc", opts: ["At medicinen er givet, og relevante observationer", "Ingenting", "Kun hvis borgeren spørger"], correct: [0], why: "Givet medicin og relevante observationer dokumenteres.", tag: "Dokumentation" },
+  // normalvaerdier
+  { qid: "n-nor-1", catId: "normalvaerdier", q: "Normal respirationsfrekvens for en voksen i hvile?", type: "mc", opts: ["12–20 pr. min", "6–8 pr. min", "30–40 pr. min"], correct: [0], why: "Ca. 12–20 pr. minut er normalområdet.", tag: "Faglig" },
+  { qid: "n-nor-2", catId: "normalvaerdier", q: "Hvad angiver normalværdier?", type: "mc", opts: ["Vejledende referenceområder", "Præcise grænser der gælder alle ens", "En diagnose"], correct: [0], why: "Normalværdier er vejledende referenceområder.", tag: "Faglig" },
+  { qid: "n-nor-3", catId: "normalvaerdier", q: "Normalværdier skal ses i sammenhæng med den enkelte borger.", type: "tf", opts: [T, F], correct: [0], why: "Værdier vurderes altid i forhold til borgerens habituelle tilstand.", tag: "Faglig" },
+  // love
+  { qid: "n-love-1", catId: "love", q: "Hvad betyder tavshedspligt?", type: "mc", opts: ["Pligt til ikke at videregive fortrolige oplysninger uberettiget", "At tie stille ved møder", "At undgå at dokumentere"], correct: [0], why: "Tavshedspligt beskytter borgerens fortrolige oplysninger.", tag: "Jura" },
+  { qid: "n-love-2", catId: "love", q: "Hvad betyder samtykke i pleje?", type: "mc", opts: ["Borgerens accept af hjælp/behandling", "Personalets beslutning alene", "En type journal"], correct: [0], why: "Samtykke = borgerens accept; selvbestemmelse skal respekteres.", tag: "Jura" },
+  { qid: "n-love-3", catId: "love", q: "Borgerens selvbestemmelse er en vigtig ret.", type: "tf", opts: [T, F], correct: [0], why: "Selvbestemmelse er en central rettighed.", tag: "Jura" },
+  // psykiatri
+  { qid: "n-psy-1", catId: "psykiatri", q: "Hvad er en god tilgang ved psykisk sygdom?", type: "mc", opts: ["Respekt, tryghed og ikke-dømmende kontakt", "At bagatellisere problemerne", "At undgå kontakt"], correct: [0], why: "Respekt, tryghed og en ikke-dømmende tilgang støtter borgeren.", tag: "Tilgang" },
+  { qid: "n-psy-2", catId: "psykiatri", q: "Recovery-tilgangen fokuserer på håb og den enkeltes ressourcer.", type: "tf", opts: [T, F], correct: [0], why: "Recovery bygger på håb, ressourcer og medbestemmelse.", tag: "Faglig" },
+  // vaerktoejer
+  { qid: "n-vae-1", catId: "vaerktoejer", q: "Hvad bruges scoringsredskaber og tjeklister til?", type: "mc", opts: ["Systematisk vurdering og ensartet praksis", "Pynt i journalen", "At undgå dokumentation"], correct: [0], why: "Redskaber giver systematik og ensartethed.", tag: "Faglig" },
+  { qid: "n-vae-2", catId: "vaerktoejer", q: "Tjeklister kan understøtte patientsikkerheden.", type: "tf", opts: [T, F], correct: [0], why: "Tjeklister reducerer fejl og øger sikkerhed.", tag: "Faglig" },
+  // diagnoser
+  { qid: "n-diag-1", catId: "diagnoser", q: "Hvad er vigtigt ved diabetes?", type: "mc", opts: ["Observation af blodsukker og tegn på højt/lavt blodsukker", "Kun at måle vægt", "At undgå observation"], correct: [0], why: "Observation af blodsukker og symptomer er centralt ved diabetes.", tag: "Observation" },
+  { qid: "n-diag-2", catId: "diagnoser", q: "Ved lavt blodsukker kan hurtige kulhydrater være relevant.", type: "tf", opts: [T, F], correct: [0], why: "Ved lavt blodsukker gives typisk hurtige kulhydrater — følg lokale instrukser.", tag: "Handling" },
+];
+
+/* Per-category bank with stable IDs (existing questions + new ones). */
+const CATEGORY_BANK = (() => {
+  const bank = {};
+  ALL_QUIZ.forEach((qz) => {
+    const catId = QUIZ_CATMAP[qz.id];
+    if (!catId) return;
+    (qz.qs || []).forEach((qq, i) => { (bank[catId] = bank[catId] || []).push({ qid: qz.id + "#" + i, catId, q: qq.q, type: qq.type, opts: qq.opts, correct: qq.correct, why: qq.why, tag: qq.tag }); });
+  });
+  NEW_QS.forEach((nq) => { (bank[nq.catId] = bank[nq.catId] || []).push(nq); });
+  return bank;
+})();
+const bankSize = (catId) => (CATEGORY_BANK[catId] || []).length;
+/* Number of test slots scales with the bank (target up to 8; never padded
+   with duplicates just to reach 8). Add more questions → more/º richer tests. */
+const testCountFor = (catId) => { const n = bankSize(catId); return n < 6 ? (n > 0 ? 1 : 0) : Math.min(8, Math.max(2, Math.ceil(n / 5))); };
+const TESTVIDEN_CAT_IDS = DATA.map((c) => c.id).filter((id) => bankSize(id) > 0);
+
+function hashStr(str) { let h = 2166136261 >>> 0; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
+function seededShuffle(arr, seed) { const a = arr.slice(); let s = (seed >>> 0) || 1; for (let i = a.length - 1; i > 0; i--) { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; const j = s % (i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function shuffleArr(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+/* Randomize option order; recompute correct indices by VALUE so the correct
+   answer is never tied to a fixed position. */
+function shuffleOptions(q) {
+  const order = shuffleArr(q.opts.map((_, i) => i));
+  const opts = order.map((i) => q.opts[i]);
+  const correct = order.map((orig, ni) => (q.correct.indexOf(orig) >= 0 ? ni : -1)).filter((i) => i >= 0);
+  return { qid: q.qid, q: q.q, type: q.type, opts, correct, why: q.why, tag: q.tag };
+}
+/* Stable set of questions for a given test slot: spread windows across a
+   seeded shuffle of the bank so Test 1..N differ as much as the bank allows. */
+function buildTestQuestions(catId, testIndex) {
+  const bank = CATEGORY_BANK[catId] || []; const n = bank.length; if (!n) return [];
+  const count = testCountFor(catId) || 1; const size = Math.min(10, n);
+  const shuffled = seededShuffle(bank, hashStr(catId));
+  const step = Math.max(1, Math.floor(n / count));
+  const start = ((testIndex - 1) * step) % n;
+  const out = []; for (let k = 0; k < size; k++) out.push(shuffled[(start + k) % n]);
+  return out;
+}
+
 
 
 const CASE_LEVELS = { 1: "Niveau 1 – Grundlæggende", 2: "Niveau 2 – Praktik", 3: "Niveau 3 – Farmakologi" };
@@ -2366,7 +2485,7 @@ function quizBand(score, total) {
   return "Gennemgå emnet igen";
 }
 
-function Quiz({ quiz, onClose, onCase, onCategory }) {
+function Quiz({ quiz, onClose, onCase, onCategory, onDone, onPracticeMistakes, onBackToTests }) {
   const [idx, setIdx] = useState(0);
   const [sel, setSel] = useState([]);
   const [checked, setChecked] = useState(false);
@@ -2374,6 +2493,14 @@ function Quiz({ quiz, onClose, onCase, onCategory }) {
   const [wrong, setWrong] = useState([]);
   const [phase, setPhase] = useState("quiz");
   const qs = quiz.qs; const q = qs[idx];
+  const doneRef = useRef(false);
+  useEffect(() => {
+    if (phase === "result" && !doneRef.current) {
+      doneRef.current = true;
+      if (quiz.testId && onDone) onDone({ catId: quiz.catId, testId: quiz.testId, isMistakes: !!quiz.isMistakes, score, total: qs.length, answered: qs.map((qq, i) => ({ qid: qq.qid, correct: wrong.indexOf(i) < 0 })) });
+    }
+    if (phase !== "result") doneRef.current = false;
+  }, [phase]);
   const isMulti = q && q.type === "multi";
   const eq = (a, b) => { const x = [...a].sort(), y = [...b].sort(); return x.length === y.length && x.every((v, i) => v === y[i]); };
   const toggle = (i) => { if (checked) return; setSel((s) => isMulti ? (s.includes(i) ? s.filter((x) => x !== i) : [...s, i]) : [i]); };
@@ -2435,8 +2562,9 @@ function Quiz({ quiz, onClose, onCase, onCategory }) {
           return (
           <div className="anim" style={{ paddingTop: 12 }}>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>Dit resultat</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: C.inkSoft }}>{quiz.testId ? "Test gennemført" : "Dit resultat"}</div>
               <div style={{ fontSize: 44, fontWeight: 900, color: C.ink, margin: "4px 0" }}>{score} / {qs.length}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: C.inkSoft, marginBottom: 2 }}>rigtige · {Math.round((score / qs.length) * 100)} %</div>
               <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 4 }}>{quiz.category}{lvlLabel ? " · " + lvlLabel : ""}</div>
               <div style={{ fontSize: 16, fontWeight: 700, color: C.primary, marginBottom: 20 }}>{quizBand(score, qs.length)}</div>
             </div>
@@ -2457,10 +2585,13 @@ function Quiz({ quiz, onClose, onCase, onCategory }) {
               </div>
             )}
             <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "0 auto" }}>
-              <button onClick={restart} style={{ border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Prøv igen</button>
-              {wrong.length > 0 && <button onClick={() => setPhase("review")} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Gennemgå fejl ({wrong.length})</button>}
+              {wrong.length > 0 && <button onClick={() => setPhase("review")} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Se mine fejl ({wrong.length})</button>}
+              {quiz.catId && onPracticeMistakes && !quiz.isMistakes && <button onClick={() => { onClose(); onPracticeMistakes(quiz.catId); }} style={{ border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Øv mine fejl</button>}
               {quiz.caseId && onCase && <button onClick={() => { onClose(); onCase(quiz.caseId); }} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Øv dette i en case</button>}
-              {quiz.catId && onCategory ? (
+              <button onClick={restart} style={{ border: `1px solid ${C.line}`, borderRadius: 13, padding: "14px", background: C.surface, color: C.ink, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 50 }}>Prøv igen</button>
+              {quiz.catId && onBackToTests ? (
+                <button onClick={() => { onClose(); onBackToTests(quiz.catId); }} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Tilbage til Test Viden</button>
+              ) : quiz.catId && onCategory ? (
                 <button onClick={() => { onClose(); onCategory(quiz.catId); }} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Tilbage til kategori</button>
               ) : (
                 <button onClick={onClose} style={{ border: "none", background: "transparent", color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 600, cursor: "pointer", padding: 10 }}>Luk</button>
@@ -2827,6 +2958,9 @@ export default function Klario() {
   const [calcGroup, setCalcGroup] = useState(null); // which calculator group is being shown (medicin | bmi)
   const [calcBack, setCalcBack] = useState(null);   // where to return from a calculator (hjem | vaerktoejer | soeg)
   const [activeQuiz, setActiveQuiz] = useState(null); // Test din viden — open quiz overlay (topicId)
+  const [quizStore, setQuizStore] = useState(loadQuizStore); // Test din viden progress + mistakes (localStorage)
+  const [quizCat, setQuizCat] = useState(null); // Test din viden — open category's test list
+  const [quizMsg, setQuizMsg] = useState(null); // transient note on the test list (e.g. no mistakes yet)
   const [caseView, setCaseView] = useState(null); // Case-træning — open case id
   const [notes, setNotes] = useState(() => loadNotes()); // Husk at tjekke — persisted locally
   const [noteModal, setNoteModal] = useState(false);
@@ -2876,7 +3010,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setQuizCat(null); setQuizMsg(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setScreen(tab); scrollTop(); };
   useEffect(() => { saveNotes(notes); }, [notes]);
   const openNotes = notes.filter((n) => !n.completed);
   const doneNotes = notes.filter((n) => n.completed);
@@ -2999,12 +3133,13 @@ export default function Klario() {
   const termResults = termQ ? TERMS.filter((t) => termText(t).includes(termQ)) : [];
   const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); scrollTop(); };
   const openTerm = (id) => { setScreen("fagligtsprog"); setTermView(id); setProcView(null); scrollTop(); };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden";
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat";
   const curCase = caseView ? caseById(caseView) : null;
   const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer")
     : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : (calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere"))
     : screen === "casetraening" ? (curCase ? curCase.title : "Case-træning")
     : screen === "quizoversigt" ? "Test din viden"
+    : screen === "testkat" ? (quizCat ? catTitleById(quizCat) : "Test din viden")
     : screen === "testviden" ? "Test Viden"
     : screen === "dokumenter" ? "Mine dokumenter"
     : (curTerm ? curTerm.term : "Fagligt sprog");
@@ -3020,9 +3155,14 @@ export default function Klario() {
       setScreen("kategorier"); scrollTop(); return;
     }
     if (screen === "casetraening" && caseView) { setCaseView(null); scrollTop(); return; }
+    if (screen === "testkat") { setScreen("quizoversigt"); scrollTop(); return; }
     setScreen("kategorier"); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); scrollTop();
   };
   const openCase = (id) => { setScreen("casetraening"); setCaseView(id); scrollTop(); };
+  const openTestKat = (catId) => { setQuizCat(catId); setQuizMsg(null); setActiveCat(null); setScreen("testkat"); scrollTop(); };
+  const startTest = (catId, n) => { const raw = buildTestQuestions(catId, n); if (!raw.length) return; const qs = shuffleArr(raw).map(shuffleOptions); setActiveQuiz({ title: "Test " + n, category: catTitleById(catId), catId, level: 0, caseId: CAT_CASE[catId] || null, testId: catId + "#" + n, qs }); };
+  const startMistakes = (catId) => { const ids = (quizStore.mistakes && quizStore.mistakes[catId]) || []; const bank = CATEGORY_BANK[catId] || []; const byId = {}; bank.forEach((q) => { byId[q.qid] = q; }); const raw = ids.map((id) => byId[id]).filter(Boolean).slice(0, 10); if (!raw.length) { setQuizCat(catId); setQuizMsg("Du har ingen fejl at øve endnu."); setActiveCat(null); setScreen("testkat"); scrollTop(); return; } const qs = shuffleArr(raw).map(shuffleOptions); setActiveQuiz({ title: "Øv mine fejl", category: catTitleById(catId), catId, level: 0, caseId: null, testId: catId + "#ovfejl", isMistakes: true, qs }); };
+  const recordTestResult = (rec) => { setQuizStore((prev) => { const next = { tests: Object.assign({}, prev.tests), mistakes: Object.assign({}, prev.mistakes), seen: Object.assign({}, prev.seen) }; if (rec.testId && !rec.isMistakes) next.tests[rec.testId] = { score: rec.score, total: rec.total, date: nowISO() }; const mk = {}; (next.mistakes[rec.catId] || []).forEach((id) => { mk[id] = 1; }); const seen = (next.seen[rec.catId] || []).slice(); (rec.answered || []).forEach((a) => { if (!a.qid) return; if (a.correct) delete mk[a.qid]; else mk[a.qid] = 1; seen.push(a.qid); }); next.mistakes[rec.catId] = Object.keys(mk); const uniq = []; const s = {}; for (let i = seen.length - 1; i >= 0 && uniq.length < 60; i--) { if (!s[seen[i]]) { s[seen[i]] = 1; uniq.unshift(seen[i]); } } next.seen[rec.catId] = uniq; saveQuizStore(next); return next; }); };
   const openTopicById = (id) => { if (procById(id)) { openProc(id); } else if (CARD_INDEX[id]) { openCard(id); } else if (termById(id)) { openTerm(id); } };
   const topicLabel = (id) => { if (procById(id)) return procById(id).title; if (CARD_INDEX[id]) return CARD_INDEX[id].card.title; if (termById(id)) return termById(id).term; return null; };
   const caseTopicNav = { go: openTopicById, label: topicLabel };
@@ -3145,8 +3285,8 @@ export default function Klario() {
                     <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.5, color: C.inkSoft }}>{activeCatObj.banner}</p>
                   </div>
                 )}
-                {makeCategoryQuiz(activeCatObj.id) && (
-                  <button onClick={() => setActiveQuiz(makeCategoryQuiz(activeCatObj.id))} aria-label={"Test din viden om " + activeCatObj.title} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 14, padding: "13px 15px", cursor: "pointer", display: "flex", alignItems: "center", gap: 11, marginBottom: 14, fontFamily: "inherit" }}>
+                {bankSize(activeCatObj.id) > 0 && (
+                  <button onClick={() => openTestKat(activeCatObj.id)} aria-label={"Test din viden om " + activeCatObj.title} style={{ width: "100%", border: `1px solid ${tint(C.primary, "33")}`, background: tint(C.primary, "0C"), borderRadius: 14, padding: "13px 15px", cursor: "pointer", display: "flex", alignItems: "center", gap: 11, marginBottom: 14, fontFamily: "inherit" }}>
                     <ShieldCheck size={19} color={C.primary} />
                     <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 700, color: C.primary }}>Test din viden om {activeCatObj.title}</span>
                     <ChevronRight size={18} color={C.primary} />
@@ -3666,7 +3806,7 @@ export default function Klario() {
                         </button>
                       )}
                       {quizCats.map((cid) => { const qz = makeCategoryQuiz(cid); return (
-                        <button key={"qz-" + cid} onClick={() => setActiveQuiz(qz)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                        <button key={"qz-" + cid} onClick={() => openTestKat(cid)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
                           <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={20} color={C.primary} strokeWidth={2.1} /></div>
                           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: C.primary, marginBottom: 1 }}>Quiz</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>Test din viden om {qz.category}</div></div>
                           <ChevronRight size={18} color={C.inkFaint} />
@@ -3703,12 +3843,12 @@ export default function Klario() {
                   <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>Quizzer i Klario er til læring og erstatter ikke lokale instrukser, ordinationer eller sundhedsfaglig vurdering.</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {CAT_QUIZ_IDS.map((cid) => { const qz = makeCategoryQuiz(cid); if (!qz) return null; return (
-                    <button key={cid} onClick={() => setActiveQuiz(qz)} aria-label={"Test din viden om " + qz.category} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 16, padding: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 60 }}>
+                  {TESTVIDEN_CAT_IDS.map((cid) => { const tc = testCountFor(cid); return (
+                    <button key={cid} onClick={() => openTestKat(cid)} aria-label={"Test din viden om " + catTitleById(cid)} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 16, padding: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 60 }}>
                       <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ShieldCheck size={20} color={C.primary} strokeWidth={2.1} /></div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{qz.category}</div>
-                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>{qz.qs.length} spørgsmål</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{catTitleById(cid)}</div>
+                        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>{tc} {tc === 1 ? "test" : "tests"} · {bankSize(cid)} spørgsmål</div>
                       </div>
                       <ChevronRight size={18} color={C.inkFaint} />
                     </button>
@@ -3716,6 +3856,45 @@ export default function Klario() {
                 </div>
               </div>
             )}
+
+            {/* TEST DIN VIDEN — a category's tests + Øv mine fejl */}
+            {!activeCat && screen === "testkat" && quizCat && (() => {
+              const cnt = testCountFor(quizCat);
+              const mist = (quizStore.mistakes && quizStore.mistakes[quizCat]) || [];
+              const tests = quizStore.tests || {};
+              return (
+                <div className="anim">
+                  <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Vælg en test. Spørgsmål og svar blandes hver gang, så du kan øve igen og igen.</p>
+                  {quizMsg && (
+                    <div style={{ display: "flex", gap: 9, alignItems: "center", background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 12, padding: "11px 13px", marginBottom: 14 }}>
+                      <Info size={16} color={C.primary} style={{ flexShrink: 0 }} />
+                      <span style={{ flex: 1, fontSize: 13, color: C.ink }}>{quizMsg}</span>
+                    </div>
+                  )}
+                  {mist.length > 0 ? (
+                    <button onClick={() => startMistakes(quizCat)} aria-label="Øv mine fejl" style={{ width: "100%", border: "none", borderRadius: 14, padding: "14px 16px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 52, display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ flex: 1, textAlign: "left" }}>Øv mine fejl</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, background: "rgba(255,255,255,0.22)", padding: "2px 9px", borderRadius: 8 }}>{mist.length}</span>
+                    </button>
+                  ) : (
+                    <div style={{ fontSize: 13, color: C.inkFaint, background: tint(C.ink, "05"), border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px" }}>Du har ingen fejl at øve endnu.</div>
+                  )}
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, margin: "18px 0 11px" }}>TESTS</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {Array.from({ length: cnt }).map((_, k) => { const n = k + 1; const rec = tests[quizCat + "#" + n]; const done = !!rec; return (
+                      <button key={n} onClick={() => startTest(quizCat, n)} aria-label={"Test " + n} style={{ textAlign: "left", border: `1px solid ${done ? tint("#0FAE9E", "44") : C.line}`, background: done ? tint("#0FAE9E", "08") : C.surface, borderRadius: 16, padding: 15, cursor: "pointer", display: "flex", flexDirection: "column", gap: 8, minHeight: 92, justifyContent: "space-between", boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <span style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>Test {n}</span>
+                          {done && <ShieldCheck size={18} color="#0FAE9E" />}
+                        </div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: done ? "#1F7A5A" : C.inkFaint }}>{done ? rec.score + "/" + rec.total + " rigtige" : "Ikke gennemført"}</div>
+                      </button>
+                    ); })}
+                  </div>
+                  <p style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 16, lineHeight: 1.5 }}>Efterhånden som der tilføjes flere spørgsmål, bliver der flere og mere varierede tests.</p>
+                </div>
+              );
+            })()}
 
             {/* CASE-TRÆNING — overview */}
             {!activeCat && screen === "casetraening" && !caseView && (
@@ -4101,7 +4280,7 @@ export default function Klario() {
 
           {/* Quiz overlay — Test din viden */}
           {activeQuiz && (
-            <Quiz quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onCase={openCase} onCategory={openCategory} />
+            <Quiz quiz={activeQuiz} onClose={() => setActiveQuiz(null)} onCase={openCase} onCategory={openCategory} onDone={recordTestResult} onPracticeMistakes={startMistakes} onBackToTests={openTestKat} />
           )}
 
           {/* HUSK AT TJEKKE — add note */}
