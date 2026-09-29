@@ -2868,6 +2868,29 @@ function mimeFor(meta, blob) {
   return (meta && meta.mimeType) || (blob && blob.type) || "application/octet-stream";
 }
 function isPreviewableMime(m) { return m === "application/pdf" || (m || "").indexOf("image/") === 0; }
+function extLower(meta) { const src = (meta && meta.originalName) || (meta && meta.displayName) || ""; return extOf(src).replace(".", "").toLowerCase(); }
+function isDocxName(meta) { return extLower(meta) === "docx"; }
+function isLegacyDocName(meta) { return extLower(meta) === "doc"; }
+function blobToArrayBuffer(blob) { if (blob.arrayBuffer) return blob.arrayBuffer(); return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsArrayBuffer(blob); }); }
+/* Styling for the locally-rendered DOCX — reflows to iPhone width; wide tables
+   scroll inside their own box rather than forcing the page sideways. */
+const DOCX_CSS = ".klario-docx{color:#15212B;font-size:16px;line-height:1.62;word-wrap:break-word;overflow-wrap:break-word;-webkit-text-size-adjust:100%;}"
+  + ".klario-docx *{max-width:100%;}"
+  + ".klario-docx h1{font-size:22px;font-weight:800;line-height:1.3;margin:20px 0 9px;}"
+  + ".klario-docx h2{font-size:19px;font-weight:800;line-height:1.32;margin:18px 0 8px;}"
+  + ".klario-docx h3{font-size:17px;font-weight:700;margin:15px 0 7px;}"
+  + ".klario-docx h4,.klario-docx h5,.klario-docx h6{font-size:15.5px;font-weight:700;margin:14px 0 6px;}"
+  + ".klario-docx p{margin:0 0 11px;}"
+  + ".klario-docx strong,.klario-docx b{font-weight:700;}"
+  + ".klario-docx em,.klario-docx i{font-style:italic;}"
+  + ".klario-docx u{text-decoration:underline;}"
+  + ".klario-docx ul,.klario-docx ol{margin:0 0 12px;padding-left:23px;}"
+  + ".klario-docx li{margin:0 0 5px;}"
+  + ".klario-docx a{color:#2E68E0;word-break:break-all;}"
+  + ".klario-docx img{height:auto;border-radius:8px;display:block;margin:12px 0;}"
+  + ".klario-docx table{border-collapse:collapse;width:100%;margin:13px 0;font-size:14px;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;}"
+  + ".klario-docx td,.klario-docx th{border:1px solid #D8DEE3;padding:7px 10px;text-align:left;vertical-align:top;min-width:70px;}"
+  + ".klario-docx th{background:#F3F5F7;font-weight:700;}";
 function docKind(mime, name) {
   const m = (mime || "").toLowerCase(); const n = (name || "").toLowerCase(); const ext = n.includes(".") ? n.split(".").pop() : "";
   if (m === "application/pdf" || ext === "pdf") return { label: "PDF", color: "#E5484D" };
@@ -2937,7 +2960,50 @@ function DocPreview({ preview, onClose }) {
 }
 
 
-/* ------------------------------ APP ------------------------------- */
+/* In-app DOCX reader. Renders the document locally (mammoth) from the Blob
+   already in IndexedDB — never uploads, never modifies the stored file.
+   Sharing/export is a secondary action in the ⋯ menu. */
+function DocxViewer({ dv, onClose, onShare }) {
+  const [menu, setMenu] = useState(false);
+  const status = dv.status;
+  const fallback = (msg) => (
+    <div style={{ maxWidth: 340, margin: "0 auto", textAlign: "center", paddingTop: "12vh" }}>
+      <div style={{ width: 54, height: 54, borderRadius: 15, background: tint("#2B6CB0", "12"), display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}><FileText size={26} color="#2B6CB0" /></div>
+      <div style={{ fontSize: 15, color: C.ink, lineHeight: 1.55, marginBottom: 18 }}>{msg}</div>
+      <button onClick={onShare} style={{ width: "100%", border: "none", borderRadius: 13, padding: "14px", background: "linear-gradient(135deg,#3E78EE,#2457D6)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Åbn / del dokument</button>
+    </div>
+  );
+  return (
+    <div role="dialog" aria-modal="true" aria-label={"Dokument: " + dv.name} style={{ position: "absolute", inset: 0, zIndex: 1000, background: C.surface, display: "flex", flexDirection: "column" }}>
+      <style>{DOCX_CSS}</style>
+      <div style={{ padding: "calc(11px + env(safe-area-inset-top)) 12px 11px", borderBottom: `1px solid ${C.line}`, background: C.surface }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={onClose} aria-label="Tilbage til Mine dokumenter" style={{ display: "flex", alignItems: "center", gap: 2, border: "none", background: "transparent", padding: "6px 6px 6px 2px", cursor: "pointer", fontFamily: "inherit", color: C.primary, fontSize: 15, fontWeight: 700 }}>
+            <ChevronLeft size={22} color={C.primary} /><span>Mine dokumenter</span>
+          </button>
+          <div style={{ flex: 1 }} />
+          <button onClick={() => setMenu(true)} aria-label="Valgmuligheder" style={{ border: "none", background: tint(C.ink, "0A"), width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}><MoreHorizontal size={20} color={C.ink} /></button>
+        </div>
+        <div style={{ fontSize: 15.5, fontWeight: 800, color: C.ink, marginTop: 6, lineHeight: 1.35, wordBreak: "break-word" }}>{dv.name}</div>
+      </div>
+      <div className="cscroll" style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", background: C.surface, padding: "18px 16px calc(30px + env(safe-area-inset-bottom))" }}>
+        {status === "loading" && <div style={{ textAlign: "center", paddingTop: "14vh", color: C.inkSoft, fontSize: 14.5 }}>Åbner dokument…</div>}
+        {status === "ready" && <div className="klario-docx" dangerouslySetInnerHTML={{ __html: dv.html }} />}
+        {status === "error" && fallback("Dokumentet kunne ikke vises i Klario.")}
+        {status === "legacy" && fallback("Dette ældre Word-format kan ikke forhåndsvises direkte i Klario.")}
+      </div>
+      {menu && (
+        <Sheet label="Dokumentvalg" onClose={() => setMenu(false)} top>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, wordBreak: "break-word", marginBottom: 4 }}>{dv.name}</div>
+          <div style={{ fontSize: 12.5, color: C.inkFaint, marginBottom: 6 }}>Originalfilen deles uændret.</div>
+          <button onClick={() => { setMenu(false); onShare(); }} style={{ width: "100%", border: "none", background: "transparent", textAlign: "left", padding: "14px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}` }}>Del / åbn i anden app</button>
+          <button onClick={() => { setMenu(false); onShare(); }} style={{ width: "100%", border: "none", background: "transparent", textAlign: "left", padding: "14px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}` }}>Gem i Filer</button>
+          <button onClick={() => setMenu(false)} style={{ width: "100%", marginTop: 10, border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "13px", fontSize: 15, fontWeight: 700, color: C.ink, cursor: "pointer", fontFamily: "inherit", minHeight: 48 }}>Annullér</button>
+        </Sheet>
+      )}
+    </div>
+  );
+}
 
 export default function Klario() {
   const [screen, setScreen] = useState("hjem");
@@ -2976,6 +3042,7 @@ export default function Klario() {
   const [docSort, setDocSort] = useState("nyeste");
   const [docMenu, setDocMenu] = useState(null);      // id → options sheet
   const [preview, setPreview] = useState(null);      // {url,mime,name}
+  const [docxView, setDocxView] = useState(null);     // in-app DOCX reader: {meta,blob,name,status,html}
   const [pendingFile, setPendingFile] = useState(null); // {file,name,folderId,note}
   const [folderModal, setFolderModal] = useState(false);
   const [folderNameInput, setFolderNameInput] = useState("");
@@ -3010,7 +3077,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setQuizCat(null); setQuizMsg(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setQuizCat(null); setQuizMsg(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setDocxView(null); setScreen(tab); scrollTop(); };
   useEffect(() => { saveNotes(notes); }, [notes]);
   const openNotes = notes.filter((n) => !n.completed);
   const doneNotes = notes.filter((n) => n.completed);
@@ -3073,16 +3140,33 @@ export default function Klario() {
       setTimeout(() => { try { URL.revokeObjectURL(url); } catch (x) {} }, 15000);
     } catch (e2) { setDocErr("kunne_ikke_aabne"); }
   };
+  const openDocx = async (meta, blob) => {
+    setDocxView({ meta, blob, name: (meta && meta.displayName) || "Dokument", status: "loading", html: "" });
+    try {
+      if (!(window.mammoth && window.mammoth.convertToHtml)) throw new Error("no-lib");
+      const ab = await blobToArrayBuffer(blob); // reads a COPY — the stored Blob is never modified
+      const result = await window.mammoth.convertToHtml({ arrayBuffer: ab });
+      const html = (result && result.value ? result.value : "").trim();
+      setDocxView((v) => (v && v.meta && meta && v.meta.id === meta.id ? { ...v, status: html ? "ready" : "error", html } : v));
+    } catch (e) {
+      setDocxView((v) => (v ? { ...v, status: "error" } : v));
+    }
+  };
+  const closeDocx = () => setDocxView(null);
   const openDoc = async (id) => {
     try {
       const rec = await docStore.getBlob(id); const meta = docs.find((d) => d.id === id);
       if (!rec || !rec.blob) throw new Error("missing");
       const mime = mimeFor(meta, rec.blob);
-      if (isPreviewableMime(mime)) {
+      if (isPreviewableMime(mime)) {                       // PDF + images → in-app preview (unchanged)
         const url = URL.createObjectURL(rec.blob);
         setPreview({ url, mime, name: (meta && meta.displayName) || "Dokument" });
-      } else {
-        await shareBlob(meta, rec.blob); // Word/Excel/PowerPoint/other → hand to iOS share sheet
+      } else if (isDocxName(meta)) {                        // .docx → read locally inside Klario
+        openDocx(meta, rec.blob);
+      } else if (isLegacyDocName(meta)) {                   // legacy .doc → cannot render client-side
+        setDocxView({ meta, blob: rec.blob, name: (meta && meta.displayName) || "Dokument", status: "legacy", html: "" });
+      } else {                                              // other types → iOS share sheet (unchanged)
+        await shareBlob(meta, rec.blob);
       }
     } catch (e) { setDocErr("kunne_ikke_aabne"); }
   };
@@ -4317,6 +4401,7 @@ export default function Klario() {
 
           {/* MINE DOKUMENTER — preview */}
           {preview && <DocPreview preview={preview} onClose={closePreview} />}
+          {docxView && <DocxViewer dv={docxView} onClose={closeDocx} onShare={() => shareBlob(docxView.meta, docxView.blob)} />}
 
           {/* MINE DOKUMENTER — add confirm */}
           {pendingFile && (
@@ -4343,7 +4428,7 @@ export default function Klario() {
           )}
 
           {/* MINE DOKUMENTER — options / detail */}
-          {docMenu && (() => { const md = docs.find((d) => d.id === docMenu); if (!md) return null; const k = docKind(md.mimeType, md.displayName); const canPreview = isPreviewableMime(mimeFor(md, null)); const act = { border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%" }; return (
+          {docMenu && (() => { const md = docs.find((d) => d.id === docMenu); if (!md) return null; const k = docKind(md.mimeType, md.displayName); const canPreview = isPreviewableMime(mimeFor(md, null)) || isDocxName(md); const act = { border: "none", background: "transparent", textAlign: "left", padding: "13px 4px", fontSize: 15, fontWeight: 600, color: C.ink, cursor: "pointer", fontFamily: "inherit", borderTop: `1px solid ${C.line}`, width: "100%" }; return (
             <Sheet label={md.displayName} onClose={() => setDocMenu(null)}>
               <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, lineHeight: 1.3, wordBreak: "break-word" }}>{md.displayName}</div>
               <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.6 }}>{k.label} · {fmtBytes(md.size)}<br />Tilføjet {fmtDocDate(md.createdAt)}{folderName(md.folderId) ? " · " + folderName(md.folderId) : " · Ingen mappe"}</div>
