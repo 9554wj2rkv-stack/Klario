@@ -8398,12 +8398,102 @@ const hlFmt = (n, dec) => {
 /* Verificeret T½-database — TOM indtil værdier er bekræftet med kilde + dato.
  * Struktur klar til fremtidige verificerede opslag:
  * { substans:"", aktivt:"", tHalf:"", range:"", kilde:"", kildeUrl:"", lastVerified:"", verified:true } */
-const HALFLIFE_DB = [];
-const halflifeLookup = q => {
-  const s = (q || "").trim().toLowerCase();
-  if (!s) return null;
-  return HALFLIFE_DB.find(d => d.verified && ((d.substans || "").toLowerCase().indexOf(s) >= 0 || (d.aktivt || "").toLowerCase().indexOf(s) >= 0)) || null;
+/* Kurateret, kildekontrolleret database. verified:true kræver en navngiven
+ * autoritativ kilde + kontroldato. Værdier opfindes ALDRIG. Flere kan tilføjes
+ * efter samme skabelon, når de er bekræftet mod en kilde (helst pro.medicin.dk). */
+const HALFLIFE_DB = [{
+  id: "furosemid",
+  substans: "Furosemid",
+  aktivt: "Furosemid",
+  brands: ["Furix", "Diural"],
+  tHalf: "ca. 2 timer",
+  unit: "timer",
+  range: "Terminal halveringstid ca. 2 timer ved normal nyrefunktion. Forlænges ved kronisk nyresygdom.",
+  note: "Den vanddrivende effekt varer typisk 6–8 timer. Ved svært nedsat nyrefunktion er der øget risiko for ophobning.",
+  kilde: "StatPearls (NCBI Bookshelf) — Furosemide",
+  kildeUrl: "https://www.ncbi.nlm.nih.gov/books/NBK499921/",
+  lastVerified: "2026-10-08",
+  verified: true
+}];
+/* Daglig navn / handelsnavn → aktivt stof. Offentlige, stabile mappings. */
+const HALFLIFE_SUBSTANCES = {
+  furosemid: "Furosemid",
+  paracetamol: "Paracetamol",
+  digoxin: "Digoxin",
+  metformin: "Metformin",
+  metoprolol: "Metoprolol",
+  bisoprolol: "Bisoprolol",
+  amlodipin: "Amlodipin",
+  simvastatin: "Simvastatin",
+  atorvastatin: "Atorvastatin",
+  warfarin: "Warfarin",
+  citalopram: "Citalopram",
+  sertralin: "Sertralin",
+  omeprazol: "Omeprazol",
+  pantoprazol: "Pantoprazol",
+  levothyroxin: "Levothyroxin",
+  morfin: "Morfin",
+  oxycodon: "Oxycodon",
+  tramadol: "Tramadol",
+  ramipril: "Ramipril",
+  enalapril: "Enalapril",
+  losartan: "Losartan",
+  apixaban: "Apixaban",
+  rivaroxaban: "Rivaroxaban",
+  amoxicillin: "Amoxicillin",
+  penicillin: "Phenoxymethylpenicillin",
+  prednisolon: "Prednisolon",
+  diazepam: "Diazepam",
+  oxazepam: "Oxazepam",
+  insulin: "Insulin",
+  acetylsalicylsyre: "Acetylsalicylsyre",
+  ibuprofen: "Ibuprofen",
+  kaliumklorid: "Kaliumklorid",
+  isosorbidmononitrat: "Isosorbidmononitrat"
 };
+const HALFLIFE_ALIASES = [["furix", "furosemid"], ["diural", "furosemid"], ["furosemid", "furosemid"], ["lasix", "furosemid"], ["panodil", "paracetamol"], ["pinex", "paracetamol"], ["pamol", "paracetamol"], ["paracetamol", "paracetamol"], ["lanoxin", "digoxin"], ["digoxin", "digoxin"], ["metformin", "metformin"], ["glucophage", "metformin"], ["metoprolol", "metoprolol"], ["selo-zok", "metoprolol"], ["selozok", "metoprolol"], ["bisoprolol", "bisoprolol"], ["emconcor", "bisoprolol"], ["amlodipin", "amlodipin"], ["norvasc", "amlodipin"], ["simvastatin", "simvastatin"], ["zocor", "simvastatin"], ["atorvastatin", "atorvastatin"], ["lipitor", "atorvastatin"], ["warfarin", "warfarin"], ["marevan", "warfarin"], ["citalopram", "citalopram"], ["cipramil", "citalopram"], ["sertralin", "sertralin"], ["zoloft", "sertralin"], ["omeprazol", "omeprazol"], ["losec", "omeprazol"], ["pantoprazol", "pantoprazol"], ["levothyroxin", "levothyroxin"], ["eltroxin", "levothyroxin"], ["euthyrox", "levothyroxin"], ["morfin", "morfin"], ["contalgin", "morfin"], ["oxycodon", "oxycodon"], ["oxynorm", "oxycodon"], ["oxycontin", "oxycodon"], ["targin", "oxycodon"], ["tramadol", "tramadol"], ["dolol", "tramadol"], ["mandolgin", "tramadol"], ["nobligan", "tramadol"], ["ramipril", "ramipril"], ["triatec", "ramipril"], ["enalapril", "enalapril"], ["renitec", "enalapril"], ["losartan", "losartan"], ["cozaar", "losartan"], ["apixaban", "apixaban"], ["eliquis", "apixaban"], ["rivaroxaban", "rivaroxaban"], ["xarelto", "rivaroxaban"], ["amoxicillin", "amoxicillin"], ["imacillin", "amoxicillin"], ["penicillin", "penicillin"], ["primcillin", "penicillin"], ["prednisolon", "prednisolon"], ["diazepam", "diazepam"], ["stesolid", "diazepam"], ["valium", "diazepam"], ["oxazepam", "oxazepam"], ["alopam", "oxazepam"], ["insulin", "insulin"], ["novorapid", "insulin"], ["levemir", "insulin"], ["lantus", "insulin"], ["tresiba", "insulin"], ["actrapid", "insulin"], ["acetylsalicylsyre", "acetylsalicylsyre"], ["hjertemagnyl", "acetylsalicylsyre"], ["magnyl", "acetylsalicylsyre"], ["aspirin", "acetylsalicylsyre"], ["ibuprofen", "ibuprofen"], ["ipren", "ibuprofen"], ["brufen", "ibuprofen"], ["kaliumklorid", "kaliumklorid"], ["kaleorid", "kaliumklorid"], ["isosorbidmononitrat", "isosorbidmononitrat"], ["imdur", "isosorbidmononitrat"], ["isosorbid", "isosorbidmononitrat"]];
+const hlNorm = s => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
+function resolveSubstance(q) {
+  const s = hlNorm(q);
+  if (!s) return null;
+  let a = HALFLIFE_ALIASES.find(x => x[0] === s);
+  if (!a && s.length >= 3) a = HALFLIFE_ALIASES.find(x => x[0].indexOf(s) === 0 || s.indexOf(x[0]) === 0);
+  if (!a && s.length >= 4) a = HALFLIFE_ALIASES.find(x => x[0].indexOf(s) >= 0 || s.indexOf(x[0]) >= 0);
+  return a ? a[1] : null;
+}
+function halflifeLookup(q) {
+  const subId = resolveSubstance(q);
+  if (!subId) return {
+    status: "none",
+    query: q
+  };
+  const entry = HALFLIFE_DB.find(d => d.id === subId && d.verified);
+  if (entry) return {
+    status: "verified",
+    entry,
+    subId,
+    subName: HALFLIFE_SUBSTANCES[subId] || entry.substans
+  };
+  return {
+    status: "resolved",
+    subId,
+    subName: HALFLIFE_SUBSTANCES[subId] || subId
+  };
+}
+/* localStorage-cache: hurtig genadgang + per-stof "sidst gentjekket". */
+const HL_CACHE_KEY = "klario_hl_cache_v1";
+function hlCacheRead() {
+  try {
+    return JSON.parse(localStorage.getItem(HL_CACHE_KEY) || "{}") || {};
+  } catch (e) {
+    return {};
+  }
+}
+function hlCacheWrite(o) {
+  try {
+    localStorage.setItem(HL_CACHE_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
 const HALFLIFE_EDU = [{
   t: "Hvad er halveringstid (T½)?",
   q: "Halveringstiden er den tid, det tager, før koncentrationen af et lægemiddel i kroppen (plasma) er faldet til omtrent det halve.",
@@ -8450,6 +8540,43 @@ function HalfLifeView({
   const [err, setErr] = useState("");
   const [look, setLook] = useState("");
   const [looked, setLooked] = useState(false);
+  const [hlCache, setHlCache] = useState(hlCacheRead);
+  const doLookup = () => {
+    setLooked(true);
+    const r = halflifeLookup(look);
+    if (r.status === "verified" || r.status === "resolved") {
+      const c = Object.assign({}, hlCacheRead());
+      c[r.subId] = {
+        subName: r.subName,
+        verified: r.status === "verified",
+        ts: Date.now(),
+        rechecked: (c[r.subId] || {}).rechecked || null
+      };
+      hlCacheWrite(c);
+      setHlCache(c);
+    }
+  };
+  const reverify = (subId, url) => {
+    const c = Object.assign({}, hlCacheRead());
+    c[subId] = Object.assign({}, c[subId] || {}, {
+      rechecked: Date.now()
+    });
+    hlCacheWrite(c);
+    setHlCache(c);
+    try {
+      window.open(url || "https://pro.medicin.dk/", "_blank", "noopener");
+    } catch (e) {}
+  };
+  const hlDate = ts => {
+    try {
+      return new Date(ts).toLocaleDateString("da-DK");
+    } catch (e) {
+      return "";
+    }
+  };
+  const recents = Object.keys(hlCache).map(k => Object.assign({
+    subId: k
+  }, hlCache[k])).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 4);
   const calc = () => {
     const h = hlParse(half),
       t = hlParse(elapsed),
@@ -8927,7 +9054,7 @@ function HalfLifeView({
       marginBottom: 11,
       lineHeight: 1.5
     }
-  }, "Klario viser kun halveringstider, der er verificeret med kilde og dato. Ellers henviser vi til pro.medicin.dk."), /*#__PURE__*/React.createElement("div", {
+  }, "S\xF8g p\xE5 handelsnavn eller aktivt stof (fx Furix \u2192 furosemid). Klario viser kun en T\xBD, n\xE5r den er kontrolleret mod en navngiven kilde \u2014 ellers henviser vi til pro.medicin.dk."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8
@@ -8938,7 +9065,10 @@ function HalfLifeView({
       setLook(e.target.value);
       setLooked(false);
     },
-    placeholder: "Fx furosemid\u2026",
+    onKeyDown: e => {
+      if (e.key === "Enter") doLookup();
+    },
+    placeholder: "Fx Furix eller furosemid\u2026",
     "aria-label": "S\xF8g l\xE6gemiddel",
     style: {
       flex: 1,
@@ -8952,7 +9082,7 @@ function HalfLifeView({
       fontFamily: "inherit"
     }
   }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setLooked(true),
+    onClick: doLookup,
     style: {
       border: "none",
       borderRadius: 11,
@@ -8964,65 +9094,230 @@ function HalfLifeView({
       fontWeight: 800,
       cursor: "pointer"
     }
-  }, "Sl\xE5 op")), looked ? lookRes ? /*#__PURE__*/React.createElement("div", {
+  }, "Sl\xE5 op")), !looked && recents.length ? /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 12,
-      border: `1px solid ${C.line}`,
-      borderRadius: 12,
-      padding: "12px 14px"
+      marginTop: 12
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 15,
-      fontWeight: 800,
-      color: C.ink
-    }
-  }, lookRes.substans), lookRes.aktivt ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: C.inkSoft,
-      marginTop: 1
-    }
-  }, "Aktivt stof: ", lookRes.aktivt) : null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 14,
-      color: C.ink,
-      marginTop: 7
-    }
-  }, "Halveringstid: ", /*#__PURE__*/React.createElement("b", null, lookRes.tHalf)), lookRes.range ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: C.inkSoft,
-      marginTop: 2
-    }
-  }, "Variation: ", lookRes.range) : null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11.5,
+      fontSize: 12,
+      fontWeight: 700,
       color: C.inkFaint,
-      marginTop: 8
+      marginBottom: 7
     }
-  }, "Kilde: ", lookRes.kilde, " \xB7 Verificeret: ", lookRes.lastVerified)) : /*#__PURE__*/React.createElement("div", {
+  }, "Senest sl\xE5et op"), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 12,
-      border: `1px solid ${tint("#B7791F", "33")}`,
-      background: tint("#B7791F", "0C"),
-      borderRadius: 12,
-      padding: "12px 14px"
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 7
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, recents.map(r => /*#__PURE__*/React.createElement("button", {
+    key: r.subId,
+    onClick: () => {
+      setLook(r.subName);
+      setLooked(true);
+    },
     style: {
-      fontSize: 14,
-      fontWeight: 800,
-      color: "#8A5A0B"
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 99,
+      padding: "6px 12px",
+      fontSize: 12.5,
+      fontWeight: 700,
+      color: C.inkSoft,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      display: "flex",
+      alignItems: "center",
+      gap: 6
     }
-  }, "Halveringstid ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+  }, r.subName, r.verified ? /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 13,
-      color: "#7A4E0A",
-      marginTop: 4,
-      lineHeight: 1.5
+      width: 7,
+      height: 7,
+      borderRadius: 99,
+      background: "#0B9488"
     }
-  }, "Klario har ikke en verificeret T\xBD for dette l\xE6gemiddel. Sl\xE5 den op i en godkendt kilde.")) : null, /*#__PURE__*/React.createElement("a", {
+  }) : null)))) : null, looked ? (() => {
+    const r = lookRes || {
+      status: "none"
+    };
+    if (r.status === "verified") {
+      const e = r.entry;
+      const rc = (hlCache[r.subId] || {}).rechecked;
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 12,
+          border: `1px solid ${tint("#0FAE9E", "40")}`,
+          borderRadius: 13,
+          background: tint("#0FAE9E", "08"),
+          padding: "13px 14px"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          background: tint("#0FAE9E", "18"),
+          color: "#0B7A6E",
+          borderRadius: 8,
+          padding: "3px 9px",
+          fontSize: 11,
+          fontWeight: 800,
+          marginBottom: 8
+        }
+      }, /*#__PURE__*/React.createElement(ShieldCheck, {
+        size: 13,
+        color: "#0B7A6E"
+      }), "Verificeret"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 16,
+          fontWeight: 800,
+          color: C.ink
+        }
+      }, e.substans), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 13,
+          color: C.inkSoft,
+          marginTop: 1
+        }
+      }, "Aktivt stof: ", e.aktivt, e.brands && e.brands.length ? " · Handelsnavne: " + e.brands.join(", ") : ""), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 15,
+          color: C.ink,
+          marginTop: 9
+        }
+      }, "Halveringstid (T\xBD): ", /*#__PURE__*/React.createElement("b", {
+        style: {
+          color: "#0B7A6E"
+        }
+      }, e.tHalf)), e.range ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 13,
+          color: C.ink,
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, e.range) : null, e.note ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          color: C.inkSoft,
+          marginTop: 6,
+          lineHeight: 1.5
+        }
+      }, e.note) : null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          borderTop: `1px solid ${C.line}`,
+          marginTop: 11,
+          paddingTop: 10
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: C.inkSoft,
+          lineHeight: 1.5
+        }
+      }, "Kilde: ", e.kilde), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: C.inkFaint,
+          marginTop: 2
+        }
+      }, "Kontrolleret: ", e.lastVerified, rc ? " · Gentjekket i appen: " + hlDate(rc) : ""), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8,
+          marginTop: 9
+        }
+      }, /*#__PURE__*/React.createElement("a", {
+        href: e.kildeUrl,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          textDecoration: "none"
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          border: `1px solid ${C.line}`,
+          borderRadius: 10,
+          padding: "8px 12px",
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: C.ink
+        }
+      }, "\xC5bn kilde ", /*#__PURE__*/React.createElement(ChevronRight, {
+        size: 14,
+        color: C.inkFaint
+      }))), /*#__PURE__*/React.createElement("button", {
+        onClick: () => reverify(e.id, e.kildeUrl),
+        style: {
+          border: `1px solid ${C.line}`,
+          background: C.surface,
+          borderRadius: 10,
+          padding: "8px 12px",
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: C.ink,
+          cursor: "pointer",
+          fontFamily: "inherit"
+        }
+      }, "Gentjek kilde"))));
+    }
+    if (r.status === "resolved") return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 12,
+        border: `1px solid ${tint("#B7791F", "33")}`,
+        background: tint("#B7791F", "0C"),
+        borderRadius: 12,
+        padding: "12px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        color: C.ink
+      }
+    }, "Aktivt stof: ", /*#__PURE__*/React.createElement("b", null, r.subName)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#8A5A0B",
+        marginTop: 6
+      }
+    }, "Halveringstid ikke verificeret i Klario"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: "#7A4E0A",
+        marginTop: 4,
+        lineHeight: 1.5
+      }
+    }, "Klario har endnu ikke en kildekontrolleret T\xBD for ", r.subName, ". Klario opfinder ikke en v\xE6rdi \u2014 sl\xE5 den op i en godkendt kilde."));
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 12,
+        border: `1px solid ${tint("#B7791F", "33")}`,
+        background: tint("#B7791F", "0C"),
+        borderRadius: 12,
+        padding: "12px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#8A5A0B"
+      }
+    }, "Halveringstid ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: "#7A4E0A",
+        marginTop: 4,
+        lineHeight: 1.5
+      }
+    }, "Klario genkendte ikke l\xE6gemidlet og opfinder ikke en v\xE6rdi. Tjek stavning, eller sl\xE5 det op i en godkendt kilde."));
+  })() : null, /*#__PURE__*/React.createElement("a", {
     href: "https://pro.medicin.dk/",
     target: "_blank",
     rel: "noopener noreferrer",
@@ -9053,7 +9348,30 @@ function HalfLifeView({
   }, "Sl\xE5 halveringstid op p\xE5 pro.medicin.dk"), /*#__PURE__*/React.createElement(ChevronRight, {
     size: 16,
     color: "#7A5AF5"
-  })))), /*#__PURE__*/React.createElement("button", {
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      marginTop: 11,
+      background: tint(C.ink, "05"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 15,
+    color: C.inkSoft,
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede v\xE6rdier kommer fra en kurateret, kildekontrolleret database i appen. Bekr\xE6ft altid klinisk i pro.medicin.dk og f\xF8lg ordination."))), /*#__PURE__*/React.createElement("button", {
     onClick: () => onTest("halveringstid"),
     style: {
       width: "100%",
