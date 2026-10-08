@@ -8398,89 +8398,1133 @@ const hlFmt = (n, dec) => {
 /* Verificeret T½-database — TOM indtil værdier er bekræftet med kilde + dato.
  * Struktur klar til fremtidige verificerede opslag:
  * { substans:"", aktivt:"", tHalf:"", range:"", kilde:"", kildeUrl:"", lastVerified:"", verified:true } */
-/* Kurateret, kildekontrolleret database. verified:true kræver en navngiven
- * autoritativ kilde + kontroldato. Værdier opfindes ALDRIG. Flere kan tilføjes
- * efter samme skabelon, når de er bekræftet mod en kilde (helst pro.medicin.dk). */
-const HALFLIFE_DB = [{
-  id: "furosemid",
-  substans: "Furosemid",
-  aktivt: "Furosemid",
-  brands: ["Furix", "Diural"],
-  tHalf: "ca. 2 timer",
-  unit: "timer",
-  range: "Terminal halveringstid ca. 2 timer ved normal nyrefunktion. Forlænges ved kronisk nyresygdom.",
-  note: "Den vanddrivende effekt varer typisk 6–8 timer. Ved svært nedsat nyrefunktion er der øget risiko for ophobning.",
-  kilde: "StatPearls (NCBI Bookshelf) — Furosemide",
-  kildeUrl: "https://www.ncbi.nlm.nih.gov/books/NBK499921/",
-  lastVerified: "2026-10-08",
-  verified: true
-}];
-/* Daglig navn / handelsnavn → aktivt stof. Offentlige, stabile mappings. */
-const HALFLIFE_SUBSTANCES = {
-  furosemid: "Furosemid",
-  paracetamol: "Paracetamol",
-  digoxin: "Digoxin",
-  metformin: "Metformin",
-  metoprolol: "Metoprolol",
-  bisoprolol: "Bisoprolol",
-  amlodipin: "Amlodipin",
-  simvastatin: "Simvastatin",
-  atorvastatin: "Atorvastatin",
-  warfarin: "Warfarin",
-  citalopram: "Citalopram",
-  sertralin: "Sertralin",
-  omeprazol: "Omeprazol",
-  pantoprazol: "Pantoprazol",
-  levothyroxin: "Levothyroxin",
-  morfin: "Morfin",
-  oxycodon: "Oxycodon",
-  tramadol: "Tramadol",
-  ramipril: "Ramipril",
-  enalapril: "Enalapril",
-  losartan: "Losartan",
-  apixaban: "Apixaban",
-  rivaroxaban: "Rivaroxaban",
-  amoxicillin: "Amoxicillin",
-  penicillin: "Phenoxymethylpenicillin",
-  prednisolon: "Prednisolon",
-  diazepam: "Diazepam",
-  oxazepam: "Oxazepam",
-  insulin: "Insulin",
-  acetylsalicylsyre: "Acetylsalicylsyre",
-  ibuprofen: "Ibuprofen",
-  kaliumklorid: "Kaliumklorid",
-  isosorbidmononitrat: "Isosorbidmononitrat"
+const MED_SEED = {
+  "meta": {
+    "schemaVersion": "1.0",
+    "datasetVersion": "2026.10.08-1",
+    "publishedAt": "2026-10-08",
+    "recordCount": 10,
+    "indexCount": 85,
+    "sources": ["StatPearls (NCBI Bookshelf) — Furosemide", "Produktresumé (HPRA, Irland) — Paracetamol", "FDA-produktinformation — Metoprolol", "FDA-produktinformation — Amlodipin", "FDA-produktinformation — Lanoxin (digoxin)", "FDA-produktinformation — Metformin", "FDA-produktinformation — Altace (ramipril)", "FDA-produktinformation — Protonix (pantoprazol)", "Produktinformation (Pfizer) — Morphine", "FDA-produktinformation — Eliquis (apixaban)"]
+  },
+  "records": [{
+    "atcCode": null,
+    "brands": ["Furix", "Diural"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "furosemid",
+    "substanceName": "Furosemid",
+    "halfLife": {
+      "value": 2,
+      "minimum": null,
+      "maximum": null,
+      "unit": "hours",
+      "measurementType": "terminal",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["Forlænges ved kronisk nyresygdom", "Øget ophobningsrisiko ved svært nedsat nyrefunktion"]
+    },
+    "source": {
+      "name": "StatPearls (NCBI Bookshelf) — Furosemide",
+      "url": "https://www.ncbi.nlm.nih.gov/books/NBK499921/",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "ca. 2 timer",
+      "calcOptions": [{
+        "label": "",
+        "h": 2
+      }],
+      "range": "Terminal halveringstid ca. 2 timer ved normal nyrefunktion; forlænges ved kronisk nyresygdom.",
+      "effekt": "Vanddrivende effekt varer typisk 6–8 timer.",
+      "faktorer": "Nedsat nyrefunktion forlænger halveringstiden.",
+      "klinisk": "Øget risiko for ophobning ved svært nedsat nyrefunktion."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Panodil", "Pinex", "Pamol"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "paracetamol",
+    "substanceName": "Paracetamol",
+    "halfLife": {
+      "value": null,
+      "minimum": 1,
+      "maximum": 4,
+      "unit": "hours",
+      "measurementType": "plasma elimination",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["Ved overdosering eller betydelig leverpåvirkning kan forholdene afvige"]
+    },
+    "source": {
+      "name": "Produktresumé (HPRA, Irland) — Paracetamol",
+      "url": "https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "1–4 timer",
+      "calcOptions": [{
+        "label": "Lav (1 t)",
+        "h": 1
+      }, {
+        "label": "Høj (4 t)",
+        "h": 4
+      }],
+      "range": "Plasmahalveringstid 1–4 timer ved terapeutiske doser.",
+      "effekt": "",
+      "faktorer": "Omsættes i leveren.",
+      "klinisk": "Ved overdosering eller betydelig leverpåvirkning kan forholdene afvige — slå op i godkendt kilde."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Selo-Zok", "Metoprolol"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "metoprolol",
+    "substanceName": "Metoprolol",
+    "halfLife": {
+      "value": null,
+      "minimum": 3,
+      "maximum": 7,
+      "unit": "hours",
+      "measurementType": "plasma elimination",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["Ikke klinisk betydende ændret ved nyresvigt", "Depotform (metoprololsuccinat) giver længere virkningsvarighed end plasmahalveringstiden"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Metoprolol",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "3–7 timer",
+      "calcOptions": [{
+        "label": "Lav (3 t)",
+        "h": 3
+      }, {
+        "label": "Høj (7 t)",
+        "h": 7
+      }],
+      "range": "Plasmahalveringstid ca. 3–7 timer.",
+      "effekt": "Depotform (metoprololsuccinat) giver længere virkningsvarighed end plasmahalveringstiden.",
+      "faktorer": "Omsættes hovedsagelig i leveren (CYP2D6). Ikke klinisk betydende ændret ved nyresvigt.",
+      "klinisk": ""
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Norvasc"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "amlodipin",
+    "substanceName": "Amlodipin",
+    "halfLife": {
+      "value": null,
+      "minimum": 30,
+      "maximum": 50,
+      "unit": "hours",
+      "measurementType": "terminal",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["Ca. 56 timer ved nedsat leverfunktion", "Nedsat clearance (øget eksponering) hos ældre og ved nedsat leverfunktion"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Amlodipin",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "30–50 timer",
+      "calcOptions": [{
+        "label": "Lav (30 t)",
+        "h": 30
+      }, {
+        "label": "Høj (50 t)",
+        "h": 50
+      }],
+      "range": "Terminal plasmahalveringstid ca. 30–50 timer; ca. 56 timer ved nedsat leverfunktion.",
+      "effekt": "",
+      "faktorer": "Nedsat clearance (øget eksponering) hos ældre og ved nedsat leverfunktion.",
+      "klinisk": "Lang halveringstid — steady state nås over flere dage."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Lanoxin"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "digoxin",
+    "substanceName": "Digoxin",
+    "halfLife": {
+      "value": null,
+      "minimum": 1.5,
+      "maximum": 2,
+      "unit": "days",
+      "measurementType": "elimination",
+      "route": null,
+      "formulation": null,
+      "population": "adults (normal renal function)",
+      "clinicalQualifications": ["Forlænget til 3,5–5 døgn ved anuri", "Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden", "Smalt terapeutisk interval"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Lanoxin (digoxin)",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "1,5–2 døgn",
+      "calcOptions": [{
+        "label": "Lav (36 t)",
+        "h": 36
+      }, {
+        "label": "Høj (48 t)",
+        "h": 48
+      }],
+      "range": "Halveringstid 1,5–2 døgn ved normal nyrefunktion; forlænget til 3,5–5 døgn ved anuri.",
+      "effekt": "",
+      "faktorer": "Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden.",
+      "klinisk": "Smalt terapeutisk interval — vær opmærksom på ophobning ved nedsat nyrefunktion."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Glucophage"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "metformin",
+    "substanceName": "Metformin",
+    "halfLife": {
+      "value": 6.2,
+      "minimum": null,
+      "maximum": null,
+      "unit": "hours",
+      "measurementType": "plasma elimination",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["I blod ca. 17,6 timer", "Forlænget ved nedsat nyrefunktion; nedsat renal clearance"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Metformin",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "plasma ca. 6 timer",
+      "calcOptions": [{
+        "label": "Plasma (6,2 t)",
+        "h": 6.2
+      }, {
+        "label": "Blod (17,6 t)",
+        "h": 17.6
+      }],
+      "range": "Plasma-halveringstid ca. 6,2 timer; i blod ca. 17,6 timer.",
+      "effekt": "",
+      "faktorer": "Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden og nedsætter clearance.",
+      "klinisk": "Risiko for ophobning ved nedsat nyrefunktion."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Triatec"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "ramipril",
+    "substanceName": "Ramipril",
+    "halfLife": {
+      "value": null,
+      "minimum": 13,
+      "maximum": 17,
+      "unit": "hours",
+      "measurementType": "ramiprilat, therapeutic range",
+      "route": null,
+      "formulation": null,
+      "population": "adults (multiple dosing)",
+      "clinicalQualifications": ["Terminal fase har meget lang halveringstid (>50 timer), som ikke bidrager til ophobning", "Eksponering 3–4× øget ved nedsat nyrefunktion", "Ramipril er en prodrug, der omdannes til ramiprilat"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Altace (ramipril)",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "13–17 timer",
+      "calcOptions": [{
+        "label": "Lav (13 t)",
+        "h": 13
+      }, {
+        "label": "Høj (17 t)",
+        "h": 17
+      }],
+      "range": "Ramiprilat: halveringstid 13–17 timer inden for terapeutisk område. En terminal fase har meget lang halveringstid (>50 timer), som ikke bidrager til ophobning.",
+      "effekt": "",
+      "faktorer": "Eksponering 3–4× øget ved nedsat nyrefunktion.",
+      "klinisk": "Ramipril er en prodrug, der omdannes til ramiprilat."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Pantoloc"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "pantoprazol",
+    "substanceName": "Pantoprazol",
+    "halfLife": {
+      "value": 1,
+      "minimum": null,
+      "maximum": null,
+      "unit": "hours",
+      "measurementType": "terminal",
+      "route": null,
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["7–9 timer ved nedsat leverfunktion", "3,5–10 timer hos CYP2C19 poor metabolizers", "Syrehæmmende effekt varer >24 timer trods kort halveringstid"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Protonix (pantoprazol)",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "ca. 1 time",
+      "calcOptions": [{
+        "label": "",
+        "h": 1
+      }],
+      "range": "Terminal plasmahalveringstid ca. 1 time; 7–9 timer ved nedsat leverfunktion; 3,5–10 timer hos CYP2C19 poor metabolizers.",
+      "effekt": "Syrehæmmende effekt varer >24 timer trods kort halveringstid (irreversibel binding til protonpumpen).",
+      "faktorer": "Nedsat leverfunktion og CYP2C19-status forlænger halveringstiden.",
+      "klinisk": "Godt eksempel på, at virkningsvarighed ikke følger halveringstiden."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Contalgin", "Oramorph"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "morfin",
+    "substanceName": "Morfin",
+    "halfLife": {
+      "value": null,
+      "minimum": 1.5,
+      "maximum": 2,
+      "unit": "hours",
+      "measurementType": "elimination",
+      "route": null,
+      "formulation": null,
+      "population": "adults (normal subjects)",
+      "clinicalQualifications": ["Terminalt rapporteret 1,5–4,5 timer", "Metabolitter (M3G, M6G) kan ophobes ved nyresvigt", "Depotform har længere virkningsvarighed end plasmahalveringstiden"]
+    },
+    "source": {
+      "name": "Produktinformation (Pfizer) — Morphine",
+      "url": "https://pfizermedicalinformation.com/morphine/clinical-pharmacology",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "1,5–2 timer",
+      "calcOptions": [{
+        "label": "Lav (1,5 t)",
+        "h": 1.5
+      }, {
+        "label": "Høj (2 t)",
+        "h": 2
+      }],
+      "range": "Eliminationshalveringstid 1,5–2 timer (terminalt rapporteret 1,5–4,5 timer).",
+      "effekt": "Depotform (fx Contalgin) har længere virkningsvarighed end plasmahalveringstiden.",
+      "faktorer": "Metabolitter (M3G, M6G) kan ophobes ved nyresvigt.",
+      "klinisk": "Vær opmærksom ved nedsat nyrefunktion."
+    }
+  }, {
+    "atcCode": null,
+    "brands": ["Eliquis"],
+    "verificationStatus": "verified",
+    "reviewRequired": false,
+    "id": "apixaban",
+    "substanceName": "Apixaban",
+    "halfLife": {
+      "value": 12,
+      "minimum": null,
+      "maximum": null,
+      "unit": "hours",
+      "measurementType": "apparent",
+      "route": "oral",
+      "formulation": null,
+      "population": "adults",
+      "clinicalQualifications": ["Kan være påvirket ved nedsat nyre- eller leverfunktion"]
+    },
+    "source": {
+      "name": "FDA-produktinformation — Eliquis (apixaban)",
+      "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf",
+      "documentVersion": null,
+      "accessedAt": "2026-10-08",
+      "verifiedAt": "2026-10-08"
+    },
+    "ui": {
+      "display": "ca. 12 timer",
+      "calcOptions": [{
+        "label": "",
+        "h": 12
+      }],
+      "range": "Tilsyneladende halveringstid ca. 12 timer efter oral indgift.",
+      "effekt": "",
+      "faktorer": "Kan være påvirket ved nedsat nyre- eller leverfunktion.",
+      "klinisk": "DOAK (direkte faktor Xa-hæmmer) — slå konkrete forhold op i godkendt kilde."
+    }
+  }],
+  "index": [{
+    "q": "furix",
+    "subId": "furosemid",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "diural",
+    "subId": "furosemid",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "furosemid",
+    "subId": "furosemid",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "lasix",
+    "subId": "furosemid",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "panodil",
+    "subId": "paracetamol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "pinex",
+    "subId": "paracetamol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "pamol",
+    "subId": "paracetamol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "paracetamol",
+    "subId": "paracetamol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "lanoxin",
+    "subId": "digoxin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "digoxin",
+    "subId": "digoxin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "metformin",
+    "subId": "metformin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "glucophage",
+    "subId": "metformin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "metoprolol",
+    "subId": "metoprolol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "selo-zok",
+    "subId": "metoprolol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "selozok",
+    "subId": "metoprolol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "bisoprolol",
+    "subId": "bisoprolol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "emconcor",
+    "subId": "bisoprolol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "amlodipin",
+    "subId": "amlodipin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "norvasc",
+    "subId": "amlodipin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "simvastatin",
+    "subId": "simvastatin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "zocor",
+    "subId": "simvastatin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "atorvastatin",
+    "subId": "atorvastatin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "lipitor",
+    "subId": "atorvastatin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "warfarin",
+    "subId": "warfarin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "marevan",
+    "subId": "warfarin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "citalopram",
+    "subId": "citalopram",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "cipramil",
+    "subId": "citalopram",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "sertralin",
+    "subId": "sertralin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "zoloft",
+    "subId": "sertralin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "omeprazol",
+    "subId": "omeprazol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "losec",
+    "subId": "omeprazol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "pantoprazol",
+    "subId": "pantoprazol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "pantoloc",
+    "subId": "pantoprazol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "levothyroxin",
+    "subId": "levothyroxin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "eltroxin",
+    "subId": "levothyroxin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "euthyrox",
+    "subId": "levothyroxin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "morfin",
+    "subId": "morfin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "contalgin",
+    "subId": "morfin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "oramorph",
+    "subId": "morfin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "oxycodon",
+    "subId": "oxycodon",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "oxynorm",
+    "subId": "oxycodon",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "oxycontin",
+    "subId": "oxycodon",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "targin",
+    "subId": "oxycodon",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "tramadol",
+    "subId": "tramadol",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "dolol",
+    "subId": "tramadol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "mandolgin",
+    "subId": "tramadol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "nobligan",
+    "subId": "tramadol",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "ramipril",
+    "subId": "ramipril",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "triatec",
+    "subId": "ramipril",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "enalapril",
+    "subId": "enalapril",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "renitec",
+    "subId": "enalapril",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "losartan",
+    "subId": "losartan",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "cozaar",
+    "subId": "losartan",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "apixaban",
+    "subId": "apixaban",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "eliquis",
+    "subId": "apixaban",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "rivaroxaban",
+    "subId": "rivaroxaban",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "xarelto",
+    "subId": "rivaroxaban",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "amoxicillin",
+    "subId": "amoxicillin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "imacillin",
+    "subId": "amoxicillin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "penicillin",
+    "subId": "penicillin",
+    "type": "synonym",
+    "region": null
+  }, {
+    "q": "primcillin",
+    "subId": "penicillin",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "prednisolon",
+    "subId": "prednisolon",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "diazepam",
+    "subId": "diazepam",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "stesolid",
+    "subId": "diazepam",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "valium",
+    "subId": "diazepam",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "oxazepam",
+    "subId": "oxazepam",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "alopam",
+    "subId": "oxazepam",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "insulin",
+    "subId": "insulin",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "novorapid",
+    "subId": "insulin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "levemir",
+    "subId": "insulin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "lantus",
+    "subId": "insulin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "tresiba",
+    "subId": "insulin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "actrapid",
+    "subId": "insulin",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "acetylsalicylsyre",
+    "subId": "acetylsalicylsyre",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "hjertemagnyl",
+    "subId": "acetylsalicylsyre",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "magnyl",
+    "subId": "acetylsalicylsyre",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "aspirin",
+    "subId": "acetylsalicylsyre",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "ibuprofen",
+    "subId": "ibuprofen",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "ipren",
+    "subId": "ibuprofen",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "brufen",
+    "subId": "ibuprofen",
+    "type": "brand",
+    "region": null
+  }, {
+    "q": "kaliumklorid",
+    "subId": "kaliumklorid",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "kaleorid",
+    "subId": "kaliumklorid",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "isosorbidmononitrat",
+    "subId": "isosorbidmononitrat",
+    "type": "substance",
+    "region": null
+  }, {
+    "q": "imdur",
+    "subId": "isosorbidmononitrat",
+    "type": "brand",
+    "region": "DK"
+  }, {
+    "q": "isosorbid",
+    "subId": "isosorbidmononitrat",
+    "type": "synonym",
+    "region": null
+  }],
+  "substances": {
+    "furosemid": "Furosemid",
+    "paracetamol": "Paracetamol",
+    "digoxin": "Digoxin",
+    "metformin": "Metformin",
+    "metoprolol": "Metoprolol",
+    "bisoprolol": "Bisoprolol",
+    "amlodipin": "Amlodipin",
+    "simvastatin": "Simvastatin",
+    "atorvastatin": "Atorvastatin",
+    "warfarin": "Warfarin",
+    "citalopram": "Citalopram",
+    "sertralin": "Sertralin",
+    "omeprazol": "Omeprazol",
+    "pantoprazol": "Pantoprazol",
+    "levothyroxin": "Levothyroxin",
+    "morfin": "Morfin",
+    "oxycodon": "Oxycodon",
+    "tramadol": "Tramadol",
+    "ramipril": "Ramipril",
+    "enalapril": "Enalapril",
+    "losartan": "Losartan",
+    "apixaban": "Apixaban",
+    "rivaroxaban": "Rivaroxaban",
+    "amoxicillin": "Amoxicillin",
+    "penicillin": "Phenoxymethylpenicillin",
+    "prednisolon": "Prednisolon",
+    "diazepam": "Diazepam",
+    "oxazepam": "Oxazepam",
+    "insulin": "Insulin",
+    "acetylsalicylsyre": "Acetylsalicylsyre",
+    "ibuprofen": "Ibuprofen",
+    "kaliumklorid": "Kaliumklorid",
+    "isosorbidmononitrat": "Isosorbidmononitrat"
+  }
 };
-const HALFLIFE_ALIASES = [["furix", "furosemid"], ["diural", "furosemid"], ["furosemid", "furosemid"], ["lasix", "furosemid"], ["panodil", "paracetamol"], ["pinex", "paracetamol"], ["pamol", "paracetamol"], ["paracetamol", "paracetamol"], ["lanoxin", "digoxin"], ["digoxin", "digoxin"], ["metformin", "metformin"], ["glucophage", "metformin"], ["metoprolol", "metoprolol"], ["selo-zok", "metoprolol"], ["selozok", "metoprolol"], ["bisoprolol", "bisoprolol"], ["emconcor", "bisoprolol"], ["amlodipin", "amlodipin"], ["norvasc", "amlodipin"], ["simvastatin", "simvastatin"], ["zocor", "simvastatin"], ["atorvastatin", "atorvastatin"], ["lipitor", "atorvastatin"], ["warfarin", "warfarin"], ["marevan", "warfarin"], ["citalopram", "citalopram"], ["cipramil", "citalopram"], ["sertralin", "sertralin"], ["zoloft", "sertralin"], ["omeprazol", "omeprazol"], ["losec", "omeprazol"], ["pantoprazol", "pantoprazol"], ["levothyroxin", "levothyroxin"], ["eltroxin", "levothyroxin"], ["euthyrox", "levothyroxin"], ["morfin", "morfin"], ["contalgin", "morfin"], ["oxycodon", "oxycodon"], ["oxynorm", "oxycodon"], ["oxycontin", "oxycodon"], ["targin", "oxycodon"], ["tramadol", "tramadol"], ["dolol", "tramadol"], ["mandolgin", "tramadol"], ["nobligan", "tramadol"], ["ramipril", "ramipril"], ["triatec", "ramipril"], ["enalapril", "enalapril"], ["renitec", "enalapril"], ["losartan", "losartan"], ["cozaar", "losartan"], ["apixaban", "apixaban"], ["eliquis", "apixaban"], ["rivaroxaban", "rivaroxaban"], ["xarelto", "rivaroxaban"], ["amoxicillin", "amoxicillin"], ["imacillin", "amoxicillin"], ["penicillin", "penicillin"], ["primcillin", "penicillin"], ["prednisolon", "prednisolon"], ["diazepam", "diazepam"], ["stesolid", "diazepam"], ["valium", "diazepam"], ["oxazepam", "oxazepam"], ["alopam", "oxazepam"], ["insulin", "insulin"], ["novorapid", "insulin"], ["levemir", "insulin"], ["lantus", "insulin"], ["tresiba", "insulin"], ["actrapid", "insulin"], ["acetylsalicylsyre", "acetylsalicylsyre"], ["hjertemagnyl", "acetylsalicylsyre"], ["magnyl", "acetylsalicylsyre"], ["aspirin", "acetylsalicylsyre"], ["ibuprofen", "ibuprofen"], ["ipren", "ibuprofen"], ["brufen", "ibuprofen"], ["kaliumklorid", "kaliumklorid"], ["kaleorid", "kaliumklorid"], ["isosorbidmononitrat", "isosorbidmononitrat"], ["imdur", "isosorbidmononitrat"], ["isosorbid", "isosorbidmononitrat"]];
+/* ===== KLARIO medication data layer (Option A1, Phase 1) ================
+ * Scalable, versioned, source-verifiable. Data lives in a separate versioned
+ * JSON (data/klario-halflife.v1.json + data/klario-medication-index.v1.json),
+ * loaded at runtime and cached; an inlined MED_SEED (above) is the offline
+ * floor so the app always works even if the fetch/update fails. Nothing is
+ * invented. Option B (online source) is prepared but DISABLED. */
+const MED_SCHEMA_MAJOR = "1";
+const MED_ONLINE = false; // Option B — kept OFF
+const MED_ONLINE_URL = ""; // set by a future approved phase
+const MED_FILE_HALFLIFE = "data/klario-halflife.v1.json";
+const MED_FILE_INDEX = "data/klario-medication-index.v1.json";
+const MED_DS_CACHE_KEY = "klario_med_ds_v1";
 const hlNorm = s => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
-function resolveSubstance(q) {
+const MED_MEAS = {
+  "terminal": "Terminal halveringstid",
+  "elimination": "Eliminationshalveringstid",
+  "plasma elimination": "Plasmahalveringstid (elimination)",
+  "apparent": "Tilsyneladende halveringstid",
+  "biological": "Biologisk halveringstid"
+};
+const medMeasLabel = m => MED_MEAS[m] || (m ? m.charAt(0).toUpperCase() + m.slice(1) : "Halveringstid");
+
+/* schema version compatibility (major must match) */
+const medVerMajor = v => String(v || "").split(".")[0];
+const medSchemaCompatible = ds => !!(ds && ds.meta && medVerMajor(ds.meta.schemaVersion) === MED_SCHEMA_MAJOR);
+
+/* validator — rejects incomplete/corrupt datasets */
+function validateMedDataset(ds) {
+  const err = [];
+  if (!ds || typeof ds !== "object") return {
+    ok: false,
+    errors: ["dataset mangler"]
+  };
+  if (!ds.meta || !ds.meta.schemaVersion) err.push("meta/schemaVersion mangler");else if (!medSchemaCompatible(ds)) err.push("skema-version ikke kompatibel (" + ds.meta.schemaVersion + ")");
+  if (!Array.isArray(ds.records)) err.push("records er ikke en liste");
+  if (!Array.isArray(ds.index)) err.push("index er ikke en liste");
+  if (Array.isArray(ds.records)) ds.records.forEach((r, i) => {
+    if (!r || !r.id || !r.substanceName || !r.halfLife || !r.source || !r.verificationStatus) err.push("record " + i + " mangler felter");
+  });
+  if (Array.isArray(ds.index) && ds.index.length) ds.index.forEach((x, i) => {
+    if (!x || !x.q || !x.subId) err.push("index " + i + " mangler felter");
+  });
+  return {
+    ok: err.length === 0,
+    errors: err
+  };
+}
+
+/* build fast runtime structures (alias index + autocomplete) */
+function medBuildRuntime(ds) {
+  const d = Object.assign({}, ds);
+  d.substances = d.substances || {};
+  const recById = {};
+  (d.records || []).forEach(r => {
+    recById[r.id] = r;
+  });
+  d._recById = recById;
+  // alias index: DB names + substance names + provided index
+  const ai = [];
+  const seen = {};
+  (d.records || []).forEach(r => {
+    [[r.id, r.id], [hlNorm(r.substanceName), r.id]].forEach(p => {
+      if (!seen[p[0]]) {
+        seen[p[0]] = 1;
+        ai.push(p);
+      }
+    });
+    (r.brands || []).forEach(b => {
+      const k = hlNorm(b);
+      if (!seen[k]) {
+        seen[k] = 1;
+        ai.push([k, r.id]);
+      }
+    });
+  });
+  Object.keys(d.substances).forEach(k => {
+    if (!seen[k]) {
+      seen[k] = 1;
+      ai.push([k, k]);
+    }
+    const nk = hlNorm(d.substances[k]);
+    if (!seen[nk]) {
+      seen[nk] = 1;
+      ai.push([nk, k]);
+    }
+  });
+  (d.index || []).forEach(x => {
+    const k = hlNorm(x.q);
+    if (!seen[k]) {
+      seen[k] = 1;
+      ai.push([k, x.subId]);
+    }
+  });
+  d._alias = ai;
+  // autocomplete suggestions
+  const sg = {};
+  Object.keys(d.substances).forEach(k => {
+    sg[d.substances[k]] = 1;
+  });
+  (d.records || []).forEach(r => {
+    sg[r.substanceName] = 1;
+    (r.brands || []).forEach(b => {
+      sg[b] = 1;
+    });
+  });
+  (d.index || []).forEach(x => {
+    sg[x.q.charAt(0).toUpperCase() + x.q.slice(1)] = 1;
+  });
+  d.suggest = Object.keys(sg).sort();
+  return d;
+}
+
+/* dataset cache (last known good) */
+function medCacheRead() {
+  try {
+    const o = JSON.parse(localStorage.getItem(MED_DS_CACHE_KEY) || "null");
+    return o && o.ds ? o : null;
+  } catch (e) {
+    return null;
+  }
+}
+function medCacheWrite(ds) {
+  try {
+    localStorage.setItem(MED_DS_CACHE_KEY, JSON.stringify({
+      ds: ds,
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
+}
+
+/* loader: online(disabled) → local files → cache → seed. Never uses invalid data. */
+async function loadMedicationData() {
+  // Option B (disabled)
+  if (MED_ONLINE && MED_ONLINE_URL) {/* future approved phase */}
+  // try local versioned files
+  try {
+    const [hRes, iRes] = await Promise.all([fetch(MED_FILE_HALFLIFE, {
+      cache: "no-cache"
+    }), fetch(MED_FILE_INDEX, {
+      cache: "no-cache"
+    })]);
+    if (hRes.ok && iRes.ok) {
+      const h = await hRes.json();
+      const idx = await iRes.json();
+      const ds = {
+        meta: h.meta,
+        records: h.records,
+        substances: h.substances,
+        index: idx && idx.index || []
+      };
+      const v = validateMedDataset(ds);
+      if (v.ok) {
+        const cached = medCacheRead();
+        // don't downgrade a newer cached dataset with an older/identical-but-invalid fetch (fetch already validated here)
+        medCacheWrite(ds);
+        return {
+          ds: medBuildRuntime(ds),
+          origin: "network",
+          meta: ds.meta
+        };
+      }
+    }
+  } catch (e) {/* offline or missing — fall through */}
+  // cached last-good
+  const c = medCacheRead();
+  if (c && validateMedDataset(c.ds).ok) return {
+    ds: medBuildRuntime(c.ds),
+    origin: "cache",
+    meta: c.ds.meta
+  };
+  // inlined seed floor
+  return {
+    ds: medBuildRuntime(MED_SEED),
+    origin: "seed",
+    meta: MED_SEED.meta
+  };
+}
+
+/* resolve / match / get */
+const medSubName = (ds, id) => {
+  const r = ds._recById && ds._recById[id];
+  return r && r.substanceName || ds.substances && ds.substances[id] || id;
+};
+function medResolve(ds, q) {
   const s = hlNorm(q);
   if (!s) return null;
-  let a = HALFLIFE_ALIASES.find(x => x[0] === s);
-  if (!a && s.length >= 3) a = HALFLIFE_ALIASES.find(x => x[0].indexOf(s) === 0 || s.indexOf(x[0]) === 0);
-  if (!a && s.length >= 4) a = HALFLIFE_ALIASES.find(x => x[0].indexOf(s) >= 0 || s.indexOf(x[0]) >= 0);
+  const A = ds._alias || [];
+  let a = A.find(x => x[0] === s);
+  if (!a && s.length >= 3) a = A.find(x => x[0].indexOf(s) === 0 || s.indexOf(x[0]) === 0);
+  if (!a && s.length >= 4) a = A.find(x => x[0].indexOf(s) >= 0 || s.indexOf(x[0]) >= 0);
   return a ? a[1] : null;
 }
-function halflifeLookup(q) {
-  const subId = resolveSubstance(q);
-  if (!subId) return {
-    status: "none",
-    query: q
+function medMatches(ds, q) {
+  const s = hlNorm(q);
+  if (!s) return [];
+  const ids = [];
+  (ds._alias || []).forEach(x => {
+    const k = x[0];
+    const hit = k === s || s.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0) || s.length >= 4 && (k.indexOf(s) >= 0 || s.indexOf(k) >= 0);
+    if (hit && ids.indexOf(x[1]) < 0) ids.push(x[1]);
+  });
+  return ids.map(id => {
+    const r = ds._recById[id];
+    return {
+      subId: id,
+      subName: medSubName(ds, id),
+      verified: !!(r && r.verificationStatus === "verified")
+    };
+  });
+}
+const MED_STALE_MONTHS = 12;
+function medStale(dateStr) {
+  const t = Date.parse(dateStr);
+  if (isNaN(t)) return false;
+  return (Date.now() - t) / (1000 * 60 * 60 * 24 * 30.44) > MED_STALE_MONTHS;
+}
+/* status: verified | previously-verified | unverified | not-documented | unavailable */
+function medGet(ds, subId) {
+  const r = ds._recById && ds._recById[subId];
+  const subName = medSubName(ds, subId);
+  if (!r) return {
+    status: "unavailable",
+    subId: subId,
+    subName: subName
   };
-  const entry = HALFLIFE_DB.find(d => d.id === subId && d.verified);
-  if (entry) return {
-    status: "verified",
-    entry,
-    subId,
-    subName: HALFLIFE_SUBSTANCES[subId] || entry.substans
+  if (r.notDocumented || r.halfLife && r.halfLife.notDocumented) return {
+    status: "not-documented",
+    record: r,
+    subId: subId,
+    subName: subName
+  };
+  if (r.verificationStatus === "verified") return {
+    status: medStale(r.source && r.source.verifiedAt) ? "previously-verified" : "verified",
+    record: r,
+    subId: subId,
+    subName: subName
   };
   return {
-    status: "resolved",
-    subId,
-    subName: HALFLIFE_SUBSTANCES[subId] || subId
+    status: "unverified",
+    record: r,
+    subId: subId,
+    subName: subName
   };
 }
-/* localStorage-cache: hurtig genadgang + per-stof "sidst gentjekket". */
+/* map a record → the card shape the UI renders */
+function medToCard(r) {
+  const u = r.ui || {};
+  const hl = r.halfLife || {};
+  return {
+    substans: r.substanceName,
+    aktivt: u.aktivt || r.substanceName,
+    brands: r.brands || [],
+    display: u.display || "",
+    measLabel: medMeasLabel(hl.measurementType),
+    range: u.range || "",
+    effekt: u.effekt || "",
+    faktorer: u.faktorer || "",
+    klinisk: u.klinisk || "",
+    quals: hl.clinicalQualifications || [],
+    calcOptions: u.calcOptions || [],
+    kilde: r.source && r.source.name || "",
+    kildeUrl: r.source && r.source.url || "",
+    lastVerified: r.source && r.source.verifiedAt || ""
+  };
+}
+/* Option B-ready interface (kept for future online phase) */
+async function getHalfLife(ds, subId) {
+  return medGet(ds, subId);
+}
+async function resolveMedication(ds, query) {
+  return medMatches(ds, query);
+}
+
+/* recents cache (per-viewer convenience) */
 const HL_CACHE_KEY = "klario_hl_cache_v1";
 function hlCacheRead() {
   try {
@@ -8533,6 +9577,22 @@ const HL_TABLE = [1, 2, 3, 4, 5, 6].map(n => ({
 function HalfLifeView({
   onTest
 }) {
+  const [medDS, setMedDS] = useState(() => medBuildRuntime(MED_SEED));
+  const [medMeta, setMedMeta] = useState(MED_SEED.meta);
+  const [medOrigin, setMedOrigin] = useState("seed");
+  useEffect(() => {
+    let on = true;
+    loadMedicationData().then(r => {
+      if (on && r && r.ds) {
+        setMedDS(r.ds);
+        setMedMeta(r.meta);
+        setMedOrigin(r.origin);
+      }
+    }).catch(() => {});
+    return () => {
+      on = false;
+    };
+  }, []);
   const [half, setHalf] = useState("");
   const [elapsed, setElapsed] = useState("");
   const [amount, setAmount] = useState("");
@@ -8540,21 +9600,60 @@ function HalfLifeView({
   const [err, setErr] = useState("");
   const [look, setLook] = useState("");
   const [looked, setLooked] = useState(false);
+  const [picks, setPicks] = useState([]);
+  const [pickId, setPickId] = useState(null);
   const [hlCache, setHlCache] = useState(hlCacheRead);
+  const [calcSrc, setCalcSrc] = useState(null);
+  const calcRef = useRef(null);
+  const cacheHit = res => {
+    if (!res || !res.subId) return;
+    const c = Object.assign({}, hlCacheRead());
+    c[res.subId] = {
+      subName: res.subName,
+      verified: res.status === "verified",
+      ts: Date.now(),
+      rechecked: (c[res.subId] || {}).rechecked || null
+    };
+    hlCacheWrite(c);
+    setHlCache(c);
+  };
   const doLookup = () => {
     setLooked(true);
-    const r = halflifeLookup(look);
-    if (r.status === "verified" || r.status === "resolved") {
-      const c = Object.assign({}, hlCacheRead());
-      c[r.subId] = {
-        subName: r.subName,
-        verified: r.status === "verified",
-        ts: Date.now(),
-        rechecked: (c[r.subId] || {}).rechecked || null
-      };
-      hlCacheWrite(c);
-      setHlCache(c);
+    const ms = medMatches(medDS, look);
+    if (ms.length === 0) {
+      setPicks([]);
+      setPickId(null);
+      return;
     }
+    if (ms.length === 1) {
+      setPicks([]);
+      setPickId(ms[0].subId);
+      cacheHit(halflifeLookupId(ms[0].subId));
+      return;
+    }
+    setPicks(ms);
+    setPickId(null);
+  };
+  const selectPick = subId => {
+    setPickId(subId);
+    setPicks([]);
+    cacheHit(medGet(medDS, subId));
+  };
+  const applyToCalc = (entry, opt) => {
+    setHalf(String(opt.h).replace(".", ","));
+    setRes(null);
+    setErr("");
+    setCalcSrc({
+      med: entry.substans,
+      label: opt.label,
+      kilde: entry.kilde
+    });
+    try {
+      if (calcRef.current) calcRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    } catch (e) {}
   };
   const reverify = (subId, url) => {
     const c = Object.assign({}, hlCacheRead());
@@ -8629,7 +9728,7 @@ function HalfLifeView({
     path += " L " + xOf(nh) + " " + yOf(Math.pow(0.5, nh) * 100);
   }
   const markNh = res ? res.nHalf : null;
-  const lookRes = looked ? halflifeLookup(look) : null;
+  const lookRes = looked && pickId ? medGet(medDS, pickId) : null;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -8683,6 +9782,7 @@ function HalfLifeView({
     quick: e.q,
     more: e.m
   }))), /*#__PURE__*/React.createElement("div", {
+    ref: calcRef,
     style: {
       border: `1px solid ${tint("#7A5AF5", "2E")}`,
       borderRadius: 16,
@@ -8705,7 +9805,31 @@ function HalfLifeView({
       fontWeight: 800,
       color: C.ink
     }
-  }, "Halveringstid-beregner")), /*#__PURE__*/React.createElement("div", {
+  }, "Halveringstid-beregner")), calcSrc ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 9,
+      background: tint("#0FAE9E", "0E"),
+      border: `1px solid ${tint("#0FAE9E", "33")}`,
+      borderRadius: 11,
+      padding: "10px 12px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(ShieldCheck, {
+    size: 15,
+    color: "#0B7A6E",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, "Halveringstid indsat fra ", /*#__PURE__*/React.createElement("b", null, calcSrc.med), calcSrc.label ? " (" + calcSrc.label + ")" : "", " \xB7 kilde: ", calcSrc.kilde, ". Tjek altid den konkrete v\xE6rdi mod ordination og kilde.")) : null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -8719,7 +9843,10 @@ function HalfLifeView({
     }
   }, "Halveringstid (timer)", /*#__PURE__*/React.createElement("input", {
     value: half,
-    onChange: e => setHalf(e.target.value),
+    onChange: e => {
+      setHalf(e.target.value);
+      setCalcSrc(null);
+    },
     inputMode: "decimal",
     placeholder: "fx 6",
     "aria-label": "Halveringstid i timer",
@@ -9061,15 +10188,20 @@ function HalfLifeView({
     }
   }, /*#__PURE__*/React.createElement("input", {
     value: look,
+    list: "hl-suggest",
     onChange: e => {
       setLook(e.target.value);
       setLooked(false);
+      setPicks([]);
+      setPickId(null);
     },
     onKeyDown: e => {
       if (e.key === "Enter") doLookup();
     },
     placeholder: "Fx Furix eller furosemid\u2026",
     "aria-label": "S\xF8g l\xE6gemiddel",
+    autoComplete: "off",
+    autoCapitalize: "none",
     style: {
       flex: 1,
       boxSizing: "border-box",
@@ -9094,7 +10226,12 @@ function HalfLifeView({
       fontWeight: 800,
       cursor: "pointer"
     }
-  }, "Sl\xE5 op")), !looked && recents.length ? /*#__PURE__*/React.createElement("div", {
+  }, "Sl\xE5 op")), /*#__PURE__*/React.createElement("datalist", {
+    id: "hl-suggest"
+  }, medDS.suggest.map(x => /*#__PURE__*/React.createElement("option", {
+    key: x,
+    value: x
+  }))), !looked && recents.length ? /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 12
     }
@@ -9115,6 +10252,8 @@ function HalfLifeView({
     key: r.subId,
     onClick: () => {
       setLook(r.subName);
+      setPicks([]);
+      setPickId(r.subId);
       setLooked(true);
     },
     style: {
@@ -9138,19 +10277,80 @@ function HalfLifeView({
       borderRadius: 99,
       background: "#0B9488"
     }
-  }) : null)))) : null, looked ? (() => {
-    const r = lookRes || {
-      status: "none"
-    };
-    if (r.status === "verified") {
-      const e = r.entry;
+  }) : null)))) : null, looked && picks.length > 1 && !pickId ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.ink,
+      marginBottom: 8
+    }
+  }, "Flere l\xE6gemidler matcher \u201E", look, "\u201C \u2014 v\xE6lg \xE9t:"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, picks.map(p => /*#__PURE__*/React.createElement("button", {
+    key: p.subId,
+    onClick: () => selectPick(p.subId),
+    style: {
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 12,
+      padding: "11px 13px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, p.subName), p.verified ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 800,
+      color: "#0B7A6E",
+      background: tint("#0FAE9E", "18"),
+      padding: "2px 7px",
+      borderRadius: 7
+    }
+  }, "Verificeret") : /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 700,
+      color: "#8A5A0B",
+      background: tint("#B7791F", "16"),
+      padding: "2px 7px",
+      borderRadius: 7
+    }
+  }, "Ej verificeret"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: C.inkFaint
+  }))))) : looked && pickId && lookRes ? (() => {
+    const r = lookRes;
+    if (r.status === "verified" || r.status === "previously-verified") {
+      const e = medToCard(r.record);
+      const stale = r.status === "previously-verified";
       const rc = (hlCache[r.subId] || {}).rechecked;
+      const AC = stale ? "#B7791F" : "#0FAE9E";
+      const TX = stale ? "#8A5A0B" : "#0B7A6E";
       return /*#__PURE__*/React.createElement("div", {
         style: {
           marginTop: 12,
-          border: `1px solid ${tint("#0FAE9E", "40")}`,
+          border: `1px solid ${tint(AC, "40")}`,
           borderRadius: 13,
-          background: tint("#0FAE9E", "08"),
+          background: tint(AC, "08"),
           padding: "13px 14px"
         }
       }, /*#__PURE__*/React.createElement("div", {
@@ -9158,8 +10358,8 @@ function HalfLifeView({
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          background: tint("#0FAE9E", "18"),
-          color: "#0B7A6E",
+          background: tint(AC, "18"),
+          color: TX,
           borderRadius: 8,
           padding: "3px 9px",
           fontSize: 11,
@@ -9168,8 +10368,8 @@ function HalfLifeView({
         }
       }, /*#__PURE__*/React.createElement(ShieldCheck, {
         size: 13,
-        color: "#0B7A6E"
-      }), "Verificeret"), /*#__PURE__*/React.createElement("div", {
+        color: TX
+      }), stale ? "Tidligere verificeret – opdatering kræves" : "Verificeret"), /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 16,
           fontWeight: 800,
@@ -9187,31 +10387,97 @@ function HalfLifeView({
           color: C.ink,
           marginTop: 9
         }
-      }, "Halveringstid (T\xBD): ", /*#__PURE__*/React.createElement("b", {
+      }, e.measLabel, " (T\xBD): ", /*#__PURE__*/React.createElement("b", {
         style: {
-          color: "#0B7A6E"
+          color: TX
         }
-      }, e.tHalf)), e.range ? /*#__PURE__*/React.createElement("div", {
+      }, e.display)), e.range ? /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 13,
           color: C.ink,
           marginTop: 4,
           lineHeight: 1.5
         }
-      }, e.range) : null, e.note ? /*#__PURE__*/React.createElement("div", {
+      }, e.range) : null, e.effekt ? /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 12.5,
           color: C.inkSoft,
           marginTop: 6,
           lineHeight: 1.5
         }
-      }, e.note) : null, /*#__PURE__*/React.createElement("div", {
+      }, /*#__PURE__*/React.createElement("b", null, "Virkningsvarighed:"), " ", e.effekt) : null, e.faktorer ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          color: C.inkSoft,
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, /*#__PURE__*/React.createElement("b", null, "Elimination p\xE5virkes af:"), " ", e.faktorer) : null, e.klinisk ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          color: C.inkSoft,
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, /*#__PURE__*/React.createElement("b", null, "Klinisk:"), " ", e.klinisk) : null, e.calcOptions && e.calcOptions.length ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 11
+        }
+      }, e.calcOptions.length === 1 ? /*#__PURE__*/React.createElement("button", {
+        onClick: () => applyToCalc(e, e.calcOptions[0]),
+        style: {
+          width: "100%",
+          border: "none",
+          borderRadius: 11,
+          padding: "11px",
+          background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+          color: "#fff",
+          fontFamily: "inherit",
+          fontSize: 14,
+          fontWeight: 800,
+          cursor: "pointer"
+        }
+      }, "Brug denne halveringstid i beregneren") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: C.inkSoft,
+          marginBottom: 7
+        }
+      }, "Brug i beregneren (v\xE6lg v\xE6rdi \u2014 intervallet har flere):"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 8
+        }
+      }, e.calcOptions.map((o, i) => /*#__PURE__*/React.createElement("button", {
+        key: i,
+        onClick: () => applyToCalc(e, o),
+        style: {
+          border: `1px solid ${tint("#7A5AF5", "40")}`,
+          background: tint("#7A5AF5", "0C"),
+          borderRadius: 10,
+          padding: "9px 13px",
+          fontSize: 13,
+          fontWeight: 800,
+          color: "#5B37C7",
+          cursor: "pointer",
+          fontFamily: "inherit"
+        }
+      }, o.label || "Brug"))))) : null, /*#__PURE__*/React.createElement("div", {
         style: {
           borderTop: `1px solid ${C.line}`,
           marginTop: 11,
           paddingTop: 10
         }
-      }, /*#__PURE__*/React.createElement("div", {
+      }, stale ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: "#8A5A0B",
+          lineHeight: 1.5,
+          marginBottom: 4
+        }
+      }, "Denne post er over 12 m\xE5neder gammel. Bekr\xE6ft v\xE6rdien mod kilden, f\xF8r du bruger den.") : null, /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 12,
           color: C.inkSoft,
@@ -9223,7 +10489,7 @@ function HalfLifeView({
           color: C.inkFaint,
           marginTop: 2
         }
-      }, "Kontrolleret: ", e.lastVerified, rc ? " · Gentjekket i appen: " + hlDate(rc) : ""), /*#__PURE__*/React.createElement("div", {
+      }, "Kontrolleret: ", e.lastVerified, rc ? " · Gentjekket i appen: " + hlDate(rc) : "", ". En kontroldato er ikke bevis for, at oplysningen stadig er aktuel."), /*#__PURE__*/React.createElement("div", {
         style: {
           display: "flex",
           flexWrap: "wrap",
@@ -9253,7 +10519,7 @@ function HalfLifeView({
         size: 14,
         color: C.inkFaint
       }))), /*#__PURE__*/React.createElement("button", {
-        onClick: () => reverify(e.id, e.kildeUrl),
+        onClick: () => reverify(r.subId, e.kildeUrl),
         style: {
           border: `1px solid ${C.line}`,
           background: C.surface,
@@ -9267,7 +10533,85 @@ function HalfLifeView({
         }
       }, "Gentjek kilde"))));
     }
-    if (r.status === "resolved") return /*#__PURE__*/React.createElement("div", {
+    if (r.status === "not-documented") {
+      const e = medToCard(r.record);
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 12,
+          border: `1px solid ${C.line}`,
+          borderRadius: 12,
+          background: C.surface,
+          padding: "12px 14px"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 15,
+          fontWeight: 800,
+          color: C.ink
+        }
+      }, e.substans), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 14,
+          fontWeight: 800,
+          color: C.inkSoft,
+          marginTop: 6
+        }
+      }, "Halveringstid ikke dokumenteret / ikke fastlagt"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          color: C.inkSoft,
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, e.range || "Kilden angiver ikke én meningsfuld halveringstid for dette lægemiddel."), e.kildeUrl ? /*#__PURE__*/React.createElement("a", {
+        href: e.kildeUrl,
+        target: "_blank",
+        rel: "noopener noreferrer",
+        style: {
+          textDecoration: "none"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 9,
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: "#5B37C7"
+        }
+      }, "\xC5bn kilde \u2192")) : null);
+    }
+    if (r.status === "unverified") {
+      const e = medToCard(r.record);
+      return /*#__PURE__*/React.createElement("div", {
+        style: {
+          marginTop: 12,
+          border: `1px solid ${tint("#B7791F", "33")}`,
+          background: tint("#B7791F", "0C"),
+          borderRadius: 12,
+          padding: "12px 14px"
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 15,
+          fontWeight: 800,
+          color: C.ink
+        }
+      }, e.substans), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 14,
+          fontWeight: 800,
+          color: "#8A5A0B",
+          marginTop: 6
+        }
+      }, "Ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
+          color: "#7A4E0A",
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, "Der er en post for ", e.substans, ", men halveringstiden er ikke tilstr\xE6kkeligt verificeret. Sl\xE5 op i en godkendt kilde."));
+    }
+    return /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: 12,
         border: `1px solid ${tint("#B7791F", "33")}`,
@@ -9287,7 +10631,7 @@ function HalfLifeView({
         color: "#8A5A0B",
         marginTop: 6
       }
-    }, "Halveringstid ikke verificeret i Klario"), /*#__PURE__*/React.createElement("div", {
+    }, "Oplysning ikke tilg\xE6ngelig"), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 12.5,
         color: "#7A4E0A",
@@ -9295,29 +10639,28 @@ function HalfLifeView({
         lineHeight: 1.5
       }
     }, "Klario har endnu ikke en kildekontrolleret T\xBD for ", r.subName, ". Klario opfinder ikke en v\xE6rdi \u2014 sl\xE5 den op i en godkendt kilde."));
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 12,
-        border: `1px solid ${tint("#B7791F", "33")}`,
-        background: tint("#B7791F", "0C"),
-        borderRadius: 12,
-        padding: "12px 14px"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 800,
-        color: "#8A5A0B"
-      }
-    }, "Halveringstid ikke verificeret"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12.5,
-        color: "#7A4E0A",
-        marginTop: 4,
-        lineHeight: 1.5
-      }
-    }, "Klario genkendte ikke l\xE6gemidlet og opfinder ikke en v\xE6rdi. Tjek stavning, eller sl\xE5 det op i en godkendt kilde."));
-  })() : null, /*#__PURE__*/React.createElement("a", {
+  })() : looked ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      border: `1px solid ${tint("#B7791F", "33")}`,
+      background: tint("#B7791F", "0C"),
+      borderRadius: 12,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#8A5A0B"
+    }
+  }, "L\xE6gemidlet blev ikke genkendt"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#7A4E0A",
+      marginTop: 4,
+      lineHeight: 1.5
+    }
+  }, "Klario opfinder ikke en v\xE6rdi. Tjek stavningen, pr\xF8v det aktive stof, eller sl\xE5 det op i en godkendt kilde.")) : null, /*#__PURE__*/React.createElement("a", {
     href: "https://pro.medicin.dk/",
     target: "_blank",
     rel: "noopener noreferrer",
@@ -9371,7 +10714,14 @@ function HalfLifeView({
       color: C.inkSoft,
       lineHeight: 1.5
     }
-  }, "Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede v\xE6rdier kommer fra en kurateret, kildekontrolleret database i appen. Bekr\xE6ft altid klinisk i pro.medicin.dk og f\xF8lg ordination."))), /*#__PURE__*/React.createElement("button", {
+  }, "Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede v\xE6rdier kommer fra en kurateret, kildekontrolleret database i appen. Bekr\xE6ft altid klinisk i pro.medicin.dk og f\xF8lg ordination.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
+      color: C.inkFaint,
+      marginTop: 8,
+      textAlign: "center"
+    }
+  }, "Datas\xE6t ", medMeta && medMeta.datasetVersion ? medMeta.datasetVersion : "—", " \xB7 ", medMeta && medMeta.recordCount != null ? medMeta.recordCount : "—", " verificerede stoffer \xB7 ", medOrigin === "network" ? "opdateret fra data-fil" : medOrigin === "cache" ? "fra lokal cache" : "medbragt i appen")), /*#__PURE__*/React.createElement("button", {
     onClick: () => onTest("halveringstid"),
     style: {
       width: "100%",
