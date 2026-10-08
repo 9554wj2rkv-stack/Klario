@@ -6091,6 +6091,2985 @@ const calcSearch = q => {
 
 /* Pseudo-categories so Fagligt sprog, Plejeprocedurer and Test Viden appear in the
    KLINISKE KATEGORIER grid with the same card design (they keep their own screens). */
+/* ===== FAGLIGT SPROG — Anatomi & fysiologi =============================
+ *  Dansk → fagligt → latin opslag for SSA-elever og sundhedspersonale.
+ *  Latinske betegnelser følger gængs anatomisk nomenklatur (Terminologia
+ *  Anatomica). Betegnelser der IKKE kan verificeres sikkert markeres med
+ *  flag:true ("Til faglig kontrol") frem for at blive opfundet.
+ *  Data er struktureret med stabile id'er, så en interaktiv kropsillustration
+ *  senere kan mappe et tryk (bodyKey) direkte til et opslag.
+ * ===================================================================== */
+const ANAT_SUBS = [{
+  id: "alle",
+  label: "Alle"
+}, {
+  id: "ydre",
+  label: "Kroppens ydre anatomi"
+}, {
+  id: "organer",
+  label: "Organer"
+}, {
+  id: "systemer",
+  label: "Organsystemer"
+}, {
+  id: "indre",
+  label: "Indre anatomi"
+}, {
+  id: "retning",
+  label: "Retningsbegreber"
+}, {
+  id: "fysiologi",
+  label: "Fysiologi"
+}];
+const ANAT_TYPE_LABEL = {
+  region: "Kropsregion",
+  knogle: "Knogle",
+  led: "Led",
+  muskel: "Muskel",
+  organ: "Organ",
+  system: "Organsystem",
+  struktur: "Struktur",
+  retning: "Retningsbegreb"
+};
+const ANAT = [/* ---------- Kroppens ydre anatomi: regioner ---------- */
+{
+  id: "a-hoved",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "hoved",
+  daglig: "Hoved",
+  faglig: "Hovedregion",
+  latin: "Caput / Regio capitis",
+  forklaring: "Hele hovedet inkl. kraniet.",
+  placering: "Øverst på kroppen, over halsen.",
+  syn: ["hovede", "cranium region"]
+}, {
+  id: "a-ansigt",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "hoved",
+  daglig: "Ansigt",
+  faglig: "Ansigtsregion",
+  latin: "Facies / Regio facialis",
+  forklaring: "Forsiden af hovedet.",
+  placering: "Forreste del af hovedet.",
+  syn: ["fjæs"]
+}, {
+  id: "a-hals",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "hals",
+  daglig: "Hals",
+  faglig: "Halsregion",
+  latin: "Collum / Regio cervicalis",
+  forklaring: "For- og sideflade af halsen.",
+  placering: "Mellem hoved og brystkasse.",
+  syn: ["strube"]
+}, {
+  id: "a-nakke",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "hals",
+  daglig: "Nakke",
+  faglig: "Nakkeregion",
+  latin: "Nucha / Regio cervicalis posterior",
+  forklaring: "Bagsiden af halsen.",
+  placering: "Bag på halsen.",
+  syn: ["nakken"]
+}, {
+  id: "a-skulder",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "skulder",
+  daglig: "Skulder",
+  faglig: "Skulderregion",
+  latin: "Regio deltoidea",
+  forklaring: "Området omkring skulderleddet.",
+  placering: "Øverst på armen, ved kroppen.",
+  syn: ["skuldre"],
+  doc: "Nedsat bevægelighed i højre skulder."
+}, {
+  id: "a-brystkasse",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "thorax",
+  daglig: "Brystkasse",
+  faglig: "Brystregion / thorax",
+  latin: "Thorax / Regio thoracica",
+  forklaring: "Brysthulen med ribben, hjerte og lunger.",
+  placering: "Øverste del af kroppen.",
+  syn: ["bryst", "brystkasse", "thorax"]
+}, {
+  id: "a-ryg",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "ryg",
+  daglig: "Ryg",
+  faglig: "Rygregion",
+  latin: "Dorsum / Regio dorsalis",
+  forklaring: "Bagsiden af kroppen.",
+  placering: "Bagsiden fra nakke til bækken.",
+  syn: ["ryggen"]
+}, {
+  id: "a-abdomen",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "abdomen",
+  daglig: "Mave / abdomen",
+  faglig: "Bugregion / abdomen",
+  latin: "Abdomen / Regio abdominalis",
+  forklaring: "Bughulen med mave-tarm-organer.",
+  placering: "Mellem brystkasse og bækken.",
+  syn: ["mave", "bug", "abdomen"],
+  doc: "Borger angiver smerter i nedre abdomen."
+}, {
+  id: "a-baekken",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "baekken",
+  daglig: "Bækken",
+  faglig: "Bækkenregion",
+  latin: "Pelvis / Regio pelvica",
+  forklaring: "Nederste del af bugen med bækkenorganer.",
+  placering: "Mellem mave og lår.",
+  syn: ["pelvis"]
+}, {
+  id: "a-balle",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "balle",
+  daglig: "Balle",
+  faglig: "Glutealregion",
+  latin: "Regio glutealis",
+  forklaring: "Bagdelen; området over sædemusklerne.",
+  placering: "Bageste del af bækken-/hofteregionen.",
+  doc: "Der observeres rødme i højre glutealregion.",
+  syn: ["balder", "bagdel", "sæde", "numse", "ende"]
+}, {
+  id: "a-overarm",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "overarm",
+  daglig: "Overarm",
+  faglig: "Overarmsregion",
+  latin: "Brachium / Regio brachialis",
+  forklaring: "Armen mellem skulder og albue.",
+  placering: "Øvre del af armen.",
+  syn: ["overarme"]
+}, {
+  id: "a-albue",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "albue",
+  daglig: "Albue",
+  faglig: "Albueregion",
+  latin: "Cubitus / Regio cubitalis",
+  forklaring: "Området omkring albueleddet.",
+  placering: "Mellem overarm og underarm.",
+  syn: ["albuer"]
+}, {
+  id: "a-underarm",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "underarm",
+  daglig: "Underarm",
+  faglig: "Underarmsregion",
+  latin: "Antebrachium / Regio antebrachialis",
+  forklaring: "Armen mellem albue og håndled.",
+  placering: "Nedre del af armen.",
+  syn: ["underarme"]
+}, {
+  id: "a-haand",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "haand",
+  daglig: "Hånd",
+  faglig: "Håndregion",
+  latin: "Manus / Regio manus",
+  forklaring: "Hånden fra håndled til fingerspidser.",
+  placering: "For enden af underarmen.",
+  syn: ["hænder"]
+}, {
+  id: "a-fingre",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "haand",
+  daglig: "Fingre",
+  faglig: "Fingre",
+  latin: "Digiti manus",
+  forklaring: "Håndens fingre.",
+  placering: "Yderst på hånden.",
+  syn: ["finger"]
+}, {
+  id: "a-hofte",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "hofte",
+  daglig: "Hofte",
+  faglig: "Hofteregion",
+  latin: "Coxa / Regio coxae",
+  forklaring: "Området omkring hofteleddet.",
+  placering: "Mellem bækken og lår.",
+  syn: ["hofter"]
+}, {
+  id: "a-laar",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "laar",
+  daglig: "Lår",
+  faglig: "Lårregion",
+  latin: "Femur (region) / Regio femoris",
+  forklaring: "Benet mellem hofte og knæ. OBS: selve lårbenet (knoglen) hedder os femoris.",
+  placering: "Øvre del af benet.",
+  syn: ["lårene"],
+  related: ["a-laarben"]
+}, {
+  id: "a-knae",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "knae",
+  daglig: "Knæ",
+  faglig: "Knæregion",
+  latin: "Genu / Regio genus",
+  forklaring: "Området omkring knæleddet.",
+  placering: "Mellem lår og underben.",
+  syn: ["knæene"]
+}, {
+  id: "a-underben",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "underben",
+  daglig: "Underben",
+  faglig: "Underbensregion",
+  latin: "Crus / Regio cruris",
+  forklaring: "Benet mellem knæ og ankel.",
+  placering: "Nedre del af benet.",
+  syn: ["skinneben region", "læg"]
+}, {
+  id: "a-ankel",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "ankel",
+  daglig: "Ankel",
+  faglig: "Ankelregion",
+  latin: "Regio talocruralis",
+  forklaring: "Området omkring ankelleddet.",
+  placering: "Mellem underben og fod.",
+  syn: ["ankler", "malleol"]
+}, {
+  id: "a-fod",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "fod",
+  daglig: "Fod",
+  faglig: "Fodregion",
+  latin: "Pes / Regio pedis",
+  forklaring: "Foden fra ankel til tæer.",
+  placering: "Nederst på benet.",
+  syn: ["fødder"],
+  doc: "Tør, sprukken hud på højre fod."
+}, {
+  id: "a-taeer",
+  sub: "ydre",
+  type: "region",
+  bodyKey: "fod",
+  daglig: "Tæer",
+  faglig: "Tæer",
+  latin: "Digiti pedis",
+  forklaring: "Fodens tæer.",
+  placering: "Yderst på foden.",
+  syn: ["tå"]
+}, /* ---------- Knogler ---------- */
+{
+  id: "a-kranie",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "hoved",
+  daglig: "Kranie",
+  faglig: "Kranium",
+  latin: "Cranium",
+  forklaring: "Knoglerne der beskytter hjernen.",
+  syn: ["hovedskal"]
+}, {
+  id: "a-rygsoejle",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "ryg",
+  daglig: "Rygsøjle",
+  faglig: "Rygsøjle / ryghvirvler",
+  latin: "Columna vertebralis (Vertebrae)",
+  forklaring: "Søjlen af ryghvirvler; beskytter rygmarven.",
+  syn: ["ryghvirvler", "hvirvler", "rygrad"]
+}, {
+  id: "a-brystben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "thorax",
+  daglig: "Brystben",
+  faglig: "Brystben",
+  latin: "Sternum",
+  forklaring: "Fladt ben midt på brystkassen.",
+  syn: ["sternum"]
+}, {
+  id: "a-ribben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "thorax",
+  daglig: "Ribben",
+  faglig: "Ribben",
+  latin: "Costae",
+  forklaring: "Buede knogler der danner brystkassen.",
+  syn: ["costae"]
+}, {
+  id: "a-kraveben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "skulder",
+  daglig: "Kraveben",
+  faglig: "Kraveben",
+  latin: "Clavicula",
+  forklaring: "Knogle mellem brystben og skulderblad.",
+  syn: ["clavicula"]
+}, {
+  id: "a-skulderblad",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "skulder",
+  daglig: "Skulderblad",
+  faglig: "Skulderblad",
+  latin: "Scapula",
+  forklaring: "Fladt ben på øvre ryg ved skulderen.",
+  syn: ["scapula"]
+}, {
+  id: "a-overarmsknogle",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "overarm",
+  daglig: "Overarmsknogle",
+  faglig: "Overarmsknogle",
+  latin: "Humerus",
+  forklaring: "Knoglen i overarmen.",
+  syn: ["humerus"]
+}, {
+  id: "a-spoleben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "underarm",
+  daglig: "Spoleben",
+  faglig: "Spoleben",
+  latin: "Radius",
+  forklaring: "Underarmsknogle på tommelfingersiden.",
+  syn: ["radius"]
+}, {
+  id: "a-albueben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "underarm",
+  daglig: "Albueben",
+  faglig: "Albueben",
+  latin: "Ulna",
+  forklaring: "Underarmsknogle på lillefingersiden.",
+  syn: ["ulna"]
+}, {
+  id: "a-hofteben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "baekken",
+  daglig: "Hofteben",
+  faglig: "Hofteben",
+  latin: "Os coxae",
+  forklaring: "Bækkenknoglen i hver side.",
+  syn: ["os coxae"]
+}, {
+  id: "a-laarben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "laar",
+  daglig: "Lårben",
+  faglig: "Lårben",
+  latin: "Femur (Os femoris)",
+  forklaring: "Kroppens største knogle i låret. OBS: adskil fra lår­REGIONEN.",
+  syn: ["femur", "os femoris"]
+}, {
+  id: "a-knaeskal",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "knae",
+  daglig: "Knæskal",
+  faglig: "Knæskal",
+  latin: "Patella",
+  forklaring: "Lille knogle foran knæleddet.",
+  syn: ["patella"]
+}, {
+  id: "a-skinneben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "underben",
+  daglig: "Skinneben",
+  faglig: "Skinneben",
+  latin: "Tibia",
+  forklaring: "Den kraftige underbensknogle foran.",
+  syn: ["tibia"]
+}, {
+  id: "a-laegben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "underben",
+  daglig: "Lægben",
+  faglig: "Lægben",
+  latin: "Fibula",
+  forklaring: "Tynd underbensknogle på ydersiden.",
+  syn: ["fibula"]
+}, {
+  id: "a-haelben",
+  sub: "ydre",
+  type: "knogle",
+  bodyKey: "fod",
+  daglig: "Hælben",
+  faglig: "Hælben",
+  latin: "Calcaneus",
+  forklaring: "Den store knogle i hælen.",
+  syn: ["calcaneus", "hæl"]
+}, /* ---------- Led ---------- */
+{
+  id: "a-skulderled",
+  sub: "ydre",
+  type: "led",
+  bodyKey: "skulder",
+  daglig: "Skulderled",
+  faglig: "Skulderled",
+  latin: "Articulatio humeri",
+  forklaring: "Kugleled mellem overarm og skulderblad.",
+  syn: ["glenohumeralled"]
+}, {
+  id: "a-albueled",
+  sub: "ydre",
+  type: "led",
+  bodyKey: "albue",
+  daglig: "Albueled",
+  faglig: "Albueled",
+  latin: "Articulatio cubiti",
+  forklaring: "Led mellem overarm og underarm.",
+  syn: []
+}, {
+  id: "a-hofteled",
+  sub: "ydre",
+  type: "led",
+  bodyKey: "hofte",
+  daglig: "Hofteled",
+  faglig: "Hofteled",
+  latin: "Articulatio coxae",
+  forklaring: "Kugleled mellem lårben og bækken.",
+  syn: []
+}, {
+  id: "a-knaeled",
+  sub: "ydre",
+  type: "led",
+  bodyKey: "knae",
+  daglig: "Knæled",
+  faglig: "Knæled",
+  latin: "Articulatio genus",
+  forklaring: "Hængselled mellem lårben og skinneben.",
+  syn: []
+}, {
+  id: "a-ankelled",
+  sub: "ydre",
+  type: "led",
+  bodyKey: "ankel",
+  daglig: "Ankelled",
+  faglig: "Ankelled",
+  latin: "Articulatio talocruralis",
+  forklaring: "Led mellem underben og fod.",
+  syn: []
+}, /* ---------- Muskler ---------- */
+{
+  id: "a-deltoid",
+  sub: "ydre",
+  type: "muskel",
+  bodyKey: "skulder",
+  daglig: "Skuldermuskel",
+  faglig: "Deltamuskel",
+  latin: "Musculus deltoideus",
+  forklaring: "Løfter armen; almindeligt injektionssted i.m.",
+  syn: ["deltoid", "deltamuskel"]
+}, {
+  id: "a-biceps",
+  sub: "ydre",
+  type: "muskel",
+  bodyKey: "overarm",
+  daglig: "Bicepsmuskel",
+  faglig: "Biceps",
+  latin: "Musculus biceps brachii",
+  forklaring: "Bøjer albuen.",
+  syn: ["biceps"]
+}, {
+  id: "a-quadriceps",
+  sub: "ydre",
+  type: "muskel",
+  bodyKey: "laar",
+  daglig: "Forlårsmuskel",
+  faglig: "Quadriceps",
+  latin: "Musculus quadriceps femoris",
+  forklaring: "Stor forlårsmuskel; strækker knæet.",
+  syn: ["quadriceps", "forlår"]
+}, {
+  id: "a-gluteus",
+  sub: "ydre",
+  type: "muskel",
+  bodyKey: "balle",
+  daglig: "Sædemuskel",
+  faglig: "Store baldemuskel",
+  latin: "Musculus gluteus maximus",
+  forklaring: "Kroppens store baldemuskel; strækker hoften.",
+  syn: ["gluteus", "baldemuskel"]
+}, {
+  id: "a-gastrocnemius",
+  sub: "ydre",
+  type: "muskel",
+  bodyKey: "underben",
+  daglig: "Lægmuskel",
+  faglig: "Lægmuskel",
+  latin: "Musculus gastrocnemius",
+  forklaring: "Muskel på bagsiden af underbenet.",
+  syn: ["læg", "lægmuskel"]
+}, /* ---------- Organer ---------- */
+{
+  id: "a-hjerte",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "thorax",
+  daglig: "Hjerte",
+  faglig: "Hjerte",
+  latin: "Cor",
+  system: "Kredsløbssystemet",
+  forklaring: "Muskelpumpe der driver blodet rundt i kroppen.",
+  placering: "I brysthulen (thorax), lidt til venstre.",
+  funktion: "Pumper blod gennem det store og det lille kredsløb, så ilt og næring når ud til cellerne.",
+  indre: [{
+    n: "Højre forkammer",
+    l: "Atrium dextrum"
+  }, {
+    n: "Venstre forkammer",
+    l: "Atrium sinistrum"
+  }, {
+    n: "Højre hjertekammer",
+    l: "Ventriculus dexter"
+  }, {
+    n: "Venstre hjertekammer",
+    l: "Ventriculus sinister"
+  }, {
+    n: "Hjerteklapper",
+    l: "Valvae cordis (mitralis, tricuspidalis, aortae, pulmonalis)"
+  }],
+  begreber: ["Puls", "Blodtryk", "Systole/diastole"],
+  doc: "Regelmæssig puls, 78 pr. min.",
+  catLink: "diagnoser",
+  syn: ["hjertet"]
+}, {
+  id: "a-lunger",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "thorax",
+  daglig: "Lunger",
+  faglig: "Lunger",
+  latin: "Pulmones (sg. Pulmo)",
+  system: "Respirationssystemet",
+  forklaring: "To organer der optager ilt og afgiver kuldioxid.",
+  placering: "I brysthulen, på hver side af hjertet.",
+  funktion: "Ilt fra luften optages i blodet, og kuldioxid afgives — gasudveksling i alveolerne.",
+  indre: [{
+    n: "Lungelapper",
+    l: "Lobi pulmonis"
+  }, {
+    n: "Bronkier",
+    l: "Bronchi"
+  }, {
+    n: "Lungeblærer",
+    l: "Alveoli pulmonis"
+  }],
+  begreber: ["Respiration", "Saturation (SpO₂)", "Dyspnø"],
+  doc: "Rolig, ubesværet respiration 16 pr. min.",
+  catLink: "observationer",
+  syn: ["lunge"]
+}, {
+  id: "a-lever",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Lever",
+  faglig: "Lever",
+  latin: "Hepar",
+  system: "Fordøjelsessystemet",
+  forklaring: "Stort stofskifteorgan der bl.a. afgifter og danner galde.",
+  placering: "Øverst til højre i bughulen, under mellemgulvet.",
+  funktion: "Omsætter næringsstoffer, afgifter stoffer og medicin og danner galde til fordøjelsen.",
+  begreber: ["Stofskifte", "Galde", "Afgiftning"],
+  syn: ["leveren"]
+}, {
+  id: "a-nyrer",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Nyrer",
+  faglig: "Nyrer",
+  latin: "Ren (pl. Renes)",
+  system: "Urinvejssystemet",
+  forklaring: "To bønneformede organer der filtrerer blodet og danner urin.",
+  placering: "Bagtil i bughulen (retroperitonealt), en i hver side.",
+  funktion: "Filtrerer blodet, danner urin og regulerer væske-, elektrolyt-, syre-base-balance og blodtryk.",
+  indre: [{
+    n: "Nyrebark",
+    l: "Cortex renalis"
+  }, {
+    n: "Nyremarv",
+    l: "Medulla renalis"
+  }, {
+    n: "Nyrebækken",
+    l: "Pelvis renalis"
+  }, {
+    n: "Urinleder",
+    l: "Ureter"
+  }],
+  begreber: ["Diurese", "Væskebalance", "Elektrolytter"],
+  doc: "Diurese sv.t. indtag; klar, lys urin.",
+  catLink: "normalvaerdier",
+  syn: ["nyre"]
+}, {
+  id: "a-urinblaere",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Urinblære",
+  faglig: "Urinblære",
+  latin: "Vesica urinaria",
+  system: "Urinvejssystemet",
+  forklaring: "Muskelpose der opsamler urin fra nyrerne.",
+  placering: "Nederst i bækkenet.",
+  funktion: "Opsamler og tømmer urin (vandladning).",
+  begreber: ["Vandladning", "Residualurin", "Inkontinens"],
+  syn: ["blære"]
+}, {
+  id: "a-mavesaek",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Mavesæk",
+  faglig: "Mavesæk / ventrikel",
+  latin: "Ventriculus (Gaster)",
+  system: "Fordøjelsessystemet",
+  forklaring: "Muskelpose der blander og nedbryder maden.",
+  placering: "Øverst til venstre i bughulen.",
+  funktion: "Opbevarer maden, blander den med mavesyre og starter nedbrydningen af protein.",
+  begreber: ["Mavesyre", "Fordøjelse"],
+  syn: ["mave", "ventrikel"]
+}, {
+  id: "a-tyndtarm",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Tyndtarm",
+  faglig: "Tyndtarm",
+  latin: "Intestinum tenue",
+  system: "Fordøjelsessystemet",
+  forklaring: "Lang tarm hvor størstedelen af næringen optages.",
+  placering: "Midt i bughulen.",
+  funktion: "Nedbryder maden videre og optager næringsstoffer til blodet.",
+  indre: [{
+    n: "Tolvfingertarm",
+    l: "Duodenum"
+  }, {
+    n: "Jejunum",
+    l: "Jejunum"
+  }, {
+    n: "Ileum",
+    l: "Ileum"
+  }],
+  begreber: ["Absorption", "Peristaltik"],
+  syn: []
+}, {
+  id: "a-tyktarm",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Tyktarm",
+  faglig: "Tyktarm",
+  latin: "Intestinum crassum",
+  system: "Fordøjelsessystemet",
+  forklaring: "Tarm der opsuger vand og danner afføring.",
+  placering: "Rammer bughulen som en ramme om tyndtarmen.",
+  funktion: "Optager vand og salte og former afføringen.",
+  indre: [{
+    n: "Blindtarm",
+    l: "Caecum"
+  }, {
+    n: "Tyktarm",
+    l: "Colon"
+  }, {
+    n: "Endetarm",
+    l: "Rectum"
+  }],
+  begreber: ["Obstipation", "Afføring"],
+  catLink: "ernaering",
+  syn: ["colon"]
+}, {
+  id: "a-endetarm",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Endetarm",
+  faglig: "Endetarm / rectum",
+  latin: "Rectum",
+  system: "Fordøjelsessystemet",
+  forklaring: "Sidste del af tarmen før anus.",
+  placering: "Nederst i bækkenet.",
+  funktion: "Opbevarer afføring indtil tømning.",
+  syn: ["rectum", "endetarmen"]
+}, {
+  id: "a-pancreas",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Bugspytkirtel",
+  faglig: "Bugspytkirtel / pankreas",
+  latin: "Pancreas",
+  system: "Fordøjelses- og hormonsystemet",
+  forklaring: "Kirtel der danner fordøjelsesenzymer og hormoner.",
+  placering: "Bag mavesækken.",
+  funktion: "Danner fordøjelsesenzymer til tarmen og hormonerne insulin og glukagon, der styrer blodsukkeret.",
+  begreber: ["Insulin", "Blodsukker", "Enzymer"],
+  catLink: "diagnoser",
+  syn: ["pankreas"]
+}, {
+  id: "a-milt",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Milt",
+  faglig: "Milt",
+  latin: "Lien (Splen)",
+  system: "Lymfe- og immunsystemet",
+  forklaring: "Organ der renser blodet og indgår i immunforsvaret.",
+  placering: "Øverst til venstre i bughulen.",
+  funktion: "Nedbryder gamle blodlegemer og hjælper immunforsvaret.",
+  syn: ["milten"]
+}, {
+  id: "a-hjerne",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "hoved",
+  daglig: "Hjerne",
+  faglig: "Hjerne",
+  latin: "Encephalon",
+  system: "Nervesystemet",
+  forklaring: "Styrecentral for krop, sanser, tanker og bevægelse.",
+  placering: "Inde i kraniet.",
+  funktion: "Modtager sanseindtryk, styrer bevægelser og regulerer bevidsthed og vitale funktioner.",
+  indre: [{
+    n: "Storhjerne",
+    l: "Cerebrum"
+  }, {
+    n: "Lillehjerne",
+    l: "Cerebellum"
+  }, {
+    n: "Hjernestamme",
+    l: "Truncus encephali"
+  }],
+  begreber: ["Bevidsthedsniveau", "Neuron"],
+  syn: ["hjernen"]
+}, {
+  id: "a-thyroidea",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "hals",
+  daglig: "Skjoldbruskkirtel",
+  faglig: "Skjoldbruskkirtel",
+  latin: "Glandula thyroidea",
+  system: "Hormonsystemet",
+  forklaring: "Hormonkirtel på halsen.",
+  placering: "Foran på halsen, foran luftrøret.",
+  funktion: "Danner stofskiftehormoner, der regulerer kroppens forbrænding.",
+  begreber: ["Stofskifte", "Hormon"],
+  syn: ["thyroidea", "skjoldbrusk"]
+}, {
+  id: "a-galdeblaere",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "abdomen",
+  daglig: "Galdeblære",
+  faglig: "Galdeblære",
+  latin: "Vesica biliaris (Vesica fellea)",
+  system: "Fordøjelsessystemet",
+  forklaring: "Lille pose der opbevarer galde.",
+  placering: "Under leveren.",
+  funktion: "Opbevarer og afgiver galde til fordøjelsen af fedt.",
+  syn: ["galde"]
+}, {
+  id: "a-spiseroer",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "thorax",
+  daglig: "Spiserør",
+  faglig: "Spiserør / øsofagus",
+  latin: "Oesophagus",
+  system: "Fordøjelsessystemet",
+  forklaring: "Rør der fører maden fra svælg til mavesæk.",
+  placering: "Bag luftrøret gennem brysthulen.",
+  funktion: "Transporterer mad og væske til mavesækken ved peristaltik.",
+  begreber: ["Synkning", "Peristaltik"],
+  syn: ["øsofagus", "spiserøret"]
+}, {
+  id: "a-livmoder",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Livmoder",
+  faglig: "Livmoder",
+  latin: "Uterus",
+  system: "Reproduktionssystemet",
+  forklaring: "Kvindeligt kønsorgan hvor fosteret udvikles.",
+  placering: "I bækkenet.",
+  funktion: "Rummer og ernærer et foster under graviditet.",
+  syn: ["uterus"]
+}, {
+  id: "a-aeggestokke",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Æggestokke",
+  faglig: "Æggestokke / ovarier",
+  latin: "Ovarium (pl. Ovaria)",
+  system: "Reproduktionssystemet",
+  forklaring: "Kvindelige kønskirtler der danner æg og hormoner.",
+  placering: "På hver side af livmoderen.",
+  funktion: "Danner æg og kønshormoner (østrogen/progesteron).",
+  syn: ["ovarier"]
+}, {
+  id: "a-testikler",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Testikler",
+  faglig: "Testikler",
+  latin: "Testis (pl. Testes)",
+  system: "Reproduktionssystemet",
+  forklaring: "Mandlige kønskirtler der danner sæd og hormoner.",
+  placering: "I pungen.",
+  funktion: "Danner sædceller og hormonet testosteron.",
+  syn: ["testis"]
+}, {
+  id: "a-prostata",
+  sub: "organer",
+  type: "organ",
+  bodyKey: "baekken",
+  daglig: "Blærehalskirtel",
+  faglig: "Blærehalskirtel / prostata",
+  latin: "Prostata",
+  system: "Reproduktionssystemet",
+  forklaring: "Kirtel omkring urinrøret hos mænd.",
+  placering: "Under urinblæren.",
+  funktion: "Danner en del af sædvæsken.",
+  syn: ["prostata"]
+}, /* ---------- Organsystemer ---------- */
+{
+  id: "s-kredsloeb",
+  sub: "systemer",
+  type: "system",
+  daglig: "Kredsløbssystemet",
+  faglig: "Kredsløbssystemet",
+  latin: "Systema cardiovasculare",
+  forklaring: "Transporterer blod med ilt, næring og affaldsstoffer.",
+  funktion: "Hjertet pumper blodet gennem arterier, kapillærer og vener, så cellerne får ilt og næring, og affaldsstoffer føres væk.",
+  organer: ["Hjerte (Cor)", "Blodkar (arterier, vener, kapillærer)", "Blod"],
+  begreber: ["Puls", "Blodtryk", "Iltning"],
+  syn: ["hjerte-kar", "cirkulation"]
+}, {
+  id: "s-respiration",
+  sub: "systemer",
+  type: "system",
+  daglig: "Respirationssystemet",
+  faglig: "Respirationssystemet",
+  latin: "Systema respiratorium",
+  forklaring: "Optager ilt og afgiver kuldioxid.",
+  funktion: "Luft føres via næse, svælg, strubehoved, luftrør og bronkier til alveolerne, hvor ilt optages og kuldioxid afgives.",
+  organer: ["Næse og svælg", "Strubehoved (Larynx)", "Luftrør (Trachea)", "Bronkier", "Lunger (Pulmones)"],
+  begreber: ["Respirationsfrekvens", "Saturation", "Dyspnø"],
+  syn: ["vejrtrækning", "åndedræt"]
+}, {
+  id: "s-fordoejelse",
+  sub: "systemer",
+  type: "system",
+  daglig: "Fordøjelsessystemet",
+  faglig: "Fordøjelsessystemet",
+  latin: "Systema digestorium",
+  forklaring: "Nedbryder mad og optager næring.",
+  funktion: "Maden nedbrydes fra mund til tarm, næringsstoffer optages, og resten bliver til afføring.",
+  organer: ["Mund og spiserør", "Mavesæk (Ventriculus)", "Tyndtarm", "Tyktarm", "Lever, galdeblære, bugspytkirtel"],
+  begreber: ["Peristaltik", "Absorption", "Obstipation"],
+  syn: ["mave-tarm", "gastrointestinal"]
+}, {
+  id: "s-urinveje",
+  sub: "systemer",
+  type: "system",
+  daglig: "Urinvejssystemet",
+  faglig: "Urinvejssystemet",
+  latin: "Systema urinarium",
+  forklaring: "Filtrerer blodet og udskiller urin.",
+  funktion: "Nyrerne filtrerer blodet og danner urin, som via urinledere samles i blæren og tømmes gennem urinrøret.",
+  organer: ["Nyrer (Renes)", "Urinledere (Ureteres)", "Urinblære (Vesica urinaria)", "Urinrør (Urethra)"],
+  begreber: ["Diurese", "Væskebalance", "Inkontinens"],
+  syn: ["urinveje"]
+}, {
+  id: "s-nerve",
+  sub: "systemer",
+  type: "system",
+  daglig: "Nervesystemet",
+  faglig: "Nervesystemet",
+  latin: "Systema nervosum",
+  forklaring: "Styrer og koordinerer kroppens funktioner.",
+  funktion: "Modtager, bearbejder og sender signaler, der styrer bevægelse, sanser og bevidsthed.",
+  organer: ["Hjerne (Encephalon)", "Rygmarv (Medulla spinalis)", "Nerver (Nervi)"],
+  begreber: ["Centralnervesystem (CNS)", "Perifert nervesystem (PNS)", "Refleks"],
+  syn: ["nerver"]
+}, {
+  id: "s-endokrin",
+  sub: "systemer",
+  type: "system",
+  daglig: "Hormonsystemet",
+  faglig: "Det endokrine system",
+  latin: "Systema endocrinum",
+  forklaring: "Regulerer kroppen via hormoner.",
+  funktion: "Kirtler udskiller hormoner til blodet, der styrer bl.a. blodsukker, stofskifte og væskebalance.",
+  organer: ["Skjoldbruskkirtel", "Bugspytkirtel", "Binyrer", "Hypofyse"],
+  begreber: ["Hormon", "Insulin", "Stofskifte"],
+  syn: ["endokrine system", "hormoner"]
+}, {
+  id: "s-bevaege",
+  sub: "systemer",
+  type: "system",
+  daglig: "Bevægeapparatet",
+  faglig: "Bevægeapparatet",
+  latin: "Systema musculoskeletale",
+  forklaring: "Giver støtte, beskyttelse og bevægelse.",
+  funktion: "Knogler danner skelettet, led gør bevægelse mulig, og muskler trækker sig sammen og bevæger kroppen.",
+  organer: ["Knogler (Ossa)", "Led (Articulationes)", "Muskler (Musculi)", "Sener"],
+  begreber: ["Fleksion", "Ekstension", "Mobilitet"],
+  syn: ["muskler og knogler", "skelet"]
+}, {
+  id: "s-hud",
+  sub: "systemer",
+  type: "system",
+  daglig: "Hudsystemet",
+  faglig: "Huden",
+  latin: "Integumentum commune",
+  forklaring: "Beskytter kroppen og regulerer temperatur.",
+  funktion: "Huden er en barriere mod smitte, regulerer temperatur og indeholder sanseceller.",
+  organer: ["Overhud (Epidermis)", "Læderhud (Dermis)", "Underhud (Subcutis)"],
+  begreber: ["Tryksår", "Hudpleje", "Sansning"],
+  catLink: "saarpleje",
+  syn: ["hud"]
+}, {
+  id: "s-lymfe",
+  sub: "systemer",
+  type: "system",
+  daglig: "Lymfe- og immunsystemet",
+  faglig: "Lymfe- og immunsystemet",
+  latin: "Systema lymphoideum",
+  forklaring: "Forsvarer kroppen mod infektion og styrer væskebalance.",
+  funktion: "Lymfekar og lymfeknuder transporterer lymfevæske og hjælper immunforsvaret med at bekæmpe smitte.",
+  organer: ["Lymfeknuder", "Milt (Lien)", "Thymus", "Lymfekar"],
+  begreber: ["Immunforsvar", "Infektion", "Lymfe"],
+  catLink: "mikrobiologi",
+  syn: ["immunforsvar", "lymfe"]
+}, {
+  id: "s-repro",
+  sub: "systemer",
+  type: "system",
+  daglig: "Reproduktionssystemet",
+  faglig: "Forplantningssystemet",
+  latin: "Systema genitale",
+  forklaring: "Står for forplantning.",
+  funktion: "Danner kønsceller og hormoner og muliggør forplantning.",
+  organer: ["Kvinde: livmoder, æggestokke", "Mand: testikler, prostata"],
+  begreber: ["Kønshormoner", "Forplantning"],
+  syn: ["kønsorganer", "forplantning"]
+}, /* ---------- Indre anatomi (dybere strukturer) ---------- */
+{
+  id: "i-cortex",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Nyrebark",
+  faglig: "Nyrebark",
+  latin: "Cortex renalis",
+  forklaring: "Nyrens yderste lag, hvor blodet filtreres.",
+  placering: "Yderst i nyren.",
+  syn: ["cortex"]
+}, {
+  id: "i-medulla",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Nyremarv",
+  faglig: "Nyremarv",
+  latin: "Medulla renalis",
+  forklaring: "Nyrens indre del med samlerør til urin.",
+  placering: "Inderst i nyren.",
+  syn: ["medulla"]
+}, {
+  id: "i-pelvisrenalis",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Nyrebækken",
+  faglig: "Nyrebækken",
+  latin: "Pelvis renalis",
+  forklaring: "Tragtformet rum hvor urinen samles før urinlederen.",
+  placering: "Centralt i nyren.",
+  syn: []
+}, {
+  id: "i-ureter",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Urinleder",
+  faglig: "Urinleder",
+  latin: "Ureter",
+  forklaring: "Rør der leder urin fra nyre til blære.",
+  placering: "Fra nyrebækken til urinblære.",
+  syn: ["ureter"]
+}, {
+  id: "i-atrium",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Forkamre",
+  faglig: "Hjertets forkamre",
+  latin: "Atrium dextrum et sinistrum",
+  forklaring: "Hjertets to øverste kamre, der modtager blod.",
+  placering: "Øverst i hjertet.",
+  syn: ["atrier", "forkammer"]
+}, {
+  id: "i-ventrikel",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Hjertekamre",
+  faglig: "Hjertets hjertekamre",
+  latin: "Ventriculus dexter et sinister",
+  forklaring: "Hjertets to nederste kamre, der pumper blod ud.",
+  placering: "Nederst i hjertet.",
+  syn: ["ventrikler", "hjertekammer"]
+}, {
+  id: "i-alveoler",
+  sub: "indre",
+  type: "struktur",
+  daglig: "Lungeblærer",
+  faglig: "Alveoler",
+  latin: "Alveoli pulmonis",
+  forklaring: "Små blærer i lungerne hvor gasudveksling sker.",
+  placering: "Yderst i lungerne.",
+  syn: ["alveoler"]
+}, /* ---------- Anatomiske retningsbegreber ---------- */
+{
+  id: "d-anterior",
+  sub: "retning",
+  type: "retning",
+  daglig: "Anterior",
+  faglig: "Foran / forreste",
+  latin: "Anterior",
+  forklaring: "Foran på kroppen.",
+  eksempel: "Knæskallen sidder anteriort på knæet.",
+  syn: ["foran", "forreste", "ventral"]
+}, {
+  id: "d-posterior",
+  sub: "retning",
+  type: "retning",
+  daglig: "Posterior",
+  faglig: "Bagest / bagved",
+  latin: "Posterior",
+  forklaring: "Bagpå kroppen.",
+  eksempel: "Skulderbladet ligger posteriort.",
+  syn: ["bagved", "bagest", "dorsal"]
+}, {
+  id: "d-superior",
+  sub: "retning",
+  type: "retning",
+  daglig: "Superior",
+  faglig: "Opad / øverst",
+  latin: "Superior",
+  forklaring: "Nærmere hovedet / opadtil.",
+  eksempel: "Hovedet er superiort for halsen.",
+  syn: ["opad", "øverst", "over"]
+}, {
+  id: "d-inferior",
+  sub: "retning",
+  type: "retning",
+  daglig: "Inferior",
+  faglig: "Nedad / nederst",
+  latin: "Inferior",
+  forklaring: "Nærmere fødderne / nedadtil.",
+  eksempel: "Fødderne er inferiort for knæene.",
+  syn: ["nedad", "nederst", "under"]
+}, {
+  id: "d-medial",
+  sub: "retning",
+  type: "retning",
+  daglig: "Medial",
+  faglig: "Mod midtlinjen",
+  latin: "Medialis",
+  forklaring: "Tættere på kroppens midtlinje.",
+  eksempel: "Storetåen sidder medialt på foden.",
+  syn: ["mod midten", "indad"]
+}, {
+  id: "d-lateral",
+  sub: "retning",
+  type: "retning",
+  daglig: "Lateral",
+  faglig: "Væk fra midtlinjen",
+  latin: "Lateralis",
+  forklaring: "Længere væk fra kroppens midtlinje.",
+  eksempel: "Lilletåen sidder lateralt på foden.",
+  syn: ["udad", "til siden"]
+}, {
+  id: "d-proximal",
+  sub: "retning",
+  type: "retning",
+  daglig: "Proksimal",
+  faglig: "Nærmere kroppens centrum",
+  latin: "Proximalis",
+  forklaring: "Tættere på kroppen / udspringet af en lem.",
+  eksempel: "Albuen ligger proksimalt for håndleddet.",
+  syn: ["nærmere kroppen"]
+}, {
+  id: "d-distal",
+  sub: "retning",
+  type: "retning",
+  daglig: "Distal",
+  faglig: "Længere væk fra kroppens centrum",
+  latin: "Distalis",
+  forklaring: "Længere væk fra kroppen / yderst på en lem.",
+  eksempel: "Håndleddet ligger distalt for albuen.",
+  syn: ["yderst", "længere ude"]
+}, {
+  id: "d-dorsal",
+  sub: "retning",
+  type: "retning",
+  daglig: "Dorsal",
+  faglig: "På rygsiden / bagside",
+  latin: "Dorsalis",
+  forklaring: "På bagsiden (fx håndryggen).",
+  eksempel: "Håndryggen kaldes dorsalsiden.",
+  syn: ["bagside", "rygside"]
+}, {
+  id: "d-ventral",
+  sub: "retning",
+  type: "retning",
+  daglig: "Ventral",
+  faglig: "På bugsiden / forside",
+  latin: "Ventralis",
+  forklaring: "På forsiden (bugsiden).",
+  eksempel: "Maven er på ventralsiden.",
+  syn: ["forside", "bugside"]
+}];
+const anatById = id => ANAT.find(a => a.id === id);
+const anatText = a => (a.daglig + " " + (a.faglig || "") + " " + (a.latin || "") + " " + (a.forklaring || "") + " " + (a.system || "") + " " + (a.syn || []).join(" ") + " " + (a.indre || []).map(x => x.n + " " + x.l).join(" ")).toLowerCase();
+function anatSearch(q) {
+  const s = (q || "").trim().toLowerCase();
+  if (!s) return [];
+  return ANAT.filter(a => anatText(a).indexOf(s) >= 0);
+}
+function anatBySub(sub) {
+  if (sub === "fysiologi") return ANAT.filter(a => a.funktion);
+  if (!sub || sub === "alle") return ANAT.slice();
+  return ANAT.filter(a => a.sub === sub);
+}
+function AnatCard({
+  a,
+  onOpen
+}) {
+  const sub2 = a.latin && a.latin !== a.daglig ? a.latin : a.faglig && a.faglig !== a.daglig ? a.faglig : "";
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: () => onOpen(a.id),
+    "aria-label": a.daglig,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "12px 14px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      boxShadow: "0 1px 2px rgba(21,33,43,0.04)",
+      minHeight: 54
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, a.daglig), sub2 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#0B9488",
+      fontStyle: "italic",
+      marginTop: 1,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    }
+  }, sub2) : null), a.flag ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 700,
+      color: "#8A5A0B",
+      background: tint("#B7791F", "18"),
+      padding: "2px 7px",
+      borderRadius: 7,
+      flexShrink: 0
+    }
+  }, "Til kontrol") : null, /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 17,
+    color: C.inkFaint,
+    style: {
+      flexShrink: 0
+    }
+  }));
+}
+function AnatDetail({
+  a,
+  onCat,
+  onTest
+}) {
+  const badge = ANAT_TYPE_LABEL[a.type] || "";
+  const isDir = a.sub === "retning";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flexWrap: "wrap",
+      marginBottom: 4
+    }
+  }, badge ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "#0B9488",
+      background: tint("#0FAE9E", "14"),
+      padding: "3px 9px",
+      borderRadius: 8
+    }
+  }, badge) : null, a.flag ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: "#8A5A0B",
+      background: tint("#B7791F", "18"),
+      padding: "3px 9px",
+      borderRadius: 8
+    }
+  }, "Til faglig kontrol") : null), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      fontWeight: 800,
+      color: C.ink,
+      letterSpacing: -0.4
+    }
+  }, a.daglig), a.faglig && a.faglig !== a.daglig ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.inkSoft,
+      marginTop: 2
+    }
+  }, a.faglig) : null, a.latin ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "inline-block",
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: "#0B9488",
+      fontStyle: "italic",
+      background: tint("#0FAE9E", "0E"),
+      border: `1px solid ${tint("#0FAE9E", "26")}`,
+      borderRadius: 9,
+      padding: "4px 10px",
+      marginTop: 8
+    }
+  }, a.latin) : null, a.system ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkFaint,
+      marginTop: 7
+    }
+  }, a.system) : null), a.forklaring ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14.5,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, a.forklaring) : null, isDir ? a.eksempel ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: tint(C.primary, "0A"),
+      border: `1px solid ${tint(C.primary, "22")}`,
+      borderRadius: 12,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      fontWeight: 700,
+      color: C.inkSoft,
+      marginBottom: 3
+    }
+  }, "Eksempel"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, a.eksempel)) : null : /*#__PURE__*/React.createElement(React.Fragment, null, a.placering ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Placering"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, a.placering)) : null, a.funktion ? /*#__PURE__*/React.createElement(Acc, {
+    title: a.type === "system" ? "Sådan fungerer det" : "Funktion (fysiologi)"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, a.funktion)) : null, a.indre && a.indre.length ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Indre anatomi"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, a.indre.map((x, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: 10,
+      borderTop: i > 0 ? `1px solid ${C.line}` : "none",
+      paddingTop: i > 0 ? 8 : 0
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: C.ink
+    }
+  }, x.n), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: "#0B9488",
+      fontStyle: "italic",
+      textAlign: "right"
+    }
+  }, x.l))))) : null, a.organer && a.organer.length ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Organer / dele i systemet"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: a.organer,
+    color: "#0FAE9E"
+  })) : null, a.begreber && a.begreber.length ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Faglige begreber"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: a.begreber,
+    color: C.primary
+  })) : null, a.doc ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Dokumentationseksempel"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: "#1F5136",
+      background: tint("#0FAE9E", "0E"),
+      borderRadius: 10,
+      padding: "10px 12px",
+      lineHeight: 1.5
+    }
+  }, a.doc)) : null), /*#__PURE__*/React.createElement(Acc, {
+    title: "Relateret viden"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, a.catLink ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => onCat(a.catLink),
+    style: {
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 12,
+      padding: "12px 14px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 700,
+      color: C.ink,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "\xC5bn: ", catTitleById(a.catLink)), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: C.inkFaint
+  })) : null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => onTest("anatomi"),
+    style: {
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 12,
+      padding: "12px 14px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 700,
+      color: C.ink,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Test din viden om anatomi"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: C.inkFaint
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint(C.primary, "0A"),
+      border: `1px solid ${tint(C.primary, "22")}`,
+      borderRadius: 12,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: C.primary,
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, "Klario er et l\xE6rings- og opslagsv\xE6rkt\xF8j \u2014 ikke en medicinsk l\xE6rebog.")));
+}
+
+/* ===== FARMAKOLOGI — Forstå hvordan lægemidler virker i kroppen =========
+ *  LÆRINGSområde for SSA-elever — IKKE behandlings- eller doseringsråd.
+ *  Indholdet er generel, lærebogsbaseret farmakologi. LægemiddelSPECIFIKKE
+ *  oplysninger (doser, interaktioner, kontraindikationer, knusning/deling)
+ *  opfindes ALDRIG her — de skal slås op i en aktuel, godkendt kilde
+ *  (pro.medicin.dk / min.medicin.dk) og afhænger af ordination, delegation
+ *  og lokale instrukser. Data er struktureret, så en fremtidig
+ *  "Hvordan virker denne medicin?"-funktion kan bygges på verificerede data.
+ * ===================================================================== */
+const FARMA_VERIFY = "Oplysningen er ikke verificeret — kontrollér i officiel lægemiddelkilde (pro.medicin.dk) og følg ordination og lokale instrukser.";
+const FARMA_SRC = "https://pro.medicin.dk/";
+const FARMA_SECTIONS = [{
+  id: "vej",
+  title: "Medicinens vej gennem kroppen",
+  sub: "Følg medicinen trin for trin"
+}, {
+  id: "adme",
+  title: "Farmakokinetik (ADME)",
+  sub: "Hvad kroppen gør ved medicinen"
+}, {
+  id: "dynamik",
+  title: "Farmakodynamik",
+  sub: "Hvad medicinen gør ved kroppen"
+}, {
+  id: "admin",
+  title: "Administrationsveje",
+  sub: "Hvor og hvordan medicin gives"
+}, {
+  id: "former",
+  title: "Lægemiddelformer",
+  sub: "Tablet, kapsel, plaster, dråber m.m."
+}, {
+  id: "tid",
+  title: "Virkning og virkningstid",
+  sub: "Start, maks, varighed, T½, steady state"
+}, {
+  id: "halveringstid",
+  title: "Medicinens halveringstid (T½)",
+  sub: "Forstå T½ + interaktiv beregner"
+}, {
+  id: "bivirk",
+  title: "Bivirkninger og interaktioner",
+  sub: "Når medicin gør andet end ønsket"
+}, {
+  id: "lever",
+  title: "Lever og medicin",
+  sub: "Metabolisme og first-pass"
+}, {
+  id: "nyrer",
+  title: "Nyrer og medicin",
+  sub: "Udskillelse og elimination"
+}, {
+  id: "aeldre",
+  title: "Medicin hos ældre",
+  sub: "Hvorfor ældre reagerer anderledes"
+}, {
+  id: "sikkerhed",
+  title: "Medicinsikkerhed",
+  sub: "Sikker medicinhåndtering"
+}, {
+  id: "obs",
+  title: "Observationer som SSA",
+  sub: "Før · efter · observér · reagér · dokumentér"
+}, {
+  id: "furosemid",
+  title: "Læringseksempel: Furosemid",
+  sub: "Følg et lægemiddel fra tablet til virkning"
+}, {
+  id: "begreber",
+  title: "Faglige begreber",
+  sub: "Søgbar farmakologisk ordbog"
+}, {
+  id: "test",
+  title: "Test din viden",
+  sub: "Quiz om farmakologi"
+}];
+
+/* 1 — Medicinens vej gennem kroppen (tablet) */
+const FARMA_JOURNEY = [{
+  t: "Mund",
+  q: "Tabletten synkes med vand.",
+  m: "Nogle former (fx smeltetabletter eller sublingvale tabletter) begynder allerede i munden, men en almindelig tablet skal videre for at blive optaget."
+}, {
+  t: "Spiserør",
+  q: "Tabletten føres ned til mavesækken.",
+  m: "Rigelig vand og oprejst stilling hjælper tabletten ned og mindsker risikoen for, at den sætter sig fast."
+}, {
+  t: "Mavesæk",
+  q: "Tabletten begynder at gå i opløsning.",
+  m: "Mavesyren og bevægelserne opløser mange tabletter. Enterotabletter er lavet til IKKE at gå i stykker her, men først i tarmen."
+}, {
+  t: "Tarm",
+  q: "Det meste optages gennem tarmvæggen.",
+  m: "Tyndtarmens store overflade er hovedstedet for optagelse (absorption) af de fleste tabletter."
+}, {
+  t: "Absorption",
+  q: "Lægemidlet passerer over i blodet.",
+  m: "Hvor meget der optages og hvor hurtigt, afhænger bl.a. af lægemiddelform, mad i maven og lægemidlets egenskaber."
+}, {
+  t: "Portåre → lever (first-pass)",
+  q: "Blodet fra tarmen løber først gennem leveren.",
+  m: "Leveren kan omdanne (metabolisere) en del af lægemidlet, før det når det store kredsløb. Det kaldes first-pass metabolisme og betyder, at mindre kan nå ud i kroppen."
+}, {
+  t: "Blodbane",
+  q: "Lægemidlet fordeles rundt i kroppen.",
+  m: "Med blodet føres lægemidlet ud til væv og organer (distribution). En del kan være bundet til proteiner i blodet."
+}, {
+  t: "Målorgan / receptor",
+  q: "Lægemidlet virker der, hvor det binder.",
+  m: "Effekten sker, hvor lægemidlet binder til sit mål — ofte en receptor på eller i cellerne i et bestemt organ."
+}, {
+  t: "Metabolisme",
+  q: "Lægemidlet omdannes — især i leveren.",
+  m: "Leverens enzymer omdanner lægemidlet til stoffer, der lettere kan udskilles. Nogle omdannes til inaktive stoffer, andre til aktive."
+}, {
+  t: "Udskillelse",
+  q: "Lægemidlet forlader kroppen — især via nyrerne.",
+  m: "Nyrerne udskiller mange lægemidler og deres nedbrydningsprodukter med urinen. Andre veje kan være galde/afføring, udånding eller sved."
+}];
+
+/* 2 — ADME */
+const FARMA_ADME = [{
+  k: "A",
+  title: "Absorption",
+  q: "Hvordan lægemidlet kommer ind i blodbanen.",
+  m: "Fra fx tarmen optages lægemidlet over i blodet. Administrationsvej og lægemiddelform har stor betydning for, hvor meget og hvor hurtigt der optages. IV gives direkte i blodet og skal ikke absorberes."
+}, {
+  k: "D",
+  title: "Distribution",
+  q: "Hvordan lægemidlet fordeles rundt i kroppen.",
+  m: "Med blodet føres lægemidlet ud til væv og organer. Kropssammensætning (væske og fedt) og proteinbinding påvirker fordelingen — det er bl.a. derfor børn og ældre kan reagere anderledes."
+}, {
+  k: "M",
+  title: "Metabolisme",
+  q: "Hvordan lægemidlet omdannes/nedbrydes.",
+  m: "Sker især i LEVEREN ved hjælp af enzymer. Lægemidlet omdannes typisk til stoffer, der er lettere at udskille. Nedsat leverfunktion kan påvirke, hvordan visse lægemidler omsættes."
+}, {
+  k: "E",
+  title: "Excretion (udskillelse)",
+  q: "Hvordan lægemidlet forlader kroppen.",
+  m: "Sker især via NYRERNE med urinen. Nedsat nyrefunktion kan betyde, at visse lægemidler udskilles langsommere og kan ophobes. Andre veje: galde/afføring, udånding, sved."
+}];
+
+/* 3 — Farmakodynamik */
+const FARMA_DYN = [{
+  term: "Receptor",
+  q: "Et sted på eller i en celle, hvor et lægemiddel kan binde og påvirke cellens aktivitet.",
+  m: "Når et lægemiddel binder til sin receptor, kan cellens funktion øges eller hæmmes. Receptorer er ofte specifikke, så et lægemiddel virker mest bestemte steder."
+}, {
+  term: "Agonist",
+  q: "Et stof, der binder til en receptor og udløser en virkning.",
+  m: "Agonisten aktiverer receptoren — lidt som at 'tænde' for cellens respons."
+}, {
+  term: "Antagonist",
+  q: "Et stof, der binder til en receptor og blokerer virkningen.",
+  m: "Antagonisten hindrer, at receptoren aktiveres — den 'blokerer' responset."
+}, {
+  term: "Ønsket virkning",
+  q: "Den effekt, lægemidlet er givet for at opnå.",
+  m: "Kaldes også den terapeutiske virkning. Det er målet med behandlingen."
+}, {
+  term: "Bivirkning",
+  q: "En uønsket virkning ud over den ønskede.",
+  m: "Skyldes ofte, at lægemidlet også påvirker andre steder end målet. Nogle bivirkninger er milde, andre alvorlige."
+}, {
+  term: "Dosis-respons",
+  q: "Sammenhængen mellem dosis og effekt.",
+  m: "Op til et vist punkt giver højere dosis ofte større effekt — men også større risiko for bivirkninger. Konkrete doser afhænger altid af ordination."
+}, {
+  term: "Terapeutisk interval",
+  q: "Området mellem for lav (uden effekt) og for høj (giftig) koncentration.",
+  m: "Lægemidlet virker bedst inden for dette interval. Nogle lægemidler har et smalt interval og kræver ekstra opmærksomhed. Konkrete grænser slås op i godkendt kilde."
+}];
+
+/* 4 — Administrationsveje */
+const FARMA_ROUTES = [{
+  id: "oral",
+  name: "Oral",
+  full: "Gennem munden (peroralt)",
+  hvor: "Synkes og optages i mave-tarm-kanalen.",
+  hvordan: "Optages typisk i tarmen og passerer leveren (first-pass), før det når blodet.",
+  kar: "Nem og almindelig vej. Virkning kommer typisk gradvist. Mad kan påvirke optagelsen.",
+  obs: ["Kan borgeren synke sikkert?", "Er tabletten taget?", "Virkning og evt. mavegener"],
+  sik: ["Følg ordination og lokale instrukser", "Ved synkebesvær: kontakt ansvarlig — knus/del aldrig uden verificeret info om det konkrete præparat"]
+}, {
+  id: "sublingual",
+  name: "Sublingual",
+  full: "Under tungen",
+  hvor: "Lægges under tungen.",
+  hvordan: "Optages gennem slimhinden direkte til blodet og uden om first-pass i leveren.",
+  kar: "Kan give hurtig virkning. Bruges til udvalgte lægemidler.",
+  obs: ["At tabletten ikke synkes", "Hurtig virkning/effekt", "Ubehag i munden"],
+  sik: ["Følg ordination", "Borger bør ikke spise/drikke, mens den opløses"]
+}, {
+  id: "buccal",
+  name: "Buccal",
+  full: "Mellem kind og tandkød",
+  hvor: "Placeres i kindslimhinden.",
+  hvordan: "Optages gennem mundslimhinden til blodet.",
+  kar: "Ligner sublingual; optages via mundhulen.",
+  obs: ["Placering fastholdes", "Virkning", "Lokal irritation"],
+  sik: ["Følg ordination og lokale instrukser"]
+}, {
+  id: "inhalation",
+  name: "Inhalation",
+  full: "Gennem luftvejene",
+  hvor: "Indåndes til lunger/luftveje.",
+  hvordan: "Optages i luftvejene — virker ofte lokalt i lungerne.",
+  kar: "Hurtig lokal effekt i luftvejene. Korrekt teknik er vigtig for effekten.",
+  obs: ["Inhalationsteknik", "Respiration og effekt", "Mundpleje ved visse inhalationssteroider"],
+  sik: ["Følg ordination", "Oplæring i korrekt device/teknik"]
+}, {
+  id: "rektal",
+  name: "Rektal",
+  full: "Gennem endetarmen",
+  hvor: "Føres op i endetarmen (fx stikpille).",
+  hvordan: "Optages gennem slimhinden i endetarmen.",
+  kar: "Kan bruges ved kvalme/opkast eller synkebesvær.",
+  obs: ["At det er givet", "Virkning", "Lokal irritation"],
+  sik: ["Følg ordination og lokale instrukser", "Respekter blufærdighed og samtykke"]
+}, {
+  id: "kutan",
+  name: "Kutan",
+  full: "På huden",
+  hvor: "Påføres huden (creme/salve).",
+  hvordan: "Virker oftest lokalt på huden.",
+  kar: "Lokal behandling; ringe optag til resten af kroppen for de fleste.",
+  obs: ["Hudens tilstand", "Lokal effekt/irritation"],
+  sik: ["Følg ordination", "Brug evt. handsker jf. instruks"]
+}, {
+  id: "transdermal",
+  name: "Transdermal",
+  full: "Gennem huden (plaster)",
+  hvor: "Plaster klæbes på huden.",
+  hvordan: "Lægemidlet optages langsomt gennem huden til blodet.",
+  kar: "Jævn afgivelse over tid. Skift og placering følger anvisning.",
+  obs: ["At gammelt plaster er fjernet", "Hudreaktion", "At nyt sidder korrekt"],
+  sik: ["Følg ordination og produktanvisning", "Notér skiftested/-tidspunkt jf. instruks"]
+}, {
+  id: "sc",
+  name: "Subkutan (SC)",
+  full: "Under huden",
+  hvor: "I underhudens fedtlag.",
+  hvordan: "Optages gradvist fra underhuden til blodet.",
+  kar: "Langsommere, jævn optagelse.",
+  obs: ["Injektionssted (rødme, hævelse)", "Virkning"],
+  sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke injektionsteknik"]
+}, {
+  id: "im",
+  name: "Intramuskulær (IM)",
+  full: "I en muskel",
+  hvor: "I muskelvæv.",
+  hvordan: "Optages fra musklen til blodet.",
+  kar: "Kan give hurtigere optag end SC pga. god blodforsyning.",
+  obs: ["Injektionssted", "Virkning og evt. reaktion"],
+  sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke injektionsteknik"]
+}, {
+  id: "iv",
+  name: "Intravenøs (IV)",
+  full: "Direkte i blodbanen",
+  hvor: "I en vene.",
+  hvordan: "Gives direkte i blodet — skal ikke absorberes først.",
+  kar: "Hurtig og fuld biotilgængelighed. Kræver særlig overvågning.",
+  obs: ["Virkning kommer hurtigt", "Indstiksstedet", "Almen tilstand"],
+  sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke administrationsteknik"]
+}];
+
+/* 5 — Lægemiddelformer */
+const FARMA_FORMS = [{
+  id: "tablet",
+  name: "Tablet",
+  hvad: "Fast form med aktivt stof + hjælpestoffer.",
+  brug: "Synkes typisk med vand.",
+  frig: "Går i opløsning i mave/tarm og optages derfra.",
+  vig: "Om en konkret tablet må deles/knuses skal ALTID kontrolleres for det enkelte præparat."
+}, {
+  id: "depot",
+  name: "Depottablet",
+  hvad: "Tablet der frigiver stoffet langsomt.",
+  brug: "Synkes hel.",
+  frig: "Afgiver lægemidlet gradvist over længere tid.",
+  vig: "Må som udgangspunkt IKKE knuses/deles — det kan give for hurtig frigivelse. Kontrollér altid det konkrete præparat."
+}, {
+  id: "entero",
+  name: "Enterotablet",
+  hvad: "Tablet med syrefast overtræk.",
+  brug: "Synkes hel.",
+  frig: "Går først i opløsning i tarmen, ikke i mavesækken.",
+  vig: "Overtrækket beskytter stoffet eller mavesækken — knus/del ikke uden verificeret info."
+}, {
+  id: "kapsel",
+  name: "Kapsel",
+  hvad: "Skal med pulver/granulat eller væske.",
+  brug: "Synkes hel.",
+  frig: "Skallen opløses, og indholdet frigives.",
+  vig: "Åbning af kapsler skal kontrolleres for det konkrete præparat."
+}, {
+  id: "mikstur",
+  name: "Mikstur",
+  hvad: "Flydende lægemiddel til at drikke.",
+  brug: "Doseres med målebæger/-sprøjte.",
+  frig: "Optages fra mave-tarm.",
+  vig: "Omrystes evt. før brug; mål nøjagtigt jf. ordination."
+}, {
+  id: "draaber",
+  name: "Dråber",
+  hvad: "Flydende form doseret i dråber.",
+  brug: "Gives fx oralt.",
+  frig: "Optages fra mave-tarm.",
+  vig: "Antal dråber følger ordination; forveksl ikke øjen-/øredråber med orale dråber."
+}, {
+  id: "bruse",
+  name: "Brusetablet",
+  hvad: "Tablet der opløses i vand.",
+  brug: "Opløses helt, drikkes.",
+  frig: "Optages som opløst væske.",
+  vig: "Vent til den er helt opløst; vær opmærksom på indhold (fx natrium) jf. kilde."
+}, {
+  id: "smelte",
+  name: "Smeltetablet",
+  hvad: "Tablet der smelter i munden.",
+  brug: "Lægges på tungen.",
+  frig: "Kan begynde optag i munden.",
+  vig: "Skal ikke nødvendigvis synkes med vand — følg produktanvisning."
+}, {
+  id: "inhal",
+  name: "Inhalationsmedicin",
+  hvad: "Lægemiddel til indånding.",
+  brug: "Bruges med inhalator/spacer.",
+  frig: "Virker i luftvejene.",
+  vig: "Korrekt teknik er afgørende for effekten."
+}, {
+  id: "supp",
+  name: "Suppositorium (stikpille)",
+  hvad: "Fast form til endetarmen.",
+  brug: "Føres op i endetarmen.",
+  frig: "Smelter og optages via slimhinden.",
+  vig: "Følg lokale instrukser; respekter blufærdighed."
+}, {
+  id: "creme",
+  name: "Creme",
+  hvad: "Blød, vandholdig form til huden.",
+  brug: "Smøres tyndt på.",
+  frig: "Virker oftest lokalt.",
+  vig: "Følg ordination; trækker hurtigt ind."
+}, {
+  id: "salve",
+  name: "Salve",
+  hvad: "Fedtet form til huden.",
+  brug: "Smøres på.",
+  frig: "Virker lokalt; mere fedtet end creme.",
+  vig: "Følg anvisning for mængde og hyppighed."
+}, {
+  id: "gel",
+  name: "Gel",
+  hvad: "Geléagtig form til hud/slimhinde.",
+  brug: "Påføres lokalt.",
+  frig: "Virker lokalt.",
+  vig: "Følg produktanvisning."
+}, {
+  id: "oejen",
+  name: "Øjendråber",
+  hvad: "Sterile dråber til øjet.",
+  brug: "Dryppes i øjet.",
+  frig: "Virker lokalt i øjet.",
+  vig: "Undgå at røre øjet med spidsen; følg holdbarhed efter åbning."
+}, {
+  id: "oere",
+  name: "Øredråber",
+  hvad: "Dråber til øregangen.",
+  brug: "Dryppes i øret.",
+  frig: "Virker lokalt.",
+  vig: "Følg anvisning; forveksl ikke med øjendråber."
+}, {
+  id: "naese",
+  name: "Næsespray",
+  hvad: "Spray til næseslimhinden.",
+  brug: "Sprøjtes i næsen.",
+  frig: "Virker lokalt eller optages via slimhinden.",
+  vig: "Følg anvisning for antal pust."
+}, {
+  id: "plaster",
+  name: "Plaster (depotplaster)",
+  hvad: "Klæbeplaster med lægemiddel.",
+  brug: "Sættes på huden.",
+  frig: "Afgiver lægemidlet langsomt gennem huden.",
+  vig: "Fjern altid gammelt plaster; skift jf. anvisning."
+}, {
+  id: "injektion",
+  name: "Injektion",
+  hvad: "Flydende lægemiddel til indsprøjtning.",
+  brug: "Gives SC/IM/IV.",
+  frig: "Optages hurtigt (IV øjeblikkeligt).",
+  vig: "Kræver kompetence/delegation og lokale instrukser."
+}];
+
+/* 6 — Virkning og tid */
+const FARMA_TIMING = [{
+  term: "Virkningsstart",
+  q: "Hvor lang tid der går, før effekten begynder.",
+  m: "Afhænger bl.a. af administrationsvej og form — IV virker hurtigt, en depottablet langsommere."
+}, {
+  term: "Maksimal effekt",
+  q: "Hvornår virkningen typisk er størst.",
+  m: "Koncentrationen i blodet er da på sit højeste for den enkelte dosis."
+}, {
+  term: "Virkningsvarighed",
+  q: "Hvor længe effekten varer.",
+  m: "Bestemmer bl.a., hvor ofte et lægemiddel skal gives. Konkret dosering følger altid ordination."
+}, {
+  term: "Halveringstid (T½)",
+  q: "Tiden, før koncentrationen er faldet til omtrent det halve.",
+  m: "Et lægemiddel med lang T½ bliver længere i kroppen. T½ kan ændres ved nedsat lever- eller nyrefunktion."
+}, {
+  term: "Steady state",
+  q: "Når tilførsel og udskillelse er nogenlunde i balance.",
+  m: "Ved gentagen dosering når koncentrationen et stabilt niveau — typisk efter ca. 4-5 halveringstider."
+}];
+
+/* 7 — Bivirkninger og interaktioner */
+const FARMA_ADVERSE = [{
+  term: "Ønsket virkning",
+  q: "Den effekt, lægemidlet gives for.",
+  m: "Den terapeutiske virkning, der er målet med behandlingen."
+}, {
+  term: "Bivirkning",
+  q: "En uønsket virkning ud over den ønskede.",
+  m: "Kan være mild (fx let kvalme) eller kræve handling. Konkrete bivirkninger for et præparat slås op i godkendt kilde."
+}, {
+  term: "Alvorlig bivirkning",
+  q: "En bivirkning, der kan være farlig.",
+  m: "Kræver hurtig faglig vurdering. Videregiv observationer efter lokale instrukser/delegation."
+}, {
+  term: "Allergisk reaktion",
+  q: "Immunforsvarets reaktion på et lægemiddel.",
+  m: "Kan vise sig som fx udslæt, hævelse eller — sjældnere — vejrtrækningsbesvær. Vejrtrækningsbesvær/hævelse i hals er akut — tilkald hjælp."
+}, {
+  term: "Interaktion",
+  q: "Når lægemidler (eller mad) påvirker hinandens virkning.",
+  m: "Ét lægemiddel kan forstærke eller svække et andet. Konkrete interaktioner skal ALTID slås op i godkendt kilde."
+}, {
+  term: "Kontraindikation",
+  q: "En tilstand, hvor et lægemiddel ikke bør gives.",
+  m: "Fx bestemte sygdomme eller tilstande. Konkrete kontraindikationer slås op i godkendt kilde."
+}, {
+  term: "Forgiftning / overdosering",
+  q: "For høj mængde lægemiddel i kroppen.",
+  m: "Kan give alvorlige symptomer. Ved mistanke: handl efter lokale instrukser og tilkald hjælp."
+}];
+
+/* 8/9/10 — organ- og alderssektioner (structured) */
+const FARMA_LEVER = {
+  quick: "Leveren omdanner (metaboliserer) mange lægemidler, så de bliver lettere at udskille.",
+  points: ["Leverens enzymer nedbryder/omdanner lægemidler.", "First-pass: lægemidler fra tarmen passerer leveren FØR blodbanen — en del omdannes med det samme.", "Nogle lægemidler omdannes til inaktive stoffer, andre til aktive.", "Nedsat leverfunktion kan påvirke, hvordan visse lægemidler omsættes.", "Interaktioner kan opstå, når lægemidler påvirker de samme leverenzymer — slå altid konkrete interaktioner op i godkendt kilde."],
+  anat: "a-lever"
+};
+const FARMA_NYRER = {
+  quick: "Nyrerne filtrerer blodet og udskiller mange lægemidler og deres nedbrydningsprodukter med urinen.",
+  points: ["Renal udskillelse: lægemidler forlader kroppen via nyrerne med urinen.", "Nyrerne filtrerer blodet i nyrebarken (glomeruli).", "Mange lægemidler afhænger af en velfungerende nyrefunktion for at blive udskilt.", "Nedsat nyrefunktion kan betyde langsommere elimination og risiko for ophobning af visse lægemidler.", "Væskebalance og nyrefunktion hænger sammen — se også observationer."],
+  anat: "a-nyrer"
+};
+const FARMA_AELDRE = {
+  quick: "Ældre reagerer ofte anderledes på medicin — bl.a. fordi lever, nyrer og kropssammensætning ændrer sig.",
+  hvorfor: ["Nyrefunktionen aftager ofte med alderen → langsommere udskillelse.", "Leverfunktion og enzymaktivitet kan være ændret → ændret omsætning.", "Ændret kropssammensætning (mindre vand, mere fedt) → ændret fordeling.", "Væskebalancen er mere sårbar.", "Polyfarmaci (mange lægemidler) → større risiko for interaktioner.", "Øget følsomhed over for visse lægemidler."],
+  obs: ["Ændringer i vågenhed, forvirring eller svimmelhed.", "Faldrisiko.", "Tegn på dehydrering eller væskeophobning.", "Ny eller ændret adfærd efter medicinændring.", "Videregiv observationer efter lokale instrukser/delegation."]
+};
+
+/* 11 — Medicinsikkerhed */
+const FARMA_SAFETY = [{
+  t: "Korrekt borger",
+  d: "Er det den rigtige borger/patient? Identificér jf. lokal instruks."
+}, {
+  t: "Korrekt lægemiddel",
+  d: "Stemmer præparatet med ordinationen?"
+}, {
+  t: "Korrekt dosis",
+  d: "Er dosis som ordineret? Ved tvivl: spørg."
+}, {
+  t: "Korrekt tidspunkt",
+  d: "Gives det på det ordinerede tidspunkt?"
+}, {
+  t: "Korrekt administrationsvej",
+  d: "Gives det på den ordinerede måde (fx oralt, kutant)?"
+}, {
+  t: "Dokumentation",
+  d: "Registrér, at medicinen er givet, jf. lokal praksis."
+}, {
+  t: "Observation af virkning",
+  d: "Fik lægemidlet den forventede effekt?"
+}, {
+  t: "Observation af bivirkninger",
+  d: "Er der uønskede virkninger?"
+}, {
+  t: "Ved tvivl",
+  d: "Giv ikke — stop op, spørg ansvarlig og følg lokale instrukser."
+}, {
+  t: "Delegation og instrukser",
+  d: "Handl inden for din delegation og arbejdsstedets instrukser."
+}];
+
+/* 12 — Observationer som SSA */
+const FARMA_OBS = [{
+  t: "FØR",
+  d: "Hvilke observationer kan være nødvendige før administration? (fx borgerens tilstand, kan borgeren synke, relevante målinger jf. instruks)"
+}, {
+  t: "EFTER",
+  d: "Hvilken virkning forventes af lægemidlet?"
+}, {
+  t: "OBSERVÉR",
+  d: "Er der ændringer i borgerens tilstand — ønsket effekt eller bivirkninger?"
+}, {
+  t: "REAGÉR",
+  d: "Hvornår skal observationer videregives? Følg lokale instrukser og delegation."
+}, {
+  t: "DOKUMENTÉR",
+  d: "Hvad er relevant at dokumentere (givet medicin, virkning, observationer)?"
+}];
+
+/* 13 — Faglige begreber (søgbar ordbog) */
+const FARMA_TERMS = [{
+  id: "f-farmakologi",
+  term: "Farmakologi",
+  forklaring: "Læren om lægemidler og deres virkning i kroppen.",
+  eksempel: "Farmakologi dækker både, hvordan kroppen påvirker lægemidlet, og hvordan lægemidlet påvirker kroppen.",
+  related: ["Farmakokinetik", "Farmakodynamik"]
+}, {
+  id: "f-farmakokinetik",
+  term: "Farmakokinetik",
+  forklaring: "Hvad kroppen gør ved lægemidlet (ADME).",
+  eksempel: "Absorption, distribution, metabolisme og udskillelse.",
+  related: ["Absorption", "Metabolisme", "Elimination"]
+}, {
+  id: "f-farmakodynamik",
+  term: "Farmakodynamik",
+  forklaring: "Hvad lægemidlet gør ved kroppen.",
+  eksempel: "Hvordan et lægemiddel binder til en receptor og påvirker cellen.",
+  related: ["Receptor", "Agonist", "Antagonist"]
+}, {
+  id: "f-absorption",
+  term: "Absorption",
+  forklaring: "Optagelsen af lægemidlet i blodbanen.",
+  eksempel: "En tablet optages gennem tarmvæggen.",
+  related: ["Biotilgængelighed"]
+}, {
+  id: "f-distribution",
+  term: "Distribution",
+  forklaring: "Fordelingen af lægemidlet rundt i kroppen.",
+  eksempel: "Blodet fører lægemidlet ud til væv og organer.",
+  related: []
+}, {
+  id: "f-metabolisme",
+  term: "Metabolisme",
+  forklaring: "Omdannelsen/nedbrydningen af lægemidlet, især i leveren.",
+  eksempel: "Leverens enzymer omdanner lægemidlet.",
+  related: ["First-pass metabolisme", "Lever"]
+}, {
+  id: "f-elimination",
+  term: "Elimination",
+  forklaring: "Den samlede fjernelse af lægemidlet (metabolisme + udskillelse).",
+  eksempel: "Nedsat nyrefunktion kan gøre eliminationen langsommere.",
+  related: ["Ekskretion", "Halveringstid"]
+}, {
+  id: "f-ekskretion",
+  term: "Ekskretion",
+  forklaring: "Udskillelsen af lægemidlet fra kroppen, især via nyrerne.",
+  eksempel: "Lægemidlet udskilles med urinen.",
+  related: ["Nyrer", "Elimination"]
+}, {
+  id: "f-biotilgaengelighed",
+  term: "Biotilgængelighed",
+  forklaring: "Den andel af en dosis, der når ud i blodbanen uændret.",
+  eksempel: "IV har fuld (100 %) biotilgængelighed; ved tablet kan first-pass reducere den.",
+  related: ["Absorption", "First-pass metabolisme"]
+}, {
+  id: "f-halveringstid",
+  term: "Halveringstid (T½)",
+  forklaring: "Tiden, før koncentrationen af lægemidlet er faldet til omtrent det halve.",
+  eksempel: "Lang T½ betyder, at lægemidlet bliver længere i kroppen.",
+  related: ["Steady state", "Elimination"]
+}, {
+  id: "f-steadystate",
+  term: "Steady state",
+  forklaring: "Når tilførsel og udskillelse ved gentagen dosering når et nogenlunde stabilt niveau.",
+  eksempel: "Nås typisk efter ca. 4-5 halveringstider.",
+  related: ["Halveringstid"]
+}, {
+  id: "f-receptor",
+  term: "Receptor",
+  forklaring: "Et sted på/i en celle, hvor et lægemiddel kan binde og påvirke cellen.",
+  eksempel: "Et lægemiddel binder til sin receptor og ændrer cellens aktivitet.",
+  related: ["Agonist", "Antagonist"]
+}, {
+  id: "f-agonist",
+  term: "Agonist",
+  forklaring: "Et stof, der binder til en receptor og udløser en virkning.",
+  eksempel: "Aktiverer receptoren.",
+  related: ["Receptor", "Antagonist"]
+}, {
+  id: "f-antagonist",
+  term: "Antagonist",
+  forklaring: "Et stof, der binder til en receptor og blokerer virkningen.",
+  eksempel: "Hindrer, at receptoren aktiveres.",
+  related: ["Receptor", "Agonist"]
+}, {
+  id: "f-indikation",
+  term: "Indikation",
+  forklaring: "Den situation/sygdom, et lægemiddel er godkendt til at bruges ved.",
+  eksempel: "Konkret indikation slås op i godkendt kilde.",
+  related: ["Kontraindikation"]
+}, {
+  id: "f-kontraindikation",
+  term: "Kontraindikation",
+  forklaring: "En tilstand, hvor et lægemiddel ikke bør gives.",
+  eksempel: "Slås altid op i godkendt kilde.",
+  related: ["Indikation"]
+}, {
+  id: "f-interaktion",
+  term: "Interaktion",
+  forklaring: "Når lægemidler (eller mad) påvirker hinandens virkning.",
+  eksempel: "Ét lægemiddel kan forstærke eller svække et andet — slå altid op i godkendt kilde.",
+  related: ["Polyfarmaci"]
+}, {
+  id: "f-bivirkning",
+  term: "Bivirkning",
+  forklaring: "En uønsket virkning ud over den ønskede.",
+  eksempel: "Konkrete bivirkninger for et præparat slås op i godkendt kilde.",
+  related: ["Terapeutisk effekt"]
+}, {
+  id: "f-terapeutisk",
+  term: "Terapeutisk effekt",
+  forklaring: "Den ønskede, gavnlige virkning af et lægemiddel.",
+  eksempel: "Målet med behandlingen.",
+  related: ["Terapeutisk interval"]
+}, {
+  id: "f-tinterval",
+  term: "Terapeutisk interval",
+  forklaring: "Området mellem for lav (uden effekt) og for høj (giftig) koncentration.",
+  eksempel: "Nogle lægemidler har et smalt interval.",
+  related: ["Toksicitet"]
+}, {
+  id: "f-toksicitet",
+  term: "Toksicitet",
+  forklaring: "Skadelig/giftig virkning ved for høj koncentration.",
+  eksempel: "Kan ses ved overdosering.",
+  related: ["Terapeutisk interval"]
+}, {
+  id: "f-polyfarmaci",
+  term: "Polyfarmaci",
+  forklaring: "Brug af mange lægemidler samtidig.",
+  eksempel: "Almindeligt hos ældre og øger risiko for interaktioner.",
+  related: ["Interaktion", "Medicin hos ældre"]
+}, {
+  id: "f-compliance",
+  term: "Compliance / adherence",
+  forklaring: "I hvilken grad borgeren tager medicinen som aftalt.",
+  eksempel: "Manglende adherence kan give dårligere effekt.",
+  related: []
+}, {
+  id: "f-firstpass",
+  term: "First-pass metabolisme",
+  forklaring: "At et oralt lægemiddel passerer leveren og delvist omdannes, før det når blodbanen.",
+  eksempel: "Reducerer den mængde, der når det store kredsløb.",
+  related: ["Metabolisme", "Biotilgængelighed"]
+}, {
+  id: "f-aktivtstof",
+  term: "Aktivt stof",
+  forklaring: "Det stof i lægemidlet, der giver virkningen.",
+  eksempel: "Fx det virksomme stof i en tablet.",
+  related: ["Hjælpestof"]
+}, {
+  id: "f-hjaelpestof",
+  term: "Hjælpestof",
+  forklaring: "Stof i lægemidlet uden egen behandlingsvirkning (fx bindemiddel).",
+  eksempel: "Hjælper med at forme og stabilisere lægemidlet.",
+  related: ["Aktivt stof"]
+}, {
+  id: "f-generisk",
+  term: "Generisk lægemiddel",
+  forklaring: "Lægemiddel med samme aktive stof som et originalpræparat.",
+  eksempel: "Kan hedde noget andet, men indeholde samme aktive stof.",
+  related: ["Aktivt stof"]
+}, {
+  id: "f-adme",
+  term: "ADME",
+  forklaring: "Forkortelse for Absorption, Distribution, Metabolisme og Ekskretion.",
+  eksempel: "Beskriver lægemidlets vej gennem kroppen.",
+  related: ["Farmakokinetik"]
+}];
+
+/* Furosemid — læringseksempel (generel, verificerbar mekanisme; ingen doser) */
+const FARMA_FUROSEMID = {
+  navn: "Furosemid (fx Furix)",
+  gruppe: "Loop-diuretikum (vanddrivende)",
+  chain: ["Furosemid", "Lægemiddelgruppe: loop-diuretikum", "Administration (fx oralt eller IV)", "Absorption / blodbane", "Virker i nyren", "Den opadstigende del af Henles slynge i nefronet", "Ændret håndtering af salte", "Øget udskillelse af natrium og vand", "Øget diurese"],
+  hvorfor: "Loop-diuretika bruges bl.a. ved væskeophobning (ødem) og hjertesvigt. Den KONKRETE indikation, dosis og varighed afhænger af ordination — slå op i godkendt kilde.",
+  fysiologi: "Furosemid virker i nyrens nefron (den opadstigende del af Henles slynge) og hæmmer genoptagelsen af salte. Når mindre salt genoptages, følger mere vand med ud i urinen — det giver øget diurese.",
+  obs: ["Diurese (mængde vandladning)", "Væskebalance (indtag/udskillelse)", "Ødem", "Blodtryk", "Svimmelhed (særligt ved rejsning)", "Tegn på dehydrering", "Relevante elektrolytforstyrrelser jf. plan"]
+};
+
+/* ---- helpers ---- */
+const farmaTermById = id => FARMA_TERMS.find(t => t.id === id);
+const farmaTermText = t => (t.term + " " + t.forklaring + " " + t.eksempel + " " + (t.related || []).join(" ")).toLowerCase();
+function farmaTermSearch(q) {
+  const s = (q || "").trim().toLowerCase();
+  if (!s) return [];
+  return FARMA_TERMS.filter(t => farmaTermText(t).indexOf(s) >= 0);
+}
+// Bred søgning på tværs af farmakologi-indhold (til global søgning): returnerer {kind, id, title, sub}
+function farmaSearch(q) {
+  const s = (q || "").trim().toLowerCase();
+  if (!s) return [];
+  const hits = [];
+  FARMA_TERMS.forEach(t => {
+    if (farmaTermText(t).indexOf(s) >= 0) hits.push({
+      kind: "term",
+      id: t.id,
+      title: t.term,
+      sub: t.forklaring
+    });
+  });
+  FARMA_SECTIONS.forEach(sec => {
+    if ((sec.title + " " + sec.sub).toLowerCase().indexOf(s) >= 0) hits.push({
+      kind: "sec",
+      id: sec.id,
+      title: sec.title,
+      sub: sec.sub
+    });
+  });
+  return hits;
+}
+
+/* Two-level card: kort forklaring + "Forstå det bedre" */
+function FarmaTwo({
+  quick,
+  more
+}) {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 8px",
+      fontSize: 14.5,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, quick), more ? /*#__PURE__*/React.createElement(Acc, {
+    title: "Forst\xE5 det bedre"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, more)) : null);
+}
+
+/* Lodret flow med pile (bruges til 'medicinens vej' og Furosemid) */
+function FarmaFlow({
+  steps,
+  accent
+}) {
+  const col = accent || "#7A5AF5";
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "stretch",
+      gap: 0
+    }
+  }, steps.map((st, i) => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint(col, "33")}`,
+      background: tint(col, "0A"),
+      borderRadius: 12,
+      padding: "11px 13px",
+      fontSize: 14,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, typeof st === "string" ? st : st.t), i < steps.length - 1 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      color: col,
+      fontSize: 16,
+      lineHeight: "18px",
+      padding: "3px 0"
+    }
+  }, "\u2193") : null)));
+}
+
+/* ===== FARMAKOLOGI — Medicinens halveringstid (T½) =====================
+ *  Læringsområde + interaktiv beregner. IKKE til patientspecifikke
+ *  kliniske beslutninger. Beregneren bruger en forenklet
+ *  førsteordens-model (remaining = 0.5^(tid/T½)). Lægemiddelspecifikke
+ *  T½-værdier opfindes ALDRIG — de slås op i pro.medicin.dk og vises kun
+ *  her hvis de er verificeret med kilde og dato (HALFLIFE_DB).
+ * ===================================================================== */
+const hlParse = v => {
+  if (v == null) return NaN;
+  const s = String(v).trim().replace(/\s/g, "").replace(",", ".");
+  if (s === "") return NaN;
+  const n = Number(s);
+  return isFinite(n) ? n : NaN;
+};
+const hlFmt = (n, dec) => {
+  if (!isFinite(n)) return "–";
+  const d = dec == null ? 2 : dec;
+  let s = n.toFixed(d);
+  if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, "");
+  return s.replace(".", ",");
+};
+
+/* Verificeret T½-database — TOM indtil værdier er bekræftet med kilde + dato.
+ * Struktur klar til fremtidige verificerede opslag:
+ * { substans:"", aktivt:"", tHalf:"", range:"", kilde:"", kildeUrl:"", lastVerified:"", verified:true } */
+const HALFLIFE_DB = [];
+const halflifeLookup = q => {
+  const s = (q || "").trim().toLowerCase();
+  if (!s) return null;
+  return HALFLIFE_DB.find(d => d.verified && ((d.substans || "").toLowerCase().indexOf(s) >= 0 || (d.aktivt || "").toLowerCase().indexOf(s) >= 0)) || null;
+};
+const HALFLIFE_EDU = [{
+  t: "Hvad er halveringstid (T½)?",
+  q: "Halveringstiden er den tid, det tager, før koncentrationen af et lægemiddel i kroppen (plasma) er faldet til omtrent det halve.",
+  m: "T½ er et kinetisk mål. Et lægemiddel med lang T½ bliver længere i kroppen end et med kort T½. Den konkrete T½ for et præparat slås op i en godkendt kilde."
+}, {
+  t: "Hvordan falder koncentrationen over tid?",
+  q: "For hver halveringstid falder mængden til ca. det halve: 100 % → 50 % → 25 % → 12,5 % → 6,25 % → 3,125 %.",
+  m: "Dette er en forenklet førsteordens-model. Efter ca. 5 halveringstider er omtrent 96,875 % udskilt, og lægemidlet regnes typisk som næsten elimineret. Det er en tommelfingerregel til forståelse — ikke en universel klinisk regel for alle lægemidler."
+}, {
+  t: "Halveringstid vs. virkningsvarighed vs. elimination",
+  q: "De tre ting er ikke det samme.",
+  m: "Halveringstid er, hvor hurtigt koncentrationen halveres. Virkningsvarighed er, hvor længe effekten mærkes — den afhænger også af dosis, bindingsstyrke m.m. Elimination er den samlede fjernelse af lægemidlet (metabolisme + udskillelse)."
+}, {
+  t: "Lever, nyrer og T½",
+  q: "Lever og nyrer bestemmer i høj grad, hvor hurtigt et lægemiddel forlader kroppen.",
+  m: "Nedsat lever- eller nyrefunktion kan forlænge halveringstiden, så lægemidlet bliver længere i kroppen og lettere kan ophobes. Mange lægemidler kræver derfor ekstra opmærksomhed ved nedsat organfunktion."
+}, {
+  t: "Ophobning ved gentagen dosering",
+  q: "Gives en ny dosis, før den forrige er elimineret, kan lægemidlet ophobes i kroppen.",
+  m: "Doseringsintervallet hænger sammen med halveringstiden. Er T½ forlænget (fx hos ældre eller ved nedsat organfunktion), stiger risikoen for ophobning og dermed for bivirkninger."
+}, {
+  t: "Halveringstid og steady state",
+  q: "Ved gentagen dosering når koncentrationen et nogenlunde stabilt niveau (steady state) — typisk efter ca. 4–5 halveringstider.",
+  m: "Ved steady state er det, der tilføres, nogenlunde lig med det, der udskilles. Jo længere T½, jo længere tid tager det at nå steady state."
+}, {
+  t: "Hvorfor kræver ældre ekstra opmærksomhed?",
+  q: "Ældre har ofte nedsat nyre- og leverfunktion og ændret kropssammensætning.",
+  m: "Det kan forlænge halveringstiden, så lægemidler virker længere og lettere ophobes. Sammen med polyfarmaci øger det risikoen for bivirkninger og interaktioner — observér og følg lokale instrukser."
+}];
+
+/* Halveringstider-tabel (fast, matematisk — ikke lægemiddelspecifik) */
+const HL_TABLE = [1, 2, 3, 4, 5, 6].map(n => ({
+  n,
+  remaining: Math.pow(0.5, n) * 100,
+  eliminated: 100 - Math.pow(0.5, n) * 100
+}));
+function HalfLifeView({
+  onTest
+}) {
+  const [half, setHalf] = useState("");
+  const [elapsed, setElapsed] = useState("");
+  const [amount, setAmount] = useState("");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const [look, setLook] = useState("");
+  const [looked, setLooked] = useState(false);
+  const calc = () => {
+    const h = hlParse(half),
+      t = hlParse(elapsed),
+      a = amount.trim() === "" ? null : hlParse(amount);
+    if (!isFinite(h) || h <= 0) {
+      setErr("Indtast en gyldig halveringstid større end 0.");
+      setRes(null);
+      return;
+    }
+    if (!isFinite(t) || t < 0) {
+      setErr("Indtast en gyldig tid (0 eller mere).");
+      setRes(null);
+      return;
+    }
+    if (a != null && (!isFinite(a) || a < 0)) {
+      setErr("Startmængden skal være et gyldigt tal.");
+      setRes(null);
+      return;
+    }
+    setErr("");
+    const frac = Math.pow(0.5, t / h);
+    setRes({
+      h,
+      t,
+      a,
+      pct: frac * 100,
+      remain: a != null ? a * frac : null,
+      nHalf: t / h
+    });
+  };
+  const clear = () => {
+    setHalf("");
+    setElapsed("");
+    setAmount("");
+    setRes(null);
+    setErr("");
+  };
+
+  // decay curve 0..6 halvlives, marker at current elapsed (in half-lives)
+  const W = 300,
+    H = 120,
+    PL = 34,
+    PB = 22,
+    nMax = 6;
+  const xOf = nh => PL + Math.min(nh, nMax) / nMax * (W - PL - 6);
+  const yOf = pct => 8 + (1 - pct / 100) * (H - PB - 8);
+  let path = "M " + xOf(0) + " " + yOf(100);
+  for (let i = 1; i <= 60; i++) {
+    const nh = i / 60 * nMax;
+    path += " L " + xOf(nh) + " " + yOf(Math.pow(0.5, nh) * 100);
+  }
+  const markNh = res ? res.nHalf : null;
+  const lookRes = looked ? halflifeLookup(look) : null;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 13
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: tint("#7A5AF5", "16"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Clock, {
+    size: 21,
+    color: "#5B37C7",
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Forst\xE5 hvor l\xE6nge et l\xE6gemiddel bliver i kroppen \u2014 og pr\xF8v beregneren.")), HALFLIFE_EDU.map((e, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 6
+    }
+  }, e.t), /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: e.q,
+    more: e.m
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint("#7A5AF5", "2E")}`,
+      borderRadius: 16,
+      background: tint("#7A5AF5", "07"),
+      padding: 15
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(Calculator, {
+    size: 19,
+    color: "#5B37C7"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, "Halveringstid-beregner")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, "Halveringstid (timer)", /*#__PURE__*/React.createElement("input", {
+    value: half,
+    onChange: e => setHalf(e.target.value),
+    inputMode: "decimal",
+    placeholder: "fx 6",
+    "aria-label": "Halveringstid i timer",
+    style: {
+      width: "100%",
+      marginTop: 5,
+      boxSizing: "border-box",
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      padding: "13px 13px",
+      fontSize: 16,
+      color: C.ink,
+      background: C.surface,
+      fontFamily: "inherit"
+    }
+  })), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, "Tid g\xE5et (timer)", /*#__PURE__*/React.createElement("input", {
+    value: elapsed,
+    onChange: e => setElapsed(e.target.value),
+    inputMode: "decimal",
+    placeholder: "fx 12",
+    "aria-label": "Tid g\xE5et i timer",
+    style: {
+      width: "100%",
+      marginTop: 5,
+      boxSizing: "border-box",
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      padding: "13px 13px",
+      fontSize: 16,
+      color: C.ink,
+      background: C.surface,
+      fontFamily: "inherit"
+    }
+  })), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, "Startm\xE6ngde (valgfri \u2014 til eksempler)", /*#__PURE__*/React.createElement("input", {
+    value: amount,
+    onChange: e => setAmount(e.target.value),
+    inputMode: "decimal",
+    placeholder: "fx 100",
+    "aria-label": "Startm\xE6ngde, valgfri",
+    style: {
+      width: "100%",
+      marginTop: 5,
+      boxSizing: "border-box",
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      padding: "13px 13px",
+      fontSize: 16,
+      color: C.ink,
+      background: C.surface,
+      fontFamily: "inherit"
+    }
+  })), err ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: RED,
+      background: tint(RED, "0E"),
+      border: `1px solid ${tint(RED, "2A")}`,
+      borderRadius: 10,
+      padding: "9px 12px"
+    }
+  }, err) : null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: calc,
+    style: {
+      flex: 1,
+      border: "none",
+      borderRadius: 12,
+      padding: "13px",
+      background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 48
+    }
+  }, "Beregn"), /*#__PURE__*/React.createElement("button", {
+    onClick: clear,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "13px 16px",
+      background: C.surface,
+      color: C.inkSoft,
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 700,
+      cursor: "pointer",
+      minHeight: 48
+    }
+  }, "Ryd"))), res ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      display: "flex",
+      flexDirection: "column",
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 13,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      fontWeight: 700
+    }
+  }, "Tilbage i kroppen"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 28,
+      fontWeight: 800,
+      color: "#5B37C7",
+      letterSpacing: -0.5,
+      marginTop: 2
+    }
+  }, hlFmt(res.pct, 2), " %"), res.remain != null ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      marginTop: 2
+    }
+  }, "\u2248 ", hlFmt(res.remain, 2), " af startm\xE6ngden") : null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.inkFaint,
+      marginTop: 6
+    }
+  }, "Svarer til ", hlFmt(res.nHalf, 2), " halveringstid(er)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 8,
+      lineHeight: 1.5,
+      background: tint(C.ink, "05"),
+      borderRadius: 9,
+      padding: "8px 10px"
+    }
+  }, "Udregning: 0,5", /*#__PURE__*/React.createElement("sup", null, "(", hlFmt(res.t, 2), " \xF7 ", hlFmt(res.h, 2), ")"), " = ", hlFmt(res.pct / 100, 4), " \u2192 ", hlFmt(res.pct, 2), " %")), /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 " + W + " " + H,
+    style: {
+      width: "100%",
+      height: "auto",
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 13
+    },
+    role: "img",
+    "aria-label": "Henfaldskurve"
+  }, [0, 25, 50, 75, 100].map(p => /*#__PURE__*/React.createElement("g", {
+    key: p
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: PL,
+    y1: yOf(p),
+    x2: W - 6,
+    y2: yOf(p),
+    stroke: C.line,
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: PL - 5,
+    y: yOf(p) + 3,
+    fontSize: "8",
+    fill: C.inkFaint,
+    textAnchor: "end"
+  }, p, "%"))), [0, 1, 2, 3, 4, 5, 6].map(n => /*#__PURE__*/React.createElement("text", {
+    key: n,
+    x: xOf(n),
+    y: H - 8,
+    fontSize: "8",
+    fill: C.inkFaint,
+    textAnchor: "middle"
+  }, n)), /*#__PURE__*/React.createElement("text", {
+    x: (W + PL) / 2,
+    y: H,
+    fontSize: "8",
+    fill: C.inkSoft,
+    textAnchor: "middle"
+  }, "Halveringstider \u2192"), /*#__PURE__*/React.createElement("path", {
+    d: path,
+    fill: "none",
+    stroke: "#7A5AF5",
+    strokeWidth: "2.5"
+  }), markNh != null && markNh <= nMax ? /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("line", {
+    x1: xOf(markNh),
+    y1: 8,
+    x2: xOf(markNh),
+    y2: yOf(0),
+    stroke: "#5B37C7",
+    strokeWidth: "1",
+    strokeDasharray: "3 3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: xOf(markNh),
+    cy: yOf(res.pct),
+    r: "4",
+    fill: "#5B37C7"
+  })) : null)) : null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 13
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      fontWeight: 700,
+      color: C.inkSoft,
+      marginBottom: 7
+    }
+  }, "Tabel: 1\u20136 halveringstider"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      overflow: "hidden",
+      background: C.surface
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      background: tint(C.ink, "06"),
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      padding: "8px 11px"
+    }
+  }, "Halveringstider"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 90,
+      padding: "8px 11px",
+      textAlign: "right"
+    }
+  }, "Tilbage"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 92,
+      padding: "8px 11px",
+      textAlign: "right"
+    }
+  }, "Udskilt")), HL_TABLE.map(r => /*#__PURE__*/React.createElement("div", {
+    key: r.n,
+    style: {
+      display: "flex",
+      fontSize: 13,
+      color: C.ink,
+      borderTop: `1px solid ${C.line}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      padding: "8px 11px"
+    }
+  }, r.n, " \xD7 T\xBD"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 90,
+      padding: "8px 11px",
+      textAlign: "right",
+      fontWeight: 700
+    }
+  }, hlFmt(r.remaining, 3), " %"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 92,
+      padding: "8px 11px",
+      textAlign: "right",
+      color: C.inkSoft
+    }
+  }, hlFmt(r.eliminated, 3), " %")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 7,
+      lineHeight: 1.5
+    }
+  }, "Efter ca. 5 halveringstider er omtrent 96,875 % udskilt i denne forenklede model. Det er en tommelfingerregel \u2014 ikke en universel klinisk regel.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      marginTop: 12,
+      background: tint("#B7791F", "10"),
+      border: `1px solid ${tint("#B7791F", "2A")}`,
+      borderRadius: 11,
+      padding: "10px 12px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#7A4E0A",
+      lineHeight: 1.5
+    }
+  }, "Beregneren er et l\xE6ringsv\xE6rkt\xF8j. Den m\xE5 ikke bruges til patientspecifikke kliniske beslutninger. Konkret dosering og intervaller f\xF8lger ordination og lokale instrukser."))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 16,
+      background: C.surface,
+      padding: 15
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 4
+    }
+  }, "Sl\xE5 et l\xE6gemiddels T\xBD op"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginBottom: 11,
+      lineHeight: 1.5
+    }
+  }, "Klario viser kun halveringstider, der er verificeret med kilde og dato. Ellers henviser vi til pro.medicin.dk."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: look,
+    onChange: e => {
+      setLook(e.target.value);
+      setLooked(false);
+    },
+    placeholder: "Fx furosemid\u2026",
+    "aria-label": "S\xF8g l\xE6gemiddel",
+    style: {
+      flex: 1,
+      boxSizing: "border-box",
+      border: `1px solid ${C.line}`,
+      borderRadius: 11,
+      padding: "12px 13px",
+      fontSize: 15,
+      color: C.ink,
+      background: C.surface,
+      fontFamily: "inherit"
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setLooked(true),
+    style: {
+      border: "none",
+      borderRadius: 11,
+      padding: "12px 16px",
+      background: tint("#7A5AF5", "16"),
+      color: "#5B37C7",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 800,
+      cursor: "pointer"
+    }
+  }, "Sl\xE5 op")), looked ? lookRes ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, lookRes.substans), lookRes.aktivt ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginTop: 1
+    }
+  }, "Aktivt stof: ", lookRes.aktivt) : null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      marginTop: 7
+    }
+  }, "Halveringstid: ", /*#__PURE__*/React.createElement("b", null, lookRes.tHalf)), lookRes.range ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginTop: 2
+    }
+  }, "Variation: ", lookRes.range) : null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 8
+    }
+  }, "Kilde: ", lookRes.kilde, " \xB7 Verificeret: ", lookRes.lastVerified)) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      border: `1px solid ${tint("#B7791F", "33")}`,
+      background: tint("#B7791F", "0C"),
+      borderRadius: 12,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: "#8A5A0B"
+    }
+  }, "Halveringstid ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: "#7A4E0A",
+      marginTop: 4,
+      lineHeight: 1.5
+    }
+  }, "Klario har ikke en verificeret T\xBD for dette l\xE6gemiddel. Sl\xE5 den op i en godkendt kilde.")) : null, /*#__PURE__*/React.createElement("a", {
+    href: "https://pro.medicin.dk/",
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 11,
+      border: `1px solid ${tint("#7A5AF5", "33")}`,
+      background: tint("#7A5AF5", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: "#5B37C7",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Pill, {
+    size: 17,
+    color: "#7A5AF5"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Sl\xE5 halveringstid op p\xE5 pro.medicin.dk"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#7A5AF5"
+  })))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onTest("halveringstid"),
+    style: {
+      width: "100%",
+      border: "none",
+      borderRadius: 14,
+      padding: "14px",
+      background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 50
+    }
+  }, "Test din viden om halveringstid"));
+}
 const FAGLIGT_CAT = {
   id: "fagligtsprog",
   title: "Fagligt sprog",
@@ -6108,6 +9087,24 @@ const PLEJE_CAT = {
   g1: "#4F86F4",
   g2: "#2257D8",
   Icon: ClipboardList
+};
+const ANATOMI_CAT = {
+  id: "anatomi",
+  title: "Anatomi & fysiologi",
+  subtitle: "Kropsdele, organer, systemer og latin.",
+  color: "#0E9F6E",
+  g1: "#34D399",
+  g2: "#047857",
+  Icon: Activity
+};
+const FARMA_CAT = {
+  id: "farmakologi",
+  title: "Farmakologi",
+  subtitle: "Forstå hvordan lægemidler virker i kroppen.",
+  color: "#7A5AF5",
+  g1: "#9B7DF6",
+  g2: "#5B37C7",
+  Icon: Pill
 };
 const TESTVIDEN_CAT = {
   id: "testviden",
@@ -7298,7 +10295,12 @@ const CAT_CASE = {
   medicin: "case-medicinsikkerhed",
   akut: "case-respiration"
 };
-const catTitleById = id => (DATA.find(c => c.id === id) || {}).title || id;
+const CAT_TITLE_EXTRA = {
+  anatomi: "Anatomi & fysiologi",
+  farmakologi: "Farmakologi",
+  halveringstid: "Halveringstid (T½)"
+};
+const catTitleById = id => (DATA.find(c => c.id === id) || {}).title || CAT_TITLE_EXTRA[id] || id;
 const makeTopicQuiz = topicId => ALL_QUIZ.find(x => x.topic === topicId) || null;
 const quizForTopic2 = topicId => ALL_QUIZ.find(x => x.topic === topicId) || null;
 function makeCategoryQuiz(catId) {
@@ -7803,6 +10805,636 @@ const NEW_QS = [
   correct: [0],
   why: "Ved lavt blodsukker gives typisk hurtige kulhydrater — følg lokale instrukser.",
   tag: "Handling"
+}, {
+  qid: "n-anat-1",
+  catId: "anatomi",
+  q: "Hvad hedder nyre på latin?",
+  type: "mc",
+  opts: ["Ren", "Cor", "Hepar", "Pulmo"],
+  correct: [0],
+  why: "Nyre = Ren (flertal Renes).",
+  tag: "Latin"
+}, {
+  qid: "n-anat-2",
+  catId: "anatomi",
+  q: "Hvad hedder hjerte på latin?",
+  type: "mc",
+  opts: ["Cor", "Ren", "Hepar"],
+  correct: [0],
+  why: "Hjerte = Cor.",
+  tag: "Latin"
+}, {
+  qid: "n-anat-3",
+  catId: "anatomi",
+  q: "Hvad hedder lever på latin?",
+  type: "mc",
+  opts: ["Hepar", "Lien", "Ren"],
+  correct: [0],
+  why: "Lever = Hepar.",
+  tag: "Latin"
+}, {
+  qid: "n-anat-4",
+  catId: "anatomi",
+  q: "Hvilket organsystem hører nyrerne til?",
+  type: "mc",
+  opts: ["Urinvejssystemet", "Kredsløbssystemet", "Nervesystemet"],
+  correct: [0],
+  why: "Nyrerne er en del af urinvejssystemet.",
+  tag: "Systemer"
+}, {
+  qid: "n-anat-5",
+  catId: "anatomi",
+  q: "Hvad betyder retningsbegrebet 'distal'?",
+  type: "mc",
+  opts: ["Længere væk fra kroppens centrum", "Tættere på midtlinjen", "Foran på kroppen"],
+  correct: [0],
+  why: "Distal = længere væk fra kroppens centrum (fx håndled distalt for albue).",
+  tag: "Retning"
+}, {
+  qid: "n-anat-6",
+  catId: "anatomi",
+  q: "Hvad betyder 'proksimal'?",
+  type: "mc",
+  opts: ["Nærmere kroppens centrum", "Længere væk fra kroppen", "Bagpå kroppen"],
+  correct: [0],
+  why: "Proksimal = nærmere kroppens centrum.",
+  tag: "Retning"
+}, {
+  qid: "n-anat-7",
+  catId: "anatomi",
+  q: "Hvad er den faglige betegnelse for 'balle'?",
+  type: "mc",
+  opts: ["Glutealregion", "Thorax", "Cubitus"],
+  correct: [0],
+  why: "Balle = glutealregion (Regio glutealis).",
+  tag: "Region"
+}, {
+  qid: "n-anat-8",
+  catId: "anatomi",
+  q: "Hvad hedder selve lårBENET (knoglen)?",
+  type: "mc",
+  opts: ["Femur (os femoris)", "Regio femoris", "Patella"],
+  correct: [0],
+  why: "Lårbenet er femur. Regio femoris er lårREGIONEN — ikke knoglen.",
+  tag: "Knogle"
+}, {
+  qid: "n-anat-9",
+  catId: "anatomi",
+  q: "Hvad hedder lungerne på latin?",
+  type: "mc",
+  opts: ["Pulmones", "Renes", "Costae"],
+  correct: [0],
+  why: "Lunger = Pulmones (ental Pulmo).",
+  tag: "Latin"
+}, {
+  qid: "n-anat-10",
+  catId: "anatomi",
+  q: "Hvor ligger hjertet?",
+  type: "mc",
+  opts: ["I brysthulen (thorax)", "I bughulen", "I bækkenet"],
+  correct: [0],
+  why: "Hjertet ligger i thorax, lidt til venstre.",
+  tag: "Placering"
+}, {
+  qid: "n-anat-11",
+  catId: "anatomi",
+  q: "Hvilket organ danner insulin?",
+  type: "mc",
+  opts: ["Bugspytkirtlen (pancreas)", "Leveren", "Milten"],
+  correct: [0],
+  why: "Insulin dannes i bugspytkirtlen (pancreas).",
+  tag: "Fysiologi"
+}, {
+  qid: "n-anat-12",
+  catId: "anatomi",
+  q: "Hvad betyder 'anterior'?",
+  type: "mc",
+  opts: ["Foran på kroppen", "Bagpå kroppen", "Nedad"],
+  correct: [0],
+  why: "Anterior = foran.",
+  tag: "Retning"
+}, {
+  qid: "n-anat-13",
+  catId: "anatomi",
+  q: "Hvad hedder knæskallen?",
+  type: "mc",
+  opts: ["Patella", "Femur", "Tibia"],
+  correct: [0],
+  why: "Knæskal = patella.",
+  tag: "Knogle"
+}, {
+  qid: "n-anat-14",
+  catId: "anatomi",
+  q: "Hvad er alveoler?",
+  type: "mc",
+  opts: ["Lungeblærer hvor gasudveksling sker", "Hjertets kamre", "Strukturer i nyren"],
+  correct: [0],
+  why: "Alveoler (Alveoli pulmonis) er lungeblærer, hvor ilt/CO₂ udveksles.",
+  tag: "Indre anatomi"
+}, {
+  qid: "n-anat-15",
+  catId: "anatomi",
+  q: "Skinnebenet hedder tibia.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Skinneben = tibia; lægben = fibula.",
+  tag: "Knogle"
+}, {
+  qid: "n-anat-16",
+  catId: "anatomi",
+  q: "Milten hører til lymfe- og immunsystemet.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Milten (Lien) indgår i lymfe- og immunsystemet.",
+  tag: "Systemer"
+}, {
+  qid: "n-anat-17",
+  catId: "anatomi",
+  q: "Hvad er kredsløbssystemets hovedopgave?",
+  type: "mc",
+  opts: ["At transportere blod med ilt og næring", "At nedbryde mad", "At danne urin"],
+  correct: [0],
+  why: "Kredsløbet transporterer blod, ilt, næring og affaldsstoffer.",
+  tag: "Systemer"
+}, {
+  qid: "n-anat-18",
+  catId: "anatomi",
+  q: "Hvad hedder mavesækken på latin?",
+  type: "mc",
+  opts: ["Ventriculus (Gaster)", "Rectum", "Hepar"],
+  correct: [0],
+  why: "Mavesæk = Ventriculus (også Gaster).",
+  tag: "Latin"
+}, {
+  qid: "n-anat-19",
+  catId: "anatomi",
+  q: "Hvilke af disse er anatomiske retningsbegreber? (vælg alle korrekte)",
+  type: "multi",
+  opts: ["Medial", "Lateral", "Proksimal", "Thorax"],
+  correct: [0, 1, 2],
+  why: "Medial, lateral og proksimal er retningsbegreber; thorax er en region.",
+  tag: "Retning"
+}, {
+  qid: "n-anat-20",
+  catId: "anatomi",
+  q: "Hvad hedder nyrebarken på latin?",
+  type: "mc",
+  opts: ["Cortex renalis", "Medulla renalis", "Pelvis renalis"],
+  correct: [0],
+  why: "Nyrebark = Cortex renalis; nyremarv = Medulla renalis.",
+  tag: "Indre anatomi"
+}, {
+  qid: "n-farm-1",
+  catId: "farmakologi",
+  q: "Hvad betyder farmakokinetik?",
+  type: "mc",
+  opts: ["Hvad kroppen gør ved lægemidlet", "Hvad lægemidlet gør ved kroppen", "Læren om kirurgi"],
+  correct: [0],
+  why: "Farmakokinetik = hvad kroppen gør ved lægemidlet (ADME).",
+  tag: "Begreb"
+}, {
+  qid: "n-farm-2",
+  catId: "farmakologi",
+  q: "Hvad betyder farmakodynamik?",
+  type: "mc",
+  opts: ["Hvad lægemidlet gør ved kroppen", "Hvad kroppen gør ved lægemidlet", "Hvordan man beregner dosis"],
+  correct: [0],
+  why: "Farmakodynamik = hvad lægemidlet gør ved kroppen.",
+  tag: "Begreb"
+}, {
+  qid: "n-farm-3",
+  catId: "farmakologi",
+  q: "Hvad står A'et for i ADME?",
+  type: "mc",
+  opts: ["Absorption", "Analyse", "Administration"],
+  correct: [0],
+  why: "ADME = Absorption, Distribution, Metabolisme, Ekskretion.",
+  tag: "ADME"
+}, {
+  qid: "n-farm-4",
+  catId: "farmakologi",
+  q: "Hvilken rækkefølge beskriver ADME?",
+  type: "mc",
+  opts: ["Absorption → Distribution → Metabolisme → Ekskretion", "Metabolisme → Absorption → Ekskretion → Distribution", "Distribution → Ekskretion → Absorption → Metabolisme"],
+  correct: [0],
+  why: "ADME følger: Absorption, Distribution, Metabolisme, Ekskretion.",
+  tag: "ADME"
+}, {
+  qid: "n-farm-5",
+  catId: "farmakologi",
+  q: "I hvilket organ sker metabolismen af lægemidler især?",
+  type: "mc",
+  opts: ["Leveren", "Milten", "Lungerne"],
+  correct: [0],
+  why: "Metabolisme sker især i leveren.",
+  tag: "Organer"
+}, {
+  qid: "n-farm-6",
+  catId: "farmakologi",
+  q: "Hvilket organ udskiller især lægemidler med urinen?",
+  type: "mc",
+  opts: ["Nyrerne", "Leveren", "Hjertet"],
+  correct: [0],
+  why: "Nyrerne udskiller mange lægemidler via urinen.",
+  tag: "Organer"
+}, {
+  qid: "n-farm-7",
+  catId: "farmakologi",
+  q: "Hvad er en receptor?",
+  type: "mc",
+  opts: ["Et sted på/i en celle, hvor et lægemiddel kan binde og påvirke cellen", "En type tablet", "Et måleapparat"],
+  correct: [0],
+  why: "En receptor er et bindingssted på/i cellen.",
+  tag: "Farmakodynamik"
+}, {
+  qid: "n-farm-8",
+  catId: "farmakologi",
+  q: "Hvad gør en agonist?",
+  type: "mc",
+  opts: ["Binder til receptoren og udløser en virkning", "Blokerer receptoren", "Nedbryder lægemidlet"],
+  correct: [0],
+  why: "En agonist aktiverer receptoren.",
+  tag: "Farmakodynamik"
+}, {
+  qid: "n-farm-9",
+  catId: "farmakologi",
+  q: "Hvad gør en antagonist?",
+  type: "mc",
+  opts: ["Binder til receptoren og blokerer virkningen", "Aktiverer receptoren", "Øger dosis"],
+  correct: [0],
+  why: "En antagonist blokerer receptoren.",
+  tag: "Farmakodynamik"
+}, {
+  qid: "n-farm-10",
+  catId: "farmakologi",
+  q: "Hvad er halveringstid (T½)?",
+  type: "mc",
+  opts: ["Tiden, før koncentrationen er faldet til omtrent det halve", "Halvdelen af en tablet", "Tiden før virkningen starter"],
+  correct: [0],
+  why: "T½ = tid til koncentrationen er halveret.",
+  tag: "Tid"
+}, {
+  qid: "n-farm-11",
+  catId: "farmakologi",
+  q: "Hvad er biotilgængelighed?",
+  type: "mc",
+  opts: ["Den andel af en dosis, der når blodbanen uændret", "Antallet af tabletter", "Lægemidlets pris"],
+  correct: [0],
+  why: "Biotilgængelighed = andel af dosis der når systemisk kredsløb uændret.",
+  tag: "Begreb"
+}, {
+  qid: "n-farm-12",
+  catId: "farmakologi",
+  q: "Hvilken administrationsvej har fuld (100 %) biotilgængelighed?",
+  type: "mc",
+  opts: ["Intravenøs (IV)", "Oral", "Transdermal"],
+  correct: [0],
+  why: "IV gives direkte i blodet og skal ikke absorberes.",
+  tag: "Administration"
+}, {
+  qid: "n-farm-13",
+  catId: "farmakologi",
+  q: "Hvad er first-pass metabolisme?",
+  type: "mc",
+  opts: ["At et oralt lægemiddel delvist omdannes i leveren, før det når blodbanen", "At lægemidlet virker med det samme", "At man tager første dosis"],
+  correct: [0],
+  why: "Blodet fra tarmen passerer leveren først (first-pass).",
+  tag: "Kinetik"
+}, {
+  qid: "n-farm-14",
+  catId: "farmakologi",
+  q: "Alle tabletter må knuses.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej. Fx depot- og enterotabletter må ofte ikke knuses. Kontrollér altid det konkrete præparat.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-farm-15",
+  catId: "farmakologi",
+  q: "En depottablet frigiver lægemidlet langsomt over tid.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Depottabletter afgiver stoffet gradvist — derfor må de typisk ikke knuses.",
+  tag: "Former"
+}, {
+  qid: "n-farm-16",
+  catId: "farmakologi",
+  q: "En enterotablet er lavet til at gå i opløsning i mavesækken.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej — enterotabletter går først i opløsning i tarmen.",
+  tag: "Former"
+}, {
+  qid: "n-farm-17",
+  catId: "farmakologi",
+  q: "Konkrete interaktioner mellem to lægemidler kan man trygt gætte sig til.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej — interaktioner skal altid slås op i en godkendt kilde.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-farm-18",
+  catId: "farmakologi",
+  q: "Hvad er en kontraindikation?",
+  type: "mc",
+  opts: ["En tilstand, hvor et lægemiddel ikke bør gives", "En ønsket virkning", "En type dosis"],
+  correct: [0],
+  why: "Kontraindikation = hvor lægemidlet ikke bør bruges.",
+  tag: "Begreb"
+}, {
+  qid: "n-farm-19",
+  catId: "farmakologi",
+  q: "Hvad betyder polyfarmaci?",
+  type: "mc",
+  opts: ["Brug af mange lægemidler samtidig", "En stærk tablet", "En bestemt receptor"],
+  correct: [0],
+  why: "Polyfarmaci = mange lægemidler samtidig; øger interaktionsrisiko.",
+  tag: "Ældre"
+}, {
+  qid: "n-farm-20",
+  catId: "farmakologi",
+  q: "Hvorfor kan ældre reagere anderledes på medicin?",
+  type: "multi",
+  opts: ["Nedsat nyrefunktion", "Ændret kropssammensætning", "Polyfarmaci", "De har flere receptorer af natur"],
+  correct: [0, 1, 2],
+  why: "Nyrer/lever, kropssammensætning og polyfarmaci spiller ind.",
+  tag: "Ældre"
+}, {
+  qid: "n-farm-21",
+  catId: "farmakologi",
+  q: "Nedsat nyrefunktion kan give langsommere udskillelse af visse lægemidler.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Ja — det kan give risiko for ophobning.",
+  tag: "Nyrer"
+}, {
+  qid: "n-farm-22",
+  catId: "farmakologi",
+  q: "Hvad gør du ved tvivl om en medicinadministration?",
+  type: "mc",
+  opts: ["Stopper op, spørger ansvarlig og følger lokale instrukser", "Giver bare medicinen", "Springer den over uden at sige det"],
+  correct: [0],
+  why: "Ved tvivl: giv ikke — spørg og følg instrukser/delegation.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-farm-23",
+  catId: "farmakologi",
+  q: "Hvilke hører til 'de rigtige' i medicinsikkerhed?",
+  type: "multi",
+  opts: ["Korrekt borger", "Korrekt dosis", "Korrekt administrationsvej", "Korrekt farve på æsken"],
+  correct: [0, 1, 2],
+  why: "Rigtig borger, lægemiddel, dosis, tidspunkt og administrationsvej.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-farm-24",
+  catId: "farmakologi",
+  q: "Hvad er steady state?",
+  type: "mc",
+  opts: ["Når tilførsel og udskillelse ved gentagen dosering er nogenlunde i balance", "Når tabletten er halveret", "Første gang man tager medicinen"],
+  correct: [0],
+  why: "Steady state nås typisk efter ca. 4-5 halveringstider.",
+  tag: "Tid"
+}, {
+  qid: "n-farm-25",
+  catId: "farmakologi",
+  q: "Hvad er en bivirkning?",
+  type: "mc",
+  opts: ["En uønsket virkning ud over den ønskede", "Den ønskede virkning", "En dosisberegning"],
+  correct: [0],
+  why: "Bivirkning = uønsket virkning.",
+  tag: "Begreb"
+}, {
+  qid: "n-farm-26",
+  catId: "farmakologi",
+  q: "Sublingual administration betyder, at lægemidlet lægges...",
+  type: "mc",
+  opts: ["Under tungen", "I øret", "På huden"],
+  correct: [0],
+  why: "Sublingual = under tungen.",
+  tag: "Administration"
+}, {
+  qid: "n-farm-27",
+  catId: "farmakologi",
+  q: "Hvor optages de fleste orale tabletter?",
+  type: "mc",
+  opts: ["I tarmen", "I munden", "I nyrerne"],
+  correct: [0],
+  why: "Tyndtarmens store overflade er hovedstedet for absorption.",
+  tag: "Vej"
+}, {
+  qid: "n-farm-28",
+  catId: "farmakologi",
+  q: "Furosemid er et loop-diuretikum, der øger udskillelsen af vand.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Ja — loop-diuretika øger udskillelsen af salt og vand (øget diurese). Konkret brug følger ordination.",
+  tag: "Eksempel"
+}, {
+  qid: "n-hl-1",
+  catId: "halveringstid",
+  q: "Hvad er halveringstid (T½)?",
+  type: "mc",
+  opts: ["Tiden før koncentrationen er faldet til omtrent det halve", "Halvdelen af en tablet", "Tiden før virkningen starter"],
+  correct: [0],
+  why: "T½ = tiden, før lægemiddelkoncentrationen er halveret.",
+  tag: "Begreb"
+}, {
+  qid: "n-hl-2",
+  catId: "halveringstid",
+  q: "Et lægemiddel har T½ på 4 timer. Hvor meget er cirka tilbage efter 8 timer?",
+  type: "mc",
+  opts: ["25 %", "50 %", "75 %"],
+  correct: [0],
+  why: "8 timer = 2 halveringstider: 100 % → 50 % → 25 %.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-3",
+  catId: "halveringstid",
+  q: "Et lægemiddel har T½ på 6 timer. Hvor meget er cirka tilbage efter 6 timer?",
+  type: "mc",
+  opts: ["50 %", "25 %", "0 %"],
+  correct: [0],
+  why: "Efter én halveringstid er ca. 50 % tilbage.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-4",
+  catId: "halveringstid",
+  q: "Hvor meget er cirka udskilt efter ca. 5 halveringstider (forenklet model)?",
+  type: "mc",
+  opts: ["Ca. 97 %", "Ca. 50 %", "Ca. 25 %"],
+  correct: [0],
+  why: "Efter 5 halveringstider er ca. 96,875 % udskilt — en tommelfingerregel, ikke en universel klinisk regel.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-5",
+  catId: "halveringstid",
+  q: "Efter 3 halveringstider er der cirka 12,5 % tilbage.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "100 → 50 → 25 → 12,5 %.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-6",
+  catId: "halveringstid",
+  q: "Et lægemiddel med lang halveringstid bliver længere i kroppen end et med kort.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Ja — lang T½ betyder langsommere fald i koncentration.",
+  tag: "Begreb"
+}, {
+  qid: "n-hl-7",
+  catId: "halveringstid",
+  q: "Nedsat nyre- eller leverfunktion kan forlænge halveringstiden.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Ja — langsommere elimination forlænger T½ og øger risiko for ophobning.",
+  tag: "Organer"
+}, {
+  qid: "n-hl-8",
+  catId: "halveringstid",
+  q: "Hvad kan ske, hvis en ny dosis gives, før den forrige er elimineret?",
+  type: "mc",
+  opts: ["Lægemidlet kan ophobes i kroppen", "Lægemidlet forsvinder hurtigere", "Halveringstiden bliver kortere"],
+  correct: [0],
+  why: "Gentagen dosering før fuld elimination kan give ophobning.",
+  tag: "Ophobning"
+}, {
+  qid: "n-hl-9",
+  catId: "halveringstid",
+  q: "Hvornår nås steady state typisk ved gentagen dosering?",
+  type: "mc",
+  opts: ["Efter ca. 4–5 halveringstider", "Efter én dosis", "Efter 24 timer uanset lægemiddel"],
+  correct: [0],
+  why: "Steady state nås typisk efter ca. 4–5 halveringstider.",
+  tag: "Steady state"
+}, {
+  qid: "n-hl-10",
+  catId: "halveringstid",
+  q: "Halveringstid og virkningsvarighed er præcis det samme.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej. Virkningsvarighed afhænger også af dosis, bindingsstyrke m.m. — ikke kun af T½.",
+  tag: "Begreb"
+}, {
+  qid: "n-hl-11",
+  catId: "halveringstid",
+  q: "Hvad beskriver 'elimination' bedst?",
+  type: "mc",
+  opts: ["Den samlede fjernelse af lægemidlet (metabolisme + udskillelse)", "Kun optagelsen i tarmen", "Kun bindingen til receptoren"],
+  correct: [0],
+  why: "Elimination = metabolisme + udskillelse.",
+  tag: "Begreb"
+}, {
+  qid: "n-hl-12",
+  catId: "halveringstid",
+  q: "Hvorfor kan ældre kræve ekstra opmærksomhed i forhold til halveringstid?",
+  type: "multi",
+  opts: ["Nedsat nyrefunktion", "Nedsat leverfunktion", "Polyfarmaci", "De har altid kortere T½"],
+  correct: [0, 1, 2],
+  why: "Nedsat organfunktion og polyfarmaci kan forlænge T½ og øge risiko for ophobning.",
+  tag: "Ældre"
+}, {
+  qid: "n-hl-13",
+  catId: "halveringstid",
+  q: "Et lægemiddel har T½ 2 timer. Hvor meget er cirka tilbage efter 6 timer?",
+  type: "mc",
+  opts: ["12,5 %", "25 %", "50 %"],
+  correct: [0],
+  why: "6 timer = 3 halveringstider: 50 → 25 → 12,5 %.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-14",
+  catId: "halveringstid",
+  q: "Formlen for resten af et lægemiddel er 0,5 opløftet i (tid ÷ halveringstid).",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "Ja — remaining fraction = 0,5^(tid/T½) i den forenklede model.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-15",
+  catId: "halveringstid",
+  q: "Lang halveringstid betyder, at steady state nås hurtigere.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej — jo længere T½, jo længere tid tager det at nå steady state.",
+  tag: "Steady state"
+}, {
+  qid: "n-hl-16",
+  catId: "halveringstid",
+  q: "Hvad er en relevant SSA-observation, når et lægemiddel kan ophobes?",
+  type: "mc",
+  opts: ["Tegn på øget virkning eller bivirkninger", "Tablettens farve", "Æskens udløbsdato alene"],
+  correct: [0],
+  why: "Ved ophobning kan virkning/bivirkninger tiltage — observér og videregiv efter lokale instrukser.",
+  tag: "Observation"
+}, {
+  qid: "n-hl-17",
+  catId: "halveringstid",
+  q: "Hvor finder du en verificeret halveringstid for et konkret lægemiddel?",
+  type: "mc",
+  opts: ["I en godkendt kilde som pro.medicin.dk", "Ved at gætte ud fra tabletstørrelsen", "Det er altid 24 timer"],
+  correct: [0],
+  why: "Lægemiddelspecifikke værdier slås op i en godkendt kilde.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-hl-18",
+  catId: "halveringstid",
+  q: "Halveringstid-beregneren i Klario kan bruges til at bestemme en borgers dosis.",
+  type: "tf",
+  opts: [T, F],
+  correct: [1],
+  why: "Nej — beregneren er et læringsværktøj og må ikke bruges til patientspecifikke beslutninger.",
+  tag: "Sikkerhed"
+}, {
+  qid: "n-hl-19",
+  catId: "halveringstid",
+  q: "Et lægemiddel har T½ 8 timer. Hvor mange timer går der cirka, før ca. 75 % er udskilt?",
+  type: "mc",
+  opts: ["16 timer", "8 timer", "4 timer"],
+  correct: [0],
+  why: "75 % udskilt = 25 % tilbage = 2 halveringstider = 16 timer.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-20",
+  catId: "halveringstid",
+  q: "Hvilke faktorer kan påvirke et lægemiddels halveringstid?",
+  type: "multi",
+  opts: ["Nyrefunktion", "Leverfunktion", "Alder", "Ugedagen"],
+  correct: [0, 1, 2],
+  why: "Nyre- og leverfunktion samt alder kan påvirke T½.",
+  tag: "Organer"
+}, {
+  qid: "n-hl-21",
+  catId: "halveringstid",
+  q: "Efter 4 halveringstider er der cirka 6,25 % tilbage.",
+  type: "tf",
+  opts: [T, F],
+  correct: [0],
+  why: "100 → 50 → 25 → 12,5 → 6,25 %.",
+  tag: "Beregning"
+}, {
+  qid: "n-hl-22",
+  catId: "halveringstid",
+  q: "Hvad er den sikreste handling, hvis du er i tvivl om et lægemiddels virkning eller ophobning hos en borger?",
+  type: "mc",
+  opts: ["Observér og videregiv efter lokale instrukser/delegation", "Giv en ekstra dosis", "Vent en uge og se"],
+  correct: [0],
+  why: "Ved tvivl: observér og følg lokale instrukser/delegation.",
+  tag: "Observation"
 }];
 
 /* Per-category bank with stable IDs (existing questions + new ones). */
@@ -7836,7 +11468,7 @@ const testCountFor = catId => {
   const n = bankSize(catId);
   return n < 6 ? n > 0 ? 1 : 0 : Math.min(8, Math.max(2, Math.ceil(n / 5)));
 };
-const TESTVIDEN_CAT_IDS = DATA.map(c => c.id).filter(id => bankSize(id) > 0);
+const TESTVIDEN_CAT_IDS = DATA.map(c => c.id).concat(["anatomi", "farmakologi", "halveringstid"]).filter((id, i, a) => a.indexOf(id) === i && bankSize(id) > 0);
 function hashStr(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {
@@ -9971,6 +13603,12 @@ function Klario() {
   const [termView, setTermView] = useState(null); // Fagligt sprog — open term id
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
+  const [anatView, setAnatView] = useState(null); // Anatomi & fysiologi — open entry id
+  const [anatQuery, setAnatQuery] = useState(""); // Anatomi & fysiologi — search
+  const [anatCat, setAnatCat] = useState("alle"); // Anatomi & fysiologi — active subcategory
+  const [farmaSec, setFarmaSec] = useState(null); // Farmakologi — open section id (null = hub)
+  const [farmaItem, setFarmaItem] = useState(null); // Farmakologi — open item within a section
+  const [farmaQuery, setFarmaQuery] = useState(""); // Farmakologi — begreber search
   const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
   const [calcGroup, setCalcGroup] = useState(null); // which calculator group is being shown (medicin | bmi)
   const [calcBack, setCalcBack] = useState(null); // where to return from a calculator (hjem | vaerktoejer | soeg)
@@ -10054,6 +13692,12 @@ function Klario() {
     setActiveQuiz(null);
     setQuizCat(null);
     setQuizMsg(null);
+    setAnatView(null);
+    setAnatQuery("");
+    setAnatCat("alle");
+    setFarmaSec(null);
+    setFarmaItem(null);
+    setFarmaQuery("");
     setNoteModal(false);
     setDeleteNoteId(null);
     setDocMenu(null);
@@ -10442,6 +14086,8 @@ function Klario() {
   const procResults = procQ ? PLEJE_PROCS.filter(p => procText(p).includes(procQ)) : [];
   const termQ = termQuery.trim().toLowerCase();
   const termResults = termQ ? TERMS.filter(t => termText(t).includes(termQ)) : [];
+  const anatHits = termQ ? anatSearch(termQuery) : [];
+  const anatResults = anatQuery.trim() ? anatSearch(anatQuery) : [];
   const openProc = id => {
     setScreen("plejeprocedurer");
     setProcView(id);
@@ -10454,9 +14100,36 @@ function Klario() {
     setProcView(null);
     scrollTop();
   };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat";
+  const openAnat = id => {
+    setScreen("anatomi");
+    setAnatView(id);
+    scrollTop();
+  };
+  const openAnatHome = () => {
+    setScreen("anatomi");
+    setAnatView(null);
+    scrollTop();
+  };
+  const openFarma = () => {
+    setScreen("farmakologi");
+    setFarmaSec(null);
+    setFarmaItem(null);
+    setFarmaQuery("");
+    scrollTop();
+  };
+  const openFarmaSec = id => {
+    if (id === "test") {
+      openTestKat("farmakologi");
+      return;
+    }
+    setScreen("farmakologi");
+    setFarmaSec(id);
+    setFarmaItem(null);
+    scrollTop();
+  };
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat" || screen === "anatomi" || screen === "farmakologi";
   const curCase = caseView ? caseById(caseView) : null;
-  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : curTerm ? curTerm.term : "Fagligt sprog";
+  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : screen === "anatomi" ? "Anatomi & fysiologi" : screen === "farmakologi" ? farmaSec ? (FARMA_SECTIONS.find(x => x.id === farmaSec) || {}).title || "Farmakologi" : "Farmakologi" : curTerm ? curTerm.term : "Fagligt sprog";
   const pfBack = () => {
     if (screen === "plejeprocedurer" && procView) {
       setProcView(null);
@@ -10465,6 +14138,32 @@ function Klario() {
     }
     if (screen === "fagligtsprog" && termView) {
       setTermView(null);
+      scrollTop();
+      return;
+    }
+    if (screen === "anatomi" && anatView) {
+      setAnatView(null);
+      scrollTop();
+      return;
+    }
+    if (screen === "anatomi") {
+      setScreen("kategorier");
+      scrollTop();
+      return;
+    }
+    if (screen === "farmakologi" && farmaItem) {
+      setFarmaItem(null);
+      scrollTop();
+      return;
+    }
+    if (screen === "farmakologi" && farmaSec) {
+      setFarmaSec(null);
+      setFarmaQuery("");
+      scrollTop();
+      return;
+    }
+    if (screen === "farmakologi") {
+      setScreen("kategorier");
       scrollTop();
       return;
     }
@@ -11944,6 +15643,63 @@ function Klario() {
   }, "Dosis, styrke og infusion.")), /*#__PURE__*/React.createElement(ChevronRight, {
     size: 20,
     color: C.inkFaint
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setScreen("farmakologi");
+      setFarmaSec("halveringstid");
+      setFarmaItem(null);
+      scrollTop();
+    },
+    "aria-label": "Medicinens halveringstid",
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 16,
+      padding: "13px 14px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 11,
+      minHeight: 60
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 42,
+      height: 42,
+      borderRadius: 12,
+      background: tint("#7A5AF5", "16"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Clock, {
+    size: 21,
+    color: "#5B37C7",
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Medicinens halveringstid (T\xBD)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 1
+    }
+  }, "Forst\xE5 T\xBD og pr\xF8v beregneren")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 19,
+    color: C.inkFaint
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
@@ -12806,7 +16562,9 @@ function Klario() {
     const quizHub = qs2.includes("quiz") || qs2.includes("test din viden") || qs2 === "test";
     const quizCats = DATA.filter(c => makeCategoryQuiz(c.id) && qs2.includes(c.title.toLowerCase()) && (qs2.includes("quiz") || qs2.includes("test") || true)).map(c => c.id);
     const showHub = quizHub && quizCats.length === 0;
-    const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0);
+    const anatHitsQ = anatSearch(query);
+    const farmaHitsQ = farmaSearch(query);
+    const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0) + anatHitsQ.length + farmaHitsQ.length;
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 13,
@@ -12997,7 +16755,119 @@ function Klario() {
       onFav: () => toggleFav(card.id),
       onQuiz: setActiveQuiz,
       onCase: openCase
-    })), total === 0 && /*#__PURE__*/React.createElement("p", {
+    })), anatHitsQ.map(a => /*#__PURE__*/React.createElement("button", {
+      key: "an-" + a.id,
+      onClick: () => openAnat(a.id),
+      style: {
+        textAlign: "left",
+        border: `1px solid ${C.line}`,
+        background: C.surface,
+        borderRadius: 18,
+        padding: 13,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        boxShadow: "0 1px 3px rgba(21,33,43,0.05)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        background: tint("#0FAE9E", "14"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Activity, {
+      size: 20,
+      color: "#0B9488",
+      strokeWidth: 2.1
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#0B9488",
+        marginBottom: 1
+      }
+    }, "Anatomi & fysiologi"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: C.ink
+      }
+    }, a.daglig, a.latin && a.latin !== a.daglig ? " · " + a.latin : "")), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 18,
+      color: C.inkFaint
+    }))), farmaHitsQ.map(h => /*#__PURE__*/React.createElement("button", {
+      key: "fa-" + h.kind + "-" + h.id,
+      onClick: () => {
+        if (h.kind === "term") {
+          setScreen("farmakologi");
+          setFarmaSec("begreber");
+          setFarmaItem(null);
+          setFarmaQuery(h.title);
+          scrollTop();
+        } else {
+          openFarmaSec(h.id);
+        }
+      },
+      style: {
+        textAlign: "left",
+        border: `1px solid ${C.line}`,
+        background: C.surface,
+        borderRadius: 18,
+        padding: 13,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        boxShadow: "0 1px 3px rgba(21,33,43,0.05)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        background: tint("#7A5AF5", "14"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Pill, {
+      size: 20,
+      color: "#7A5AF5",
+      strokeWidth: 2.1
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#7A5AF5",
+        marginBottom: 1
+      }
+    }, "Farmakologi"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: C.ink
+      }
+    }, h.title)), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 18,
+      color: C.inkFaint
+    }))), total === 0 && /*#__PURE__*/React.createElement("p", {
       style: {
         textAlign: "center",
         color: C.inkFaint,
@@ -13580,7 +17450,7 @@ function Klario() {
       color: C.inkSoft,
       marginBottom: 11
     }
-  }, termResults.length, " ", termResults.length === 1 ? "resultat" : "resultater"), /*#__PURE__*/React.createElement("div", {
+  }, termResults.length + anatHits.length, " ", termResults.length + anatHits.length === 1 ? "resultat" : "resultater"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -13590,14 +17460,36 @@ function Klario() {
     key: t.id,
     t: t,
     onOpen: openTerm
-  })), termResults.length === 0 && /*#__PURE__*/React.createElement("p", {
+  })), termResults.length === 0 && anatHits.length === 0 && /*#__PURE__*/React.createElement("p", {
     style: {
       textAlign: "center",
       color: C.inkFaint,
       fontSize: 14,
       padding: "24px 0"
     }
-  }, "Ingen ord matcher \\u201E", termQuery, "\\u201C."))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "Ingen ord matcher \\u201E", termQuery, "\\u201C.")), anatHits.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkFaint,
+      letterSpacing: 0.3,
+      marginBottom: 9
+    }
+  }, "ANATOMI & FYSIOLOGI"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, anatHits.map(a => /*#__PURE__*/React.createElement(AnatCard, {
+    key: a.id,
+    a: a,
+    onOpen: openAnat
+  }))))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 16
     }
@@ -13779,7 +17671,1119 @@ function Klario() {
   }, /*#__PURE__*/React.createElement(TermDetail, {
     t: curTerm,
     onProc: openProc
-  })), !activeCat && screen === "kategorier" && /*#__PURE__*/React.createElement("div", {
+  })), !activeCat && screen === "anatomi" && (anatView && anatById(anatView) ? /*#__PURE__*/React.createElement("div", {
+    key: anatView,
+    className: "anim"
+  }, /*#__PURE__*/React.createElement(AnatDetail, {
+    a: anatById(anatView),
+    onCat: openCategory,
+    onTest: openTestKat
+  })) : /*#__PURE__*/React.createElement("div", {
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 14px",
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Sl\xE5 kropsdele, organer og faglige/latinske betegnelser op."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(C.ink, "06"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 19,
+    color: C.inkSoft
+  }), /*#__PURE__*/React.createElement("input", {
+    value: anatQuery,
+    onChange: e => setAnatQuery(e.target.value),
+    placeholder: "S\xF8g kropsdel, organ eller fagligt ord\u2026",
+    "aria-label": "S\xF8g i anatomi",
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 15,
+      color: C.ink,
+      background: "transparent",
+      fontFamily: "inherit"
+    }
+  }), anatQuery && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAnatQuery(""),
+    "aria-label": "Ryd s\xF8gning",
+    style: {
+      border: "none",
+      background: tint(C.ink, "12"),
+      borderRadius: 99,
+      padding: 4,
+      display: "flex",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 15,
+    color: C.inkSoft
+  }))), anatQuery.trim() ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginBottom: 11
+    }
+  }, anatResults.length, " ", anatResults.length === 1 ? "resultat" : "resultater"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, anatResults.map(a => /*#__PURE__*/React.createElement(AnatCard, {
+    key: a.id,
+    a: a,
+    onOpen: openAnat
+  })), anatResults.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: "center",
+      color: C.inkFaint,
+      fontSize: 14,
+      padding: "24px 0"
+    }
+  }, "Ingen match p\xE5 \\u201E", anatQuery, "\\u201C."))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      overflowX: "auto",
+      paddingBottom: 4,
+      marginBottom: 14,
+      WebkitOverflowScrolling: "touch"
+    }
+  }, ANAT_SUBS.map(sc => {
+    const on = anatCat === sc.id;
+    return /*#__PURE__*/React.createElement("button", {
+      key: sc.id,
+      onClick: () => setAnatCat(sc.id),
+      style: {
+        flexShrink: 0,
+        border: `1px solid ${on ? "#0FAE9E" : C.line}`,
+        background: on ? tint("#0FAE9E", "12") : C.surface,
+        color: on ? "#0B9488" : C.inkSoft,
+        borderRadius: 99,
+        padding: "7px 13px",
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        whiteSpace: "nowrap"
+      }
+    }, sc.label);
+  })), anatCat === "alle" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, ANAT_SUBS.filter(sc => sc.id !== "alle").map(sc => {
+    const n = anatBySub(sc.id).length;
+    return /*#__PURE__*/React.createElement("button", {
+      key: sc.id,
+      onClick: () => setAnatCat(sc.id),
+      "aria-label": sc.label,
+      style: {
+        width: "100%",
+        textAlign: "left",
+        border: `1px solid ${C.line}`,
+        background: C.surface,
+        borderRadius: 14,
+        padding: 14,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+        minHeight: 58
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 700,
+        color: C.ink
+      }
+    }, sc.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        marginTop: 1
+      }
+    }, n, " opslag")), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 18,
+      color: C.inkFaint
+    }));
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => openTestKat("anatomi"),
+    style: {
+      width: "100%",
+      border: "none",
+      borderRadius: 14,
+      padding: "13px",
+      background: "linear-gradient(135deg,#2BC7B4,#0B9488)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 50,
+      marginTop: 4
+    }
+  }, "Test din viden om anatomi")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkFaint,
+      letterSpacing: 0.3,
+      marginBottom: 10
+    }
+  }, (ANAT_SUBS.find(x => x.id === anatCat) || {}).label.toUpperCase()), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, anatBySub(anatCat).map(a => /*#__PURE__*/React.createElement(AnatCard, {
+    key: a.id,
+    a: a,
+    onOpen: openAnat
+  })))), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 16,
+      lineHeight: 1.5
+    }
+  }, "Latinske betegnelser f\xF8lger g\xE6ngs anatomisk nomenklatur. Er noget uklart, s\xE5 kontroll\xE9r med din uddannelse eller lokale kilder.")))), !activeCat && screen === "farmakologi" && /*#__PURE__*/React.createElement("div", {
+    className: "anim"
+  }, farmaSec === null ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 12px",
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Forst\xE5 hvordan l\xE6gemidler virker i kroppen. L\xE6ringsomr\xE5de \u2014 ikke behandlings- eller doseringsr\xE5d."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#7A5AF5", "0C"),
+      border: `1px solid ${tint("#7A5AF5", "2A")}`,
+      borderRadius: 13,
+      padding: "11px 13px",
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 17,
+    color: "#5B37C7",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, "L\xE6gemiddelspecifikke oplysninger (doser, interaktioner, knusning) sl\xE5s altid op i en godkendt kilde og f\xF8lger ordination og lokale instrukser.")), /*#__PURE__*/React.createElement("a", {
+    href: FARMA_SRC,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: "100%",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "13px 14px",
+      display: "flex",
+      alignItems: "center",
+      gap: 12,
+      marginBottom: 16,
+      minHeight: 58
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: tint("#7A5AF5", "16"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Pill, {
+    size: 20,
+    color: "#7A5AF5",
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, "Medicinopslag"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 1
+    }
+  }, "Sl\xE5 konkrete pr\xE6parater op p\xE5 pro.medicin.dk")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18,
+    color: C.inkFaint
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, FARMA_SECTIONS.map((sec, i) => /*#__PURE__*/React.createElement("button", {
+    key: sec.id,
+    onClick: () => openFarmaSec(sec.id),
+    "aria-label": sec.title,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 14,
+      padding: 14,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 13,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+      minHeight: 60
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 30,
+      height: 30,
+      borderRadius: 9,
+      background: tint("#7A5AF5", "12"),
+      color: "#5B37C7",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+      fontSize: 13,
+      fontWeight: 800
+    }
+  }, i + 1), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 700,
+      color: C.ink,
+      lineHeight: 1.25
+    }
+  }, sec.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.inkSoft,
+      marginTop: 1
+    }
+  }, sec.sub)), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18,
+    color: C.inkFaint
+  }))))) : farmaSec === "vej" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "F\xF8lg en tablet trin for trin. Tryk p\xE5 et trin for at l\xE6se mere."), /*#__PURE__*/React.createElement(FarmaFlow, {
+    steps: FARMA_JOURNEY.map(s => s.t)
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.inkFaint,
+      letterSpacing: 0.3,
+      margin: "6px 0 2px"
+    }
+  }, "TRIN FOR TRIN"), FARMA_JOURNEY.map((s, i) => /*#__PURE__*/React.createElement(Acc, {
+    key: i,
+    title: i + 1 + ". " + s.t
+  }, /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: s.q,
+    more: s.m
+  })))) : farmaSec === "adme" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "ADME beskriver, hvad kroppen g\xF8r ved l\xE6gemidlet."), FARMA_ADME.map(a => /*#__PURE__*/React.createElement("div", {
+    key: a.k,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 11,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+      color: "#fff",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: 16,
+      fontWeight: 800,
+      flexShrink: 0
+    }
+  }, a.k), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15.5,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, a.title)), /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: a.q,
+    more: a.m
+  })))) : farmaSec === "dynamik" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "Farmakodynamik: hvad l\xE6gemidlet g\xF8r ved kroppen."), FARMA_DYN.map((d, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 6
+    }
+  }, d.term), /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: d.q,
+    more: d.m
+  })))) : farmaSec === "admin" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "Hvor og hvordan medicin gives. SC/IM/IV kr\xE6ver kompetence, delegation og lokale instrukser."), FARMA_ROUTES.map(r => /*#__PURE__*/React.createElement(Acc, {
+    key: r.id,
+    title: r.name + " — " + r.full
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9,
+      fontSize: 13.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Hvor:"), " ", r.hvor), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Hvordan:"), " ", r.hvordan), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Karakteristika:"), " ", r.kar), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "SSA-observationer:"), /*#__PURE__*/React.createElement(Bullets, {
+    items: r.obs,
+    color: "#7A5AF5"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Sikkerhed:"), /*#__PURE__*/React.createElement(Bullets, {
+    items: r.sik,
+    color: C.primary
+  })))))) : farmaSec === "former" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#B7791F", "10"),
+      border: `1px solid ${tint("#B7791F", "2A")}`,
+      borderRadius: 12,
+      padding: "11px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 17,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: "#7A4E0A",
+      lineHeight: 1.5
+    }
+  }, "Kontroll\xE9r altid det konkrete pr\xE6parat f\xF8r deling, knusning eller \xE5bning \u2014 brug en godkendt kilde og lokale instrukser.")), FARMA_FORMS.map(f => /*#__PURE__*/React.createElement(Acc, {
+    key: f.id,
+    title: f.name
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      fontSize: 13.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Hvad er det?"), " ", f.hvad), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Anvendelse:"), " ", f.brug), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("b", null, "Frigivelse/optagelse:"), " ", f.frig), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: "#7A4E0A"
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Vigtigt:"), " ", f.vig))))) : farmaSec === "tid" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "Hvorn\xE5r og hvor l\xE6nge virker medicinen?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "12px 10px"
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 300 120",
+    style: {
+      width: "100%",
+      height: "auto"
+    },
+    role: "img",
+    "aria-label": "Koncentration over tid"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "30",
+    y1: "100",
+    x2: "290",
+    y2: "100",
+    stroke: "#C9D2D8",
+    strokeWidth: "1.5"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "30",
+    y1: "10",
+    x2: "30",
+    y2: "100",
+    stroke: "#C9D2D8",
+    strokeWidth: "1.5"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M30 100 Q 90 15 150 40 Q 210 60 290 92",
+    fill: "none",
+    stroke: "#7A5AF5",
+    strokeWidth: "2.5"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "96",
+    cy: "34",
+    r: "3.5",
+    fill: "#5B37C7"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "102",
+    y: "30",
+    fontSize: "10",
+    fill: "#5B6A73"
+  }, "Maks. effekt"), /*#__PURE__*/React.createElement("text", {
+    x: "150",
+    y: "115",
+    fontSize: "10",
+    fill: "#5B6A73",
+    textAnchor: "middle"
+  }, "Tid \u2192"), /*#__PURE__*/React.createElement("text", {
+    x: "20",
+    y: "20",
+    fontSize: "10",
+    fill: "#5B6A73",
+    textAnchor: "end",
+    transform: "rotate(-90 20 20)"
+  }, "Koncentration")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      textAlign: "center",
+      marginTop: 4
+    }
+  }, "Forenklet illustration \u2014 konkret forl\xF8b varierer fra l\xE6gemiddel til l\xE6gemiddel.")), FARMA_TIMING.map((t, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 6
+    }
+  }, t.term), /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: t.q,
+    more: t.m
+  })))) : farmaSec === "halveringstid" ? /*#__PURE__*/React.createElement(HalfLifeView, {
+    onTest: openTestKat
+  }) : farmaSec === "bivirk" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "N\xE5r medicin g\xF8r andet end det \xF8nskede. Konkrete bivirkninger, interaktioner og kontraindikationer sl\xE5s op i godkendt kilde."), FARMA_ADVERSE.map((d, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      padding: "13px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 6
+    }
+  }, d.term), /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: d.q,
+    more: d.m
+  }))), /*#__PURE__*/React.createElement("a", {
+    href: FARMA_SRC,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint("#7A5AF5", "33")}`,
+      background: tint("#7A5AF5", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: "#5B37C7",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Pill, {
+    size: 17,
+    color: "#7A5AF5"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Sl\xE5 op p\xE5 pro.medicin.dk"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#7A5AF5"
+  })))) : farmaSec === "lever" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: FARMA_LEVER.quick
+  }), /*#__PURE__*/React.createElement(Bullets, {
+    items: FARMA_LEVER.points,
+    color: "#7A5AF5"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => openAnat(FARMA_LEVER.anat),
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${tint("#0FAE9E", "33")}`,
+      background: tint("#0FAE9E", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#0B9488",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 17,
+    color: "#0B9488"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Se ogs\xE5 \u2192 Lever (anatomi & fysiologi)"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#0B9488"
+  }))) : farmaSec === "nyrer" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: FARMA_NYRER.quick
+  }), /*#__PURE__*/React.createElement(Bullets, {
+    items: FARMA_NYRER.points,
+    color: "#7A5AF5"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => openAnat(FARMA_NYRER.anat),
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${tint("#0FAE9E", "33")}`,
+      background: tint("#0FAE9E", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#0B9488",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 17,
+    color: "#0B9488"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Se ogs\xE5 \u2192 Nyrer (anatomi & fysiologi)"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#0B9488"
+  }))) : farmaSec === "aeldre" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement(FarmaTwo, {
+    quick: FARMA_AELDRE.quick
+  }), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hvorfor reagerer \xE6ldre anderledes?",
+    defaultOpen: true
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: FARMA_AELDRE.hvorfor,
+    color: "#7A5AF5"
+  })), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hvad skal jeg observere?"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: FARMA_AELDRE.obs,
+    color: C.primary
+  }))) : farmaSec === "sikkerhed" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "Sikker medicinh\xE5ndtering. Handl inden for din delegation og arbejdsstedets instrukser."), FARMA_SAFETY.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      background: C.surface,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, s.t), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft,
+      marginTop: 3,
+      lineHeight: 1.5
+    }
+  }, s.d))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint(C.primary, "0A"),
+      border: `1px solid ${tint(C.primary, "22")}`,
+      borderRadius: 12,
+      padding: "11px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: C.primary,
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, "Meget afh\xE6nger af lokale instrukser og delegation \u2014 dem f\xF8lger du altid."))) : farmaSec === "obs" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 0
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "0 0 12px",
+      fontSize: 14,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "En praktisk husker\xE6kke, n\xE5r du h\xE5ndterer medicin."), FARMA_OBS.map((o, i) => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint("#7A5AF5", "2A")}`,
+      background: tint("#7A5AF5", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 800,
+      color: "#5B37C7"
+    }
+  }, o.t), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      color: C.ink,
+      marginTop: 3,
+      lineHeight: 1.5
+    }
+  }, o.d)), i < FARMA_OBS.length - 1 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      color: "#7A5AF5",
+      fontSize: 16,
+      padding: "3px 0"
+    }
+  }, "\u2193") : null)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#B7791F", "10"),
+      border: `1px solid ${tint("#B7791F", "2A")}`,
+      borderRadius: 12,
+      padding: "11px 13px",
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: "#7A4E0A",
+      lineHeight: 1.5
+    }
+  }, "Observationer og handlinger m\xE5 ikke tilsides\xE6tte ordination, delegation eller lokale procedurer."))) : farmaSec === "furosemid" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#7A5AF5", "0C"),
+      border: `1px solid ${tint("#7A5AF5", "2A")}`,
+      borderRadius: 12,
+      padding: "11px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: "#5B37C7",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, "L\xE6ringseksempel med generel, verificerbar virkningsmekanisme. Indikation, dosis og behandling afh\xE6nger af ordination \u2014 ", FARMA_VERIFY)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, FARMA_FUROSEMID.navn), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.inkSoft
+    }
+  }, FARMA_FUROSEMID.gruppe), /*#__PURE__*/React.createElement(FarmaFlow, {
+    steps: FARMA_FUROSEMID.chain
+  }), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hvorfor gives det?"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, FARMA_FUROSEMID.hvorfor)), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hvad sker der fysiologisk?"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, FARMA_FUROSEMID.fysiologi)), /*#__PURE__*/React.createElement(Acc, {
+    title: "Hvad kan v\xE6re relevant at observere?"
+  }, /*#__PURE__*/React.createElement(Bullets, {
+    items: FARMA_FUROSEMID.obs,
+    color: "#7A5AF5"
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => openAnat("a-nyrer"),
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${tint("#0FAE9E", "33")}`,
+      background: tint("#0FAE9E", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 700,
+      color: "#0B9488",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 17,
+    color: "#0B9488"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Se ogs\xE5 \u2192 Nyrer (anatomi & fysiologi)"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#0B9488"
+  })), /*#__PURE__*/React.createElement("a", {
+    href: FARMA_SRC,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${tint("#7A5AF5", "33")}`,
+      background: tint("#7A5AF5", "0A"),
+      borderRadius: 12,
+      padding: "12px 14px",
+      fontSize: 13.5,
+      fontWeight: 700,
+      color: "#5B37C7",
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement(Pill, {
+    size: 17,
+    color: "#7A5AF5"
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1
+    }
+  }, "Sl\xE5 Furix/furosemid op p\xE5 pro.medicin.dk"), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 16,
+    color: "#7A5AF5"
+  })))) : farmaSec === "begreber" ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 10,
+      padding: "12px 14px",
+      background: tint(C.ink, "06"),
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 19,
+    color: C.inkSoft
+  }), /*#__PURE__*/React.createElement("input", {
+    value: farmaQuery,
+    onChange: e => setFarmaQuery(e.target.value),
+    placeholder: "S\xF8g fagligt ord, fx halveringstid\u2026",
+    "aria-label": "S\xF8g i farmakologiske begreber",
+    style: {
+      flex: 1,
+      border: "none",
+      outline: "none",
+      fontSize: 15,
+      color: C.ink,
+      background: "transparent",
+      fontFamily: "inherit"
+    }
+  }), farmaQuery && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setFarmaQuery(""),
+    "aria-label": "Ryd s\xF8gning",
+    style: {
+      border: "none",
+      background: tint(C.ink, "12"),
+      borderRadius: 99,
+      padding: 4,
+      display: "flex",
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 15,
+    color: C.inkSoft
+  }))), (() => {
+    const list = farmaQuery.trim() ? farmaTermSearch(farmaQuery) : FARMA_TERMS;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 9
+      }
+    }, list.map(t => /*#__PURE__*/React.createElement(Acc, {
+      key: t.id,
+      title: t.term
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        color: C.ink,
+        lineHeight: 1.55
+      }
+    }, t.forklaring), t.eksempel ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: C.inkSoft,
+        marginTop: 7,
+        lineHeight: 1.5
+      }
+    }, /*#__PURE__*/React.createElement("b", null, "Eksempel:"), " ", t.eksempel) : null, t.related && t.related.length ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: "#5B37C7",
+        marginTop: 7
+      }
+    }, "Relateret: ", t.related.join(", ")) : null)), list.length === 0 && /*#__PURE__*/React.createElement("p", {
+      style: {
+        textAlign: "center",
+        color: C.inkFaint,
+        fontSize: 14,
+        padding: "24px 0"
+      }
+    }, "Ingen begreber matcher \\u201E", farmaQuery, "\\u201C."));
+  })()) : null, farmaSec && farmaSec !== "begreber" && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 18,
+      lineHeight: 1.5
+    }
+  }, "Klario er et l\xE6rings- og opslagsv\xE6rkt\xF8j. L\xE6gemiddelspecifik information verificeres i godkendt kilde og f\xF8lger ordination og lokale instrukser.")), !activeCat && screen === "kategorier" && /*#__PURE__*/React.createElement("div", {
     className: "anim"
   }, /*#__PURE__*/React.createElement("h2", {
     style: {
@@ -13879,6 +18883,20 @@ function Klario() {
       setScreen("plejeprocedurer");
       scrollTop();
     }
+  }), /*#__PURE__*/React.createElement(GridTile, {
+    cat: ANATOMI_CAT,
+    count: ANAT.length,
+    onClick: () => {
+      setAnatView(null);
+      setAnatQuery("");
+      setAnatCat("alle");
+      setScreen("anatomi");
+      scrollTop();
+    }
+  }), /*#__PURE__*/React.createElement(GridTile, {
+    cat: FARMA_CAT,
+    count: FARMA_SECTIONS.length - 1,
+    onClick: openFarma
   }), DATA.map(cat => /*#__PURE__*/React.createElement("button", {
     key: cat.id,
     onClick: () => openCategory(cat.id),
