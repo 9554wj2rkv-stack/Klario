@@ -6065,6 +6065,346 @@ function BmiBeregner() {
     }
   }, "BMI beskriver forholdet mellem v\xE6gt og h\xF8jde, men siger ikke direkte noget om muskelmasse, fedtfordeling eller individuel helbredstilstand. Brug det kun som et screenings-/referencem\xE5l \u2014 ikke som en diagnose.")));
 }
+function calculateBP(rows, method) {
+  for (let i = 0; i < 3; i++) {
+    const r = rows[i];
+    if (!Number.isFinite(r.s) || !Number.isFinite(r.d)) return {
+      error: "Udfyld både systolisk og diastolisk for alle tre målinger."
+    };
+    if (!(r.s >= 50 && r.s <= 300)) return {
+      error: "Måling " + (i + 1) + ": systolisk skal være mellem 50 og 300 mmHg."
+    };
+    if (!(r.d >= 30 && r.d <= 200)) return {
+      error: "Måling " + (i + 1) + ": diastolisk skal være mellem 30 og 200 mmHg."
+    };
+    if (!(r.s > r.d)) return {
+      error: "Måling " + (i + 1) + ": systolisk skal være større end diastolisk."
+    };
+  }
+  const idx = method === "alle" ? [0, 1, 2] : [1, 2];
+  const sysAvg = idx.reduce((a, i) => a + rows[i].s, 0) / idx.length;
+  const diaAvg = idx.reduce((a, i) => a + rows[i].d, 0) / idx.length;
+  const devSys = Math.abs(rows[1].s - rows[2].s);
+  const devDia = Math.abs(rows[1].d - rows[2].d);
+  // round ONLY the final result
+  return {
+    sysAvg: sysAvg,
+    diaAvg: diaAvg,
+    sysR: Math.round(sysAvg),
+    diaR: Math.round(diaAvg),
+    idx: idx,
+    devSys: devSys,
+    devDia: devDia,
+    warn: devSys > 5 || devDia > 5
+  };
+}
+const BT_GUIDE_URL = "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/undersoegelser-og-proever/kliniske-procedurer/hjertekar/blodtryksmaaling/";
+function BlodtryksBeregner() {
+  const [s1, setS1] = useState("");
+  const [d1, setD1] = useState("");
+  const [s2, setS2] = useState("");
+  const [d2, setD2] = useState("");
+  const [s3, setS3] = useState("");
+  const [d3, setD3] = useState("");
+  const [method, setMethod] = useState("2og3");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const reset = () => {
+    setS1("");
+    setD1("");
+    setS2("");
+    setD2("");
+    setS3("");
+    setD3("");
+    setMethod("2og3");
+    setRes(null);
+    setErr("");
+  };
+  const calc = () => {
+    setRes(null);
+    setErr("");
+    const rows = [{
+      s: parseNum(s1),
+      d: parseNum(d1)
+    }, {
+      s: parseNum(s2),
+      d: parseNum(d2)
+    }, {
+      s: parseNum(s3),
+      d: parseNum(d3)
+    }];
+    const r = calculateBP(rows, method);
+    if (r.error) {
+      setErr(r.error);
+      return;
+    }
+    const lbl = method === "alle" ? "Gennemsnit af alle tre målinger" : "Gennemsnit af måling 2 og 3 (standard)";
+    const sNums = r.idx.map(i => fmtNum(rows[i].s)).join(" + ");
+    const dNums = r.idx.map(i => fmtNum(rows[i].d)).join(" + ");
+    const n = r.idx.length;
+    const udregning = "Systolisk: (" + sNums + ") ÷ " + n + " = " + fmtNum(r.sysAvg, 2) + " → afrundet " + r.sysR + ". Diastolisk: (" + dNums + ") ÷ " + n + " = " + fmtNum(r.diaAvg, 2) + " → afrundet " + r.diaR + ".";
+    setRes({
+      method: lbl,
+      udregning: udregning,
+      sysR: r.sysR,
+      diaR: r.diaR,
+      warn: r.warn,
+      devSys: r.devSys,
+      devDia: r.devDia
+    });
+  };
+  const INP = {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid " + C.line,
+    borderRadius: 11,
+    padding: "12px 13px",
+    fontSize: 16,
+    color: C.ink,
+    background: C.surface,
+    fontFamily: "inherit",
+    outline: "none"
+  };
+  const bpRow = (n, sv, setS, dv, setD, hint) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid " + C.line,
+      borderRadius: 14,
+      padding: "12px 13px",
+      background: C.surface
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 9,
+      flexWrap: "wrap"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, "M\xE5ling ", n), hint ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: C.inkFaint
+    }
+  }, hint) : null), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      fontWeight: 600,
+      color: C.inkSoft,
+      marginBottom: 5
+    }
+  }, "Systolisk (\xF8vre)"), /*#__PURE__*/React.createElement("input", {
+    value: sv,
+    onChange: e => setS(e.target.value),
+    inputMode: "numeric",
+    placeholder: "fx 138",
+    "aria-label": "Måling " + n + " systolisk",
+    style: INP
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      fontWeight: 600,
+      color: C.inkSoft,
+      marginBottom: 5
+    }
+  }, "Diastolisk (nedre)"), /*#__PURE__*/React.createElement("input", {
+    value: dv,
+    onChange: e => setD(e.target.value),
+    inputMode: "numeric",
+    placeholder: "fx 86",
+    "aria-label": "Måling " + n + " diastolisk",
+    style: INP
+  }))));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 13,
+      paddingBottom: 90
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      fontSize: 13,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Indtast tre blodtryksm\xE5linger. Beregneren viser gennemsnittet i mmHg og runder f\xF8rst det endelige resultat af. Ingen data gemmes."), bpRow(1, s1, setS1, d1, setD1, "indgår ikke i standard-gennemsnittet"), bpRow(2, s2, setS2, d2, setD2, ""), bpRow(3, s3, setS3, d3, setD3, ""), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 600,
+      color: C.inkSoft,
+      marginBottom: 7
+    }
+  }, "Beregningsmetode"), /*#__PURE__*/React.createElement(CSeg, {
+    opts: [{
+      v: "2og3",
+      l: "Gns. af måling 2 og 3 (standard)"
+    }, {
+      v: "alle",
+      l: "Gns. af alle tre"
+    }],
+    val: method,
+    set: v => {
+      setMethod(v);
+      setRes(null);
+    }
+  })), /*#__PURE__*/React.createElement(CActions, {
+    onCalc: calc,
+    onReset: reset
+  }), err && /*#__PURE__*/React.createElement(CError, {
+    msg: err
+  }), res && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 11
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid " + tint(C.primary, "33"),
+      background: tint(C.primary, "0A"),
+      borderRadius: 16,
+      padding: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, "Gennemsnitsblodtryk"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 34,
+      fontWeight: 800,
+      color: C.ink,
+      letterSpacing: -0.5,
+      marginTop: 2
+    }
+  }, res.sysR, "/", res.diaR, " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: C.inkSoft
+    }
+  }, "mmHg")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 11,
+      paddingTop: 11,
+      borderTop: "1px solid " + tint(C.primary, "22")
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.ink,
+      lineHeight: 1.5
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Metode:"), " ", res.method), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.ink,
+      lineHeight: 1.55,
+      marginTop: 5
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Udregning:"), " ", res.udregning))), res.warn && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      background: tint("#B7791F", "12"),
+      border: "1px solid " + tint("#B7791F", "33"),
+      borderRadius: 13,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 18,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      lineHeight: 1.5,
+      color: "#7A4E0A"
+    }
+  }, "M\xE5ling 2 og 3 afviger mere end 5 mmHg (systolisk ", res.devSys, ", diastolisk ", res.devDia, "). Overvej supplerende m\xE5linger efter g\xE6ldende procedure."))), /*#__PURE__*/React.createElement("a", {
+    href: BT_GUIDE_URL,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid " + tint(C.primary, "33"),
+      background: tint(C.primary, "0A"),
+      borderRadius: 13,
+      padding: "12px 14px",
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 18,
+    color: C.primary,
+    style: {
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13.5,
+      fontWeight: 800,
+      color: C.primary
+    }
+  }, "Vejledning om blodtryksm\xE5ling (Sundhed.dk)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkSoft
+    }
+  }, "L\xE6geh\xE5ndbogen \xB7 faglig reference")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 17,
+    color: C.primary
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      background: tint(C.primary, "0A"),
+      border: "1px solid " + tint(C.primary, "22"),
+      borderRadius: 13,
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 17,
+    color: C.primary,
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      lineHeight: 1.5,
+      color: C.ink
+    }
+  }, "En fuld hjemmeblodtryksunders\xF8gelse kr\xE6ver normalt m\xE5linger b\xE5de morgen og aften over flere dage. Denne beregner udregner kun gennemsnittet af \xE9n m\xE5leserie. Den stiller ikke diagnoser og giver ingen behandlingsforslag \u2014 f\xF8lg altid lokal procedure og faglig vurdering.")));
+}
 const CALC_TOOLS = [{
   id: "medicin",
   title: "Medicinberegner",
@@ -6083,6 +6423,12 @@ const CALC_TOOLS = [{
   sub: "Højde + vægt → BMI",
   Icon: Gauge,
   kw: "bmi bmi-beregner højde vægt body mass index"
+}, {
+  id: "blodtryk",
+  title: "Blodtryksberegner",
+  sub: "Gennemsnit af 3 målinger",
+  Icon: Activity,
+  kw: "blodtryk blodtryksberegner systolisk diastolisk mmhg gennemsnit tre maalinger hjemmeblodtryk bt"
 }];
 const calcSearch = q => {
   const s = (q || "").trim().toLowerCase();
@@ -8401,11 +8747,15 @@ const hlFmt = (n, dec) => {
 const MED_SEED = {
   "meta": {
     "schemaVersion": "1.0",
-    "datasetVersion": "2026.10.08-1",
+    "datasetVersion": "2026.10.08-3",
     "publishedAt": "2026-10-08",
     "recordCount": 10,
-    "indexCount": 85,
-    "sources": ["StatPearls (NCBI Bookshelf) — Furosemide", "Produktresumé (HPRA, Irland) — Paracetamol", "FDA-produktinformation — Metoprolol", "FDA-produktinformation — Amlodipin", "FDA-produktinformation — Lanoxin (digoxin)", "FDA-produktinformation — Metformin", "FDA-produktinformation — Altace (ramipril)", "FDA-produktinformation — Protonix (pantoprazol)", "Produktinformation (Pfizer) — Morphine", "FDA-produktinformation — Eliquis (apixaban)"]
+    "verifiedHalfLifeCount": 10,
+    "substanceCount": 152,
+    "indexCount": 319,
+    "halfLifeSources": ["StatPearls (NCBI Bookshelf) — Furosemide", "Produktresumé (HPRA, Irland) — Paracetamol", "FDA-produktinformation — Metoprolol", "FDA-produktinformation — Amlodipin", "FDA-produktinformation — Lanoxin (digoxin)", "FDA-produktinformation — Metformin", "FDA-produktinformation — Altace (ramipril)", "FDA-produktinformation — Protonix (pantoprazol)", "Produktinformation (Pfizer) — Morphine", "FDA-produktinformation — Eliquis (apixaban)"],
+    "nameIndexSource": "Klario kurateret. Officielt dansk indeks fra Lægemiddelstyrelsen kan importeres med kildeangivelse (se tools/import_dkma_index.py).",
+    "attribution": "Halveringstider: se pr. post. Navne-indeks: Klario kurateret; ved officielt import angives Lægemiddelstyrelsen som kilde."
   },
   "records": [{
     "atcCode": null,
@@ -8793,427 +9143,1916 @@ const MED_SEED = {
     "q": "furix",
     "subId": "furosemid",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "diural",
     "subId": "furosemid",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "furosemid",
     "subId": "furosemid",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "lasix",
     "subId": "furosemid",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "panodil",
     "subId": "paracetamol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "pinex",
     "subId": "paracetamol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "pamol",
     "subId": "paracetamol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "paracetamol",
     "subId": "paracetamol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "lanoxin",
     "subId": "digoxin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "digoxin",
     "subId": "digoxin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "metformin",
     "subId": "metformin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "glucophage",
     "subId": "metformin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "metoprolol",
     "subId": "metoprolol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "selo-zok",
     "subId": "metoprolol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "selozok",
     "subId": "metoprolol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "bisoprolol",
     "subId": "bisoprolol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "emconcor",
     "subId": "bisoprolol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "amlodipin",
     "subId": "amlodipin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "norvasc",
     "subId": "amlodipin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "simvastatin",
     "subId": "simvastatin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "zocor",
     "subId": "simvastatin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "atorvastatin",
     "subId": "atorvastatin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "lipitor",
     "subId": "atorvastatin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "warfarin",
     "subId": "warfarin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "marevan",
     "subId": "warfarin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "citalopram",
     "subId": "citalopram",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "cipramil",
     "subId": "citalopram",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "sertralin",
     "subId": "sertralin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "zoloft",
     "subId": "sertralin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "omeprazol",
     "subId": "omeprazol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "losec",
     "subId": "omeprazol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "pantoprazol",
     "subId": "pantoprazol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "pantoloc",
     "subId": "pantoprazol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "levothyroxin",
     "subId": "levothyroxin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "eltroxin",
     "subId": "levothyroxin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "euthyrox",
     "subId": "levothyroxin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "morfin",
     "subId": "morfin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "contalgin",
     "subId": "morfin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "oramorph",
     "subId": "morfin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "oxycodon",
     "subId": "oxycodon",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "oxynorm",
     "subId": "oxycodon",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "oxycontin",
     "subId": "oxycodon",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "targin",
     "subId": "oxycodon",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "tramadol",
     "subId": "tramadol",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "dolol",
     "subId": "tramadol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "mandolgin",
     "subId": "tramadol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "nobligan",
     "subId": "tramadol",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "ramipril",
     "subId": "ramipril",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "triatec",
     "subId": "ramipril",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "enalapril",
     "subId": "enalapril",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "renitec",
     "subId": "enalapril",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "losartan",
     "subId": "losartan",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "cozaar",
     "subId": "losartan",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "apixaban",
     "subId": "apixaban",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "eliquis",
     "subId": "apixaban",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "rivaroxaban",
     "subId": "rivaroxaban",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "xarelto",
     "subId": "rivaroxaban",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "amoxicillin",
     "subId": "amoxicillin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "imacillin",
     "subId": "amoxicillin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "penicillin",
     "subId": "penicillin",
     "type": "synonym",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "primcillin",
     "subId": "penicillin",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "prednisolon",
     "subId": "prednisolon",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "diazepam",
     "subId": "diazepam",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "stesolid",
     "subId": "diazepam",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "valium",
     "subId": "diazepam",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "oxazepam",
     "subId": "oxazepam",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "alopam",
     "subId": "oxazepam",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "insulin",
     "subId": "insulin",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "novorapid",
     "subId": "insulin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "levemir",
     "subId": "insulin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "lantus",
     "subId": "insulin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "tresiba",
     "subId": "insulin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "actrapid",
     "subId": "insulin",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "acetylsalicylsyre",
     "subId": "acetylsalicylsyre",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "hjertemagnyl",
     "subId": "acetylsalicylsyre",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "magnyl",
     "subId": "acetylsalicylsyre",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "aspirin",
     "subId": "acetylsalicylsyre",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "ibuprofen",
     "subId": "ibuprofen",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "ipren",
     "subId": "ibuprofen",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "brufen",
     "subId": "ibuprofen",
     "type": "brand",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "kaliumklorid",
     "subId": "kaliumklorid",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "kaleorid",
     "subId": "kaliumklorid",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "isosorbidmononitrat",
     "subId": "isosorbidmononitrat",
     "type": "substance",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
   }, {
     "q": "imdur",
     "subId": "isosorbidmononitrat",
     "type": "brand",
-    "region": "DK"
+    "region": "DK",
+    "source": "Klario kurateret"
   }, {
     "q": "isosorbid",
     "subId": "isosorbidmononitrat",
     "type": "synonym",
-    "region": null
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "carvedilol",
+    "subId": "carvedilol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "atenolol",
+    "subId": "atenolol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "verapamil",
+    "subId": "verapamil",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "isoptin",
+    "subId": "verapamil",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "diltiazem",
+    "subId": "diltiazem",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "nifedipin",
+    "subId": "nifedipin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "adalat",
+    "subId": "nifedipin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "felodipin",
+    "subId": "felodipin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "plendil",
+    "subId": "felodipin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "candesartan",
+    "subId": "candesartan",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "atacand",
+    "subId": "candesartan",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "valsartan",
+    "subId": "valsartan",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "diovan",
+    "subId": "valsartan",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "telmisartan",
+    "subId": "telmisartan",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "micardis",
+    "subId": "telmisartan",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lercanidipin",
+    "subId": "lercanidipin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zanidip",
+    "subId": "lercanidipin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "bendroflumethiazid",
+    "subId": "bendroflumethiazid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "centyl",
+    "subId": "bendroflumethiazid",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "hydrochlorthiazid",
+    "subId": "hydrochlorthiazid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "hydrochlorothiazid",
+    "subId": "hydrochlorthiazid",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "clopidogrel",
+    "subId": "clopidogrel",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "plavix",
+    "subId": "clopidogrel",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "amiodaron",
+    "subId": "amiodaron",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cordarone",
+    "subId": "amiodaron",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "sotalol",
+    "subId": "sotalol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dabigatran",
+    "subId": "dabigatran",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "pradaxa",
+    "subId": "dabigatran",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "edoxaban",
+    "subId": "edoxaban",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lixiana",
+    "subId": "edoxaban",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "rosuvastatin",
+    "subId": "rosuvastatin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "crestor",
+    "subId": "rosuvastatin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "pravastatin",
+    "subId": "pravastatin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ezetimibe",
+    "subId": "ezetimibe",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ezetrol",
+    "subId": "ezetimibe",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "spironolacton",
+    "subId": "spironolacton",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "spiron",
+    "subId": "spironolacton",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "bumetanid",
+    "subId": "bumetanid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "burinex",
+    "subId": "bumetanid",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "nitroglycerin",
+    "subId": "nitroglycerin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "glyceryltrinitrat",
+    "subId": "nitroglycerin",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "nitrolingual",
+    "subId": "nitroglycerin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "dipyridamol",
+    "subId": "dipyridamol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "persantin",
+    "subId": "dipyridamol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "asasantin",
+    "subId": "dipyridamol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "empagliflozin",
+    "subId": "empagliflozin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "jardiance",
+    "subId": "empagliflozin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dapagliflozin",
+    "subId": "dapagliflozin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "forxiga",
+    "subId": "dapagliflozin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "sitagliptin",
+    "subId": "sitagliptin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "januvia",
+    "subId": "sitagliptin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "gliclazid",
+    "subId": "gliclazid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "diamicron",
+    "subId": "gliclazid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "glimepirid",
+    "subId": "glimepirid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "amaryl",
+    "subId": "glimepirid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "liraglutid",
+    "subId": "liraglutid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "victoza",
+    "subId": "liraglutid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "saxenda",
+    "subId": "liraglutid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "semaglutid",
+    "subId": "semaglutid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ozempic",
+    "subId": "semaglutid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "rybelsus",
+    "subId": "semaglutid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "wegovy",
+    "subId": "semaglutid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "esomeprazol",
+    "subId": "esomeprazol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "nexium",
+    "subId": "esomeprazol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lansoprazol",
+    "subId": "lansoprazol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "laktulose",
+    "subId": "laktulose",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "duphalac",
+    "subId": "laktulose",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "macrogol",
+    "subId": "macrogol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "movicol",
+    "subId": "macrogol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "loperamid",
+    "subId": "loperamid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "imodium",
+    "subId": "loperamid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "metoclopramid",
+    "subId": "metoclopramid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "primperan",
+    "subId": "metoclopramid",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "ondansetron",
+    "subId": "ondansetron",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zofran",
+    "subId": "ondansetron",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "domperidon",
+    "subId": "domperidon",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "motilium",
+    "subId": "domperidon",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "salbutamol",
+    "subId": "salbutamol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ventoline",
+    "subId": "salbutamol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "airomir",
+    "subId": "salbutamol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "terbutalin",
+    "subId": "terbutalin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "bricanyl",
+    "subId": "terbutalin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ipratropium",
+    "subId": "ipratropium",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "atrovent",
+    "subId": "ipratropium",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tiotropium",
+    "subId": "tiotropium",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "spiriva",
+    "subId": "tiotropium",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "budesonid",
+    "subId": "budesonid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "pulmicort",
+    "subId": "budesonid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "montelukast",
+    "subId": "montelukast",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "singulair",
+    "subId": "montelukast",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "formoterol",
+    "subId": "formoterol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "oxis",
+    "subId": "formoterol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "mirtazapin",
+    "subId": "mirtazapin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "remeron",
+    "subId": "mirtazapin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "venlafaxin",
+    "subId": "venlafaxin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "efexor",
+    "subId": "venlafaxin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "duloxetin",
+    "subId": "duloxetin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cymbalta",
+    "subId": "duloxetin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "escitalopram",
+    "subId": "escitalopram",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cipralex",
+    "subId": "escitalopram",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "quetiapin",
+    "subId": "quetiapin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "seroquel",
+    "subId": "quetiapin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "olanzapin",
+    "subId": "olanzapin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zyprexa",
+    "subId": "olanzapin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "risperidon",
+    "subId": "risperidon",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "risperdal",
+    "subId": "risperidon",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "haloperidol",
+    "subId": "haloperidol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "serenase",
+    "subId": "haloperidol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "lorazepam",
+    "subId": "lorazepam",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "temesta",
+    "subId": "lorazepam",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "zopiclon",
+    "subId": "zopiclon",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "imovane",
+    "subId": "zopiclon",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "zolpidem",
+    "subId": "zolpidem",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "stilnoct",
+    "subId": "zolpidem",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "melatonin",
+    "subId": "melatonin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "circadin",
+    "subId": "melatonin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "pregabalin",
+    "subId": "pregabalin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lyrica",
+    "subId": "pregabalin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "gabapentin",
+    "subId": "gabapentin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "neurontin",
+    "subId": "gabapentin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "donepezil",
+    "subId": "donepezil",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "aricept",
+    "subId": "donepezil",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "memantin",
+    "subId": "memantin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ebixa",
+    "subId": "memantin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lamotrigin",
+    "subId": "lamotrigin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lamictal",
+    "subId": "lamotrigin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "diclofenac",
+    "subId": "diclofenac",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "voltaren",
+    "subId": "diclofenac",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "naproxen",
+    "subId": "naproxen",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "fentanyl",
+    "subId": "fentanyl",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "durogesic",
+    "subId": "fentanyl",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "matrifen",
+    "subId": "fentanyl",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "buprenorfin",
+    "subId": "buprenorfin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "norspan",
+    "subId": "buprenorfin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "codein",
+    "subId": "codein",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "kodimagnyl",
+    "subId": "codein",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "enoxaparin",
+    "subId": "enoxaparin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "klexane",
+    "subId": "enoxaparin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dalteparin",
+    "subId": "dalteparin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "fragmin",
+    "subId": "dalteparin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tinzaparin",
+    "subId": "tinzaparin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "innohep",
+    "subId": "tinzaparin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dicloxacillin",
+    "subId": "dicloxacillin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "diclocil",
+    "subId": "dicloxacillin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "pivmecillinam",
+    "subId": "pivmecillinam",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "selexid",
+    "subId": "pivmecillinam",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "nitrofurantoin",
+    "subId": "nitrofurantoin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "sulfamethizol",
+    "subId": "sulfamethizol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "primazol",
+    "subId": "sulfamethizol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "metronidazol",
+    "subId": "metronidazol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "flagyl",
+    "subId": "metronidazol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ciprofloxacin",
+    "subId": "ciprofloxacin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ciproxin",
+    "subId": "ciprofloxacin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "clarithromycin",
+    "subId": "clarithromycin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "klacid",
+    "subId": "clarithromycin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "alendronat",
+    "subId": "alendronat",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "fosamax",
+    "subId": "alendronat",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "allopurinol",
+    "subId": "allopurinol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zyloric",
+    "subId": "allopurinol",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "calciumcarbonat",
+    "subId": "calciumcarbonat",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "calcichew",
+    "subId": "calciumcarbonat",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "colecalciferol",
+    "subId": "colecalciferol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "d-vitamin",
+    "subId": "colecalciferol",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "hydrocortison",
+    "subId": "hydrocortison",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "solu-cortef",
+    "subId": "hydrocortison",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "levomepromazin",
+    "subId": "levomepromazin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "nozinan",
+    "subId": "levomepromazin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "chlorprothixen",
+    "subId": "chlorprothixen",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "truxal",
+    "subId": "chlorprothixen",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "zuclopenthixol",
+    "subId": "zuclopenthixol",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cisordinol",
+    "subId": "zuclopenthixol",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "clonazepam",
+    "subId": "clonazepam",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "rivotril",
+    "subId": "clonazepam",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "carbamazepin",
+    "subId": "carbamazepin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tegretol",
+    "subId": "carbamazepin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "acetylcystein",
+    "subId": "acetylcystein",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "mucomyst",
+    "subId": "acetylcystein",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "nac",
+    "subId": "acetylcystein",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tranexamsyre",
+    "subId": "tranexamsyre",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cyklokapron",
+    "subId": "tranexamsyre",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "cetirizin",
+    "subId": "cetirizin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zyrtec",
+    "subId": "cetirizin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "loratadin",
+    "subId": "loratadin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "clarityn",
+    "subId": "loratadin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "desloratadin",
+    "subId": "desloratadin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "aerius",
+    "subId": "desloratadin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "promethazin",
+    "subId": "promethazin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "phenergan",
+    "subId": "promethazin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "natriumpicosulfat",
+    "subId": "natriumpicosulfat",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "laxoberal",
+    "subId": "natriumpicosulfat",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "magnesiumhydroxid",
+    "subId": "magnesiumhydroxid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "magnesia",
+    "subId": "magnesiumhydroxid",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tamsulosin",
+    "subId": "tamsulosin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "omnic",
+    "subId": "tamsulosin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "finasterid",
+    "subId": "finasterid",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "proscar",
+    "subId": "finasterid",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "solifenacin",
+    "subId": "solifenacin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "vesicare",
+    "subId": "solifenacin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tolterodin",
+    "subId": "tolterodin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "detrusitol",
+    "subId": "tolterodin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "mirabegron",
+    "subId": "mirabegron",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "betmiga",
+    "subId": "mirabegron",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "latanoprost",
+    "subId": "latanoprost",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "xalatan",
+    "subId": "latanoprost",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "baclofen",
+    "subId": "baclofen",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "lioresal",
+    "subId": "baclofen",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "tizanidin",
+    "subId": "tizanidin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "sirdalud",
+    "subId": "tizanidin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "sildenafil",
+    "subId": "sildenafil",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "viagra",
+    "subId": "sildenafil",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "revatio",
+    "subId": "sildenafil",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "mometason",
+    "subId": "mometason",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "nasonex",
+    "subId": "mometason",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "fluticason",
+    "subId": "fluticason",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "flutide",
+    "subId": "fluticason",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "methotrexat",
+    "subId": "methotrexat",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "azathioprin",
+    "subId": "azathioprin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "imurel",
+    "subId": "azathioprin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "colchicin",
+    "subId": "colchicin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "clindamycin",
+    "subId": "clindamycin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dalacin",
+    "subId": "clindamycin",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "erythromycin",
+    "subId": "erythromycin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "abboticin",
+    "subId": "erythromycin",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "flucloxacillin",
+    "subId": "flucloxacillin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "cefuroxim",
+    "subId": "cefuroxim",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "zinnat",
+    "subId": "cefuroxim",
+    "type": "brand",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "trimethoprim",
+    "subId": "trimethoprim",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ferrosulfat",
+    "subId": "ferrosulfat",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "ferro duretter",
+    "subId": "ferrosulfat",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "ferroduretter",
+    "subId": "ferrosulfat",
+    "type": "brand",
+    "region": "DK",
+    "source": "Klario kurateret"
+  }, {
+    "q": "folsyre",
+    "subId": "folsyre",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "folinsyre",
+    "subId": "folsyre",
+    "type": "synonym",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "dexamethason",
+    "subId": "dexamethason",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
+  }, {
+    "q": "digitoxin",
+    "subId": "digitoxin",
+    "type": "substance",
+    "region": null,
+    "source": "Klario kurateret"
   }],
   "substances": {
     "furosemid": "Furosemid",
@@ -9248,7 +11087,126 @@ const MED_SEED = {
     "acetylsalicylsyre": "Acetylsalicylsyre",
     "ibuprofen": "Ibuprofen",
     "kaliumklorid": "Kaliumklorid",
-    "isosorbidmononitrat": "Isosorbidmononitrat"
+    "isosorbidmononitrat": "Isosorbidmononitrat",
+    "carvedilol": "Carvedilol",
+    "atenolol": "Atenolol",
+    "verapamil": "Verapamil",
+    "diltiazem": "Diltiazem",
+    "nifedipin": "Nifedipin",
+    "felodipin": "Felodipin",
+    "candesartan": "Candesartan",
+    "valsartan": "Valsartan",
+    "telmisartan": "Telmisartan",
+    "lercanidipin": "Lercanidipin",
+    "bendroflumethiazid": "Bendroflumethiazid",
+    "hydrochlorthiazid": "Hydrochlorthiazid",
+    "clopidogrel": "Clopidogrel",
+    "amiodaron": "Amiodaron",
+    "sotalol": "Sotalol",
+    "dabigatran": "Dabigatran",
+    "edoxaban": "Edoxaban",
+    "rosuvastatin": "Rosuvastatin",
+    "pravastatin": "Pravastatin",
+    "ezetimibe": "Ezetimibe",
+    "spironolacton": "Spironolacton",
+    "bumetanid": "Bumetanid",
+    "nitroglycerin": "Nitroglycerin (glyceryltrinitrat)",
+    "dipyridamol": "Dipyridamol",
+    "empagliflozin": "Empagliflozin",
+    "dapagliflozin": "Dapagliflozin",
+    "sitagliptin": "Sitagliptin",
+    "gliclazid": "Gliclazid",
+    "glimepirid": "Glimepirid",
+    "liraglutid": "Liraglutid",
+    "semaglutid": "Semaglutid",
+    "esomeprazol": "Esomeprazol",
+    "lansoprazol": "Lansoprazol",
+    "laktulose": "Laktulose",
+    "macrogol": "Macrogol",
+    "loperamid": "Loperamid",
+    "metoclopramid": "Metoclopramid",
+    "ondansetron": "Ondansetron",
+    "domperidon": "Domperidon",
+    "salbutamol": "Salbutamol",
+    "terbutalin": "Terbutalin",
+    "ipratropium": "Ipratropium",
+    "tiotropium": "Tiotropium",
+    "budesonid": "Budesonid",
+    "montelukast": "Montelukast",
+    "formoterol": "Formoterol",
+    "mirtazapin": "Mirtazapin",
+    "venlafaxin": "Venlafaxin",
+    "duloxetin": "Duloxetin",
+    "escitalopram": "Escitalopram",
+    "quetiapin": "Quetiapin",
+    "olanzapin": "Olanzapin",
+    "risperidon": "Risperidon",
+    "haloperidol": "Haloperidol",
+    "lorazepam": "Lorazepam",
+    "zopiclon": "Zopiclon",
+    "zolpidem": "Zolpidem",
+    "melatonin": "Melatonin",
+    "pregabalin": "Pregabalin",
+    "gabapentin": "Gabapentin",
+    "donepezil": "Donepezil",
+    "memantin": "Memantin",
+    "lamotrigin": "Lamotrigin",
+    "diclofenac": "Diclofenac",
+    "naproxen": "Naproxen",
+    "fentanyl": "Fentanyl",
+    "buprenorfin": "Buprenorfin",
+    "codein": "Codein",
+    "enoxaparin": "Enoxaparin",
+    "dalteparin": "Dalteparin",
+    "tinzaparin": "Tinzaparin",
+    "dicloxacillin": "Dicloxacillin",
+    "pivmecillinam": "Pivmecillinam",
+    "nitrofurantoin": "Nitrofurantoin",
+    "sulfamethizol": "Sulfamethizol",
+    "metronidazol": "Metronidazol",
+    "ciprofloxacin": "Ciprofloxacin",
+    "clarithromycin": "Clarithromycin",
+    "alendronat": "Alendronat",
+    "allopurinol": "Allopurinol",
+    "calciumcarbonat": "Calciumcarbonat",
+    "colecalciferol": "Colecalciferol (D-vitamin)",
+    "hydrocortison": "Hydrocortison",
+    "levomepromazin": "Levomepromazin",
+    "chlorprothixen": "Chlorprothixen",
+    "zuclopenthixol": "Zuclopenthixol",
+    "clonazepam": "Clonazepam",
+    "carbamazepin": "Carbamazepin",
+    "acetylcystein": "Acetylcystein",
+    "tranexamsyre": "Tranexamsyre",
+    "cetirizin": "Cetirizin",
+    "loratadin": "Loratadin",
+    "desloratadin": "Desloratadin",
+    "promethazin": "Promethazin",
+    "natriumpicosulfat": "Natriumpicosulfat",
+    "magnesiumhydroxid": "Magnesiumhydroxid",
+    "tamsulosin": "Tamsulosin",
+    "finasterid": "Finasterid",
+    "solifenacin": "Solifenacin",
+    "tolterodin": "Tolterodin",
+    "mirabegron": "Mirabegron",
+    "latanoprost": "Latanoprost",
+    "baclofen": "Baclofen",
+    "tizanidin": "Tizanidin",
+    "sildenafil": "Sildenafil",
+    "mometason": "Mometason",
+    "fluticason": "Fluticason",
+    "methotrexat": "Methotrexat",
+    "azathioprin": "Azathioprin",
+    "colchicin": "Colchicin",
+    "clindamycin": "Clindamycin",
+    "erythromycin": "Erythromycin",
+    "flucloxacillin": "Flucloxacillin",
+    "cefuroxim": "Cefuroxim",
+    "trimethoprim": "Trimethoprim",
+    "ferrosulfat": "Ferrosulfat",
+    "folsyre": "Folsyre",
+    "dexamethason": "Dexamethason",
+    "digitoxin": "Digitoxin"
   }
 };
 /* ===== KLARIO medication data layer (Option A1, Phase 1) ================
@@ -9261,8 +11219,28 @@ const MED_SCHEMA_MAJOR = "1";
 const MED_ONLINE = false; // Option B — kept OFF
 const MED_ONLINE_URL = ""; // set by a future approved phase
 const MED_FILE_HALFLIFE = "data/klario-halflife.v1.json";
-const MED_FILE_INDEX = "data/klario-medication-index.v1.json";
+const MED_FILE_INDEX = "data/klario-medication-index.v1.json"; // PRODUCTION name index (curated, redistribution-safe)
+const MED_FILE_INDEX_DEV = "data/klario-medication-index.dev.json"; // DEV-ONLY Lægemiddelstyrelsen index — must NOT be deployed to public builds
 const MED_DS_CACHE_KEY = "klario_med_ds_v1";
+const MED_DS_CACHE_KEY_DEV = "klario_med_ds_dev_v1"; // dev dataset cached under a separate key so it can never surface in production
+/* Dev gate (requirement 1): the full imported Danish dataset is kept out of
+ * public production builds by TWO independent gates — (a) this environment flag
+ * is false on the deployed host, and (b) the dev index file is not shipped, so
+ * even if the flag were forced on, the fetch 404s and we fall back to curated. */
+function medDevEnabled() {
+  try {
+    var h = typeof location !== "undefined" && location.hostname || "";
+    var isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === "";
+    var qp = typeof location !== "undefined" && (location.search || "").indexOf("devmed=1") >= 0;
+    var ls = false;
+    try {
+      ls = localStorage.getItem("klario_dev_med") === "1";
+    } catch (e) {}
+    return !!(isLocal || qp || ls);
+  } catch (e) {
+    return false;
+  }
+}
 const hlNorm = s => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
 const MED_MEAS = {
   "terminal": "Terminal halveringstid",
@@ -9299,7 +11277,11 @@ function validateMedDataset(ds) {
   };
 }
 
-/* build fast runtime structures (alias index + autocomplete) */
+/* build fast runtime structures (alias index + autocomplete).
+ * _alias entries are {k, id, e}: k = normalised search key, id = substance id,
+ * e = the source index entry (carries combo/subs/review/atc) or null for aliases
+ * derived from verified records / substance names. */
+const MED_SUGGEST_CAP = 1800; // keep the autocomplete datalist light on mobile
 function medBuildRuntime(ds) {
   const d = Object.assign({}, ds);
   d.substances = d.substances || {};
@@ -9308,120 +11290,158 @@ function medBuildRuntime(ds) {
     recById[r.id] = r;
   });
   d._recById = recById;
-  // alias index: DB names + substance names + provided index
   const ai = [];
   const seen = {};
+  const push = (k, id, e) => {
+    if (!k || !id) return;
+    if (seen[k]) {
+      return;
+    }
+    seen[k] = 1;
+    ai.push({
+      k: k,
+      id: id,
+      e: e || null
+    });
+  };
+  // verified records: id, substance name, brands
   (d.records || []).forEach(r => {
-    [[r.id, r.id], [hlNorm(r.substanceName), r.id]].forEach(p => {
-      if (!seen[p[0]]) {
-        seen[p[0]] = 1;
-        ai.push(p);
-      }
-    });
-    (r.brands || []).forEach(b => {
-      const k = hlNorm(b);
-      if (!seen[k]) {
-        seen[k] = 1;
-        ai.push([k, r.id]);
-      }
-    });
+    push(r.id, r.id, null);
+    push(hlNorm(r.substanceName), r.id, null);
+    (r.brands || []).forEach(b => push(hlNorm(b), r.id, null));
   });
+  // substance ids + display names
   Object.keys(d.substances).forEach(k => {
-    if (!seen[k]) {
-      seen[k] = 1;
-      ai.push([k, k]);
-    }
-    const nk = hlNorm(d.substances[k]);
-    if (!seen[nk]) {
-      seen[nk] = 1;
-      ai.push([nk, k]);
-    }
+    push(k, k, null);
+    push(hlNorm(d.substances[k]), k, null);
   });
+  // provided index (brand/substance names) + ATC codes (requirement 6: ATC search)
   (d.index || []).forEach(x => {
-    const k = hlNorm(x.q);
-    if (!seen[k]) {
-      seen[k] = 1;
-      ai.push([k, x.subId]);
-    }
+    push(hlNorm(x.q), x.subId, x);
+    if (x.atc) push(hlNorm(x.atc), x.subId, x);
   });
   d._alias = ai;
-  // autocomplete suggestions
-  const sg = {};
-  Object.keys(d.substances).forEach(k => {
-    sg[d.substances[k]] = 1;
-  });
-  (d.records || []).forEach(r => {
-    sg[r.substanceName] = 1;
-    (r.brands || []).forEach(b => {
-      sg[b] = 1;
-    });
-  });
+  // map normalised name/atc -> best index entry (prefer brand entries carrying combo/review)
+  const eByQ = {};
   (d.index || []).forEach(x => {
-    sg[x.q.charAt(0).toUpperCase() + x.q.slice(1)] = 1;
+    const k = hlNorm(x.q);
+    const cur = eByQ[k];
+    if (!cur || x.type === "brand" && cur.type !== "brand") eByQ[k] = x;
+    if (x.atc) {
+      const ak = hlNorm(x.atc);
+      if (!eByQ[ak]) eByQ[ak] = x;
+    }
   });
-  d.suggest = Object.keys(sg).sort();
+  d._entryByQ = eByQ;
+  // autocomplete suggestions (capped): substance display names first, then record brands, then index names
+  const sg = {};
+  const order = [];
+  const addSg = name => {
+    if (name && !sg[name]) {
+      sg[name] = 1;
+      order.push(name);
+    }
+  };
+  Object.keys(d.substances).forEach(k => addSg(d.substances[k]));
+  (d.records || []).forEach(r => {
+    addSg(r.substanceName);
+    (r.brands || []).forEach(b => addSg(b));
+  });
+  for (let i = 0; i < (d.index || []).length && order.length < MED_SUGGEST_CAP; i++) {
+    const x = d.index[i];
+    addSg(x.q.charAt(0).toUpperCase() + x.q.slice(1));
+  }
+  d.suggest = order.sort().slice(0, MED_SUGGEST_CAP);
   return d;
 }
 
 /* dataset cache (last known good) */
-function medCacheRead() {
+function medCacheRead(key) {
   try {
-    const o = JSON.parse(localStorage.getItem(MED_DS_CACHE_KEY) || "null");
+    const o = JSON.parse(localStorage.getItem(key || MED_DS_CACHE_KEY) || "null");
     return o && o.ds ? o : null;
   } catch (e) {
     return null;
   }
 }
-function medCacheWrite(ds) {
+function medCacheWrite(ds, key) {
   try {
-    localStorage.setItem(MED_DS_CACHE_KEY, JSON.stringify({
+    localStorage.setItem(key || MED_DS_CACHE_KEY, JSON.stringify({
       ds: ds,
       savedAt: Date.now()
     }));
   } catch (e) {}
 }
 
-/* loader: online(disabled) → local files → cache → seed. Never uses invalid data. */
+/* loader: online(disabled) → verified half-life file + name index → cache → seed.
+ * The name index is the curated production file by default; the full
+ * Lægemiddelstyrelsen index loads ONLY when medDevEnabled() AND the dev file is
+ * actually present (both gates). Dev datasets cache under a separate key so they
+ * can never resurface in a production build. Half-life records always come from
+ * the verified half-life file — the name index never carries half-life values. */
 async function loadMedicationData() {
-  // Option B (disabled)
-  if (MED_ONLINE && MED_ONLINE_URL) {/* future approved phase */}
-  // try local versioned files
+  if (MED_ONLINE && MED_ONLINE_URL) {/* Option B — future approved phase */}
+  const dev = medDevEnabled();
+  const cacheKey = dev ? MED_DS_CACHE_KEY_DEV : MED_DS_CACHE_KEY;
   try {
-    const [hRes, iRes] = await Promise.all([fetch(MED_FILE_HALFLIFE, {
+    const hRes = await fetch(MED_FILE_HALFLIFE, {
       cache: "no-cache"
-    }), fetch(MED_FILE_INDEX, {
-      cache: "no-cache"
-    })]);
-    if (hRes.ok && iRes.ok) {
+    });
+    // choose index source: dev (only if gated + present) else curated production
+    let idx = null,
+      idxDev = false;
+    if (dev) {
+      try {
+        const dRes = await fetch(MED_FILE_INDEX_DEV, {
+          cache: "no-cache"
+        });
+        if (dRes.ok) {
+          const dj = await dRes.json();
+          if (dj && Array.isArray(dj.index)) {
+            idx = dj;
+            idxDev = true;
+          }
+        }
+      } catch (e) {}
+    }
+    if (!idx) {
+      const iRes = await fetch(MED_FILE_INDEX, {
+        cache: "no-cache"
+      });
+      if (iRes.ok) idx = await iRes.json();
+    }
+    if (hRes.ok && idx) {
       const h = await hRes.json();
-      const idx = await iRes.json();
+      const subs = Object.assign({}, h.substances || {}, idx.substances || {});
+      const meta = Object.assign({}, h.meta, {
+        nameIndexVersion: idx.meta && idx.meta.datasetVersion || null,
+        nameIndexSourceName: idx.meta && idx.meta.nameSource || "Klario kurateret",
+        nameIndexAttribution: idx.meta && idx.meta.attribution || null,
+        nameIndexRedistribution: idx.meta && idx.meta.redistribution || null,
+        nameIndexDev: idxDev
+      });
       const ds = {
-        meta: h.meta,
+        meta: meta,
         records: h.records,
-        substances: h.substances,
-        index: idx && idx.index || []
+        substances: subs,
+        index: idx.index || []
       };
-      const v = validateMedDataset(ds);
-      if (v.ok) {
-        const cached = medCacheRead();
-        // don't downgrade a newer cached dataset with an older/identical-but-invalid fetch (fetch already validated here)
-        medCacheWrite(ds);
+      if (validateMedDataset(ds).ok) {
+        medCacheWrite(ds, cacheKey);
         return {
           ds: medBuildRuntime(ds),
-          origin: "network",
+          origin: idxDev ? "dev" : "network",
           meta: ds.meta
         };
       }
     }
   } catch (e) {/* offline or missing — fall through */}
-  // cached last-good
-  const c = medCacheRead();
+  const c = medCacheRead(cacheKey);
   if (c && validateMedDataset(c.ds).ok) return {
     ds: medBuildRuntime(c.ds),
     origin: "cache",
     meta: c.ds.meta
   };
-  // inlined seed floor
   return {
     ds: medBuildRuntime(MED_SEED),
     origin: "seed",
@@ -9438,28 +11458,61 @@ function medResolve(ds, q) {
   const s = hlNorm(q);
   if (!s) return null;
   const A = ds._alias || [];
-  let a = A.find(x => x[0] === s);
-  if (!a && s.length >= 3) a = A.find(x => x[0].indexOf(s) === 0 || s.indexOf(x[0]) === 0);
-  if (!a && s.length >= 4) a = A.find(x => x[0].indexOf(s) >= 0 || s.indexOf(x[0]) >= 0);
-  return a ? a[1] : null;
+  let a = A.find(x => x.k === s);
+  if (!a && s.length >= 3) a = A.find(x => x.k.length >= 3 && (x.k.indexOf(s) === 0 || s.indexOf(x.k) === 0));
+  if (!a && s.length >= 4) a = A.find(x => x.k.length >= 4 && (x.k.indexOf(s) >= 0 || s.indexOf(x.k) >= 0));
+  return a ? a.id : null;
 }
+/* returns one match per substance id, carrying the best index entry (combo/review).
+ * Min key length on prefix/substring matches stops short ids (e.g. a 1-char slug)
+ * from falsely matching unrelated queries. */
 function medMatches(ds, q) {
   const s = hlNorm(q);
   if (!s) return [];
-  const ids = [];
+  const best = {}; // subId -> {score, e}
+  const score = k => k === s ? 3 : s.length >= 3 && k.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0) ? 2 : s.length >= 4 && k.length >= 4 && (k.indexOf(s) >= 0 || s.indexOf(k) >= 0) ? 1 : 0;
   (ds._alias || []).forEach(x => {
-    const k = x[0];
-    const hit = k === s || s.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0) || s.length >= 4 && (k.indexOf(s) >= 0 || s.indexOf(k) >= 0);
-    if (hit && ids.indexOf(x[1]) < 0) ids.push(x[1]);
+    const sc = score(x.k);
+    if (!sc) return;
+    const rich = x.e ? x.e.combo ? 3 : x.e.type === "brand" ? 2 : 1 : 0;
+    const cur = best[x.id];
+    if (!cur || sc > cur.score || sc === cur.score && rich > cur.rich) best[x.id] = {
+      score: sc,
+      rich: rich,
+      e: x.e || cur && cur.e || null
+    };
   });
-  return ids.map(id => {
+  return Object.keys(best).sort((a, b) => best[b].score - best[a].score).map(id => {
     const r = ds._recById[id];
+    const e = best[id].e;
     return {
       subId: id,
       subName: medSubName(ds, id),
-      verified: !!(r && r.verificationStatus === "verified")
+      verified: !!(r && r.verificationStatus === "verified"),
+      entry: e || null,
+      combo: !!(e && e.combo),
+      subs: e && e.subs || null,
+      atc: e && e.atc || r && r.atcCode || null,
+      review: !!(e && e.review)
     };
   });
+}
+/* best index entry for a free-text query (used to carry combo/review into the single-match view) */
+function medEntryForQuery(ds, q) {
+  const s = hlNorm(q);
+  if (!s) return null;
+  const E = ds._entryByQ || {};
+  if (E[s]) return E[s];
+  let hit = null;
+  const keys = Object.keys(E);
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
+    if (s.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0)) {
+      hit = E[k];
+      break;
+    }
+  }
+  return hit;
 }
 const MED_STALE_MONTHS = 12;
 function medStale(dateStr) {
@@ -9538,6 +11591,20 @@ function hlCacheWrite(o) {
     localStorage.setItem(HL_CACHE_KEY, JSON.stringify(o));
   } catch (e) {}
 }
+/* manuelt indtastede (ikke-verificerede) halveringstider — pr. stof */
+const HL_MANUAL_KEY = "klario_hl_manual_v1";
+function hlManualRead() {
+  try {
+    return JSON.parse(localStorage.getItem(HL_MANUAL_KEY) || "{}") || {};
+  } catch (e) {
+    return {};
+  }
+}
+function hlManualWrite(o) {
+  try {
+    localStorage.setItem(HL_MANUAL_KEY, JSON.stringify(o));
+  } catch (e) {}
+}
 const HALFLIFE_EDU = [{
   t: "Hvad er halveringstid (T½)?",
   q: "Halveringstiden er den tid, det tager, før koncentrationen af et lægemiddel i kroppen (plasma) er faldet til omtrent det halve.",
@@ -9574,6 +11641,1645 @@ const HL_TABLE = [1, 2, 3, 4, 5, 6].map(n => ({
   remaining: Math.pow(0.5, n) * 100,
   eliminated: 100 - Math.pow(0.5, n) * 100
 }));
+
+/* ===== KLARIO Medicinbibliotek (V1) =====================================
+ * Searchable medication library. IDENTITY (navn, aktivt stof, ATC, form,
+ * markedsføring) verified against Lægemiddelstyrelsens register. Verified
+ * half-lives reused from the source-verified dataset; others show "Ikke
+ * verificeret". Deeper clinical sections are pending faglig gennemgang with NO
+ * fabricated content. Favorites + recently-viewed persist in localStorage.
+ * All UI strings use real UTF-8 (JSX does not interpret \u escapes). */
+const MEDLIB = [{
+  "id": "amlodipin",
+  "brandName": "Amlodipin",
+  "activeSubstance": "Amlodipin",
+  "activeSubstanceRaw": "amlodipinbesilat",
+  "alternativeNames": ["Amlodipinbesilat", "Norvasc"],
+  "medicationGroup": "Calciumantagonist",
+  "clinicalCategories": ["Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C08CA01",
+  "forms": ["oral suspension", "tabletter"],
+  "indicationShort": "Calciumantagonist (blodtryk)",
+  "halfLife": {
+    "status": "verified",
+    "display": "30–50 timer",
+    "measLabel": "Terminal halveringstid",
+    "source": "FDA-produktinformation — Amlodipin",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Amlodipin",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "citalopram",
+  "brandName": "Citalopram",
+  "activeSubstance": "Citalopram",
+  "activeSubstanceRaw": "citalopramhydrobromid",
+  "alternativeNames": ["Citalopramhydrobromid", "Cipramil"],
+  "medicationGroup": "SSRI",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N06AB04",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Antidepressivum (SSRI)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "digoxin",
+  "brandName": "Digoxin",
+  "activeSubstance": "Digoxin",
+  "activeSubstanceRaw": "digoxin",
+  "alternativeNames": ["Lanoxin"],
+  "medicationGroup": "Hjerteglykosid",
+  "clinicalCategories": ["Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C01AA05",
+  "forms": ["injektionsvæske, opløsning", "tabletter"],
+  "indicationShort": "Hjerteglykosid (snævert terapeutisk indeks)",
+  "halfLife": {
+    "status": "verified",
+    "display": "1,5–2 døgn",
+    "measLabel": "Eliminationshalveringstid",
+    "source": "FDA-produktinformation — Lanoxin (digoxin)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Lanoxin (digoxin)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "eliquis",
+  "brandName": "Eliquis",
+  "activeSubstance": "Apixaban",
+  "activeSubstanceRaw": "apixaban",
+  "alternativeNames": ["Apixaban"],
+  "medicationGroup": "Faktor Xa-hæmmer (DOAK)",
+  "clinicalCategories": ["Blodfortyndende medicin"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "B01AF02",
+  "forms": ["filmovertrukne tabletter", "granulat i brev", "granulat i kapsler til åbning"],
+  "indicationShort": "Blodfortyndende (DOAK)",
+  "halfLife": {
+    "status": "verified",
+    "display": "ca. 12 timer",
+    "measLabel": "Halveringstid",
+    "source": "FDA-produktinformation — Eliquis (apixaban)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Eliquis (apixaban)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "eltroxin",
+  "brandName": "Eltroxin",
+  "activeSubstance": "Levothyroxin",
+  "activeSubstanceRaw": "levothyroxinnatrium",
+  "alternativeNames": ["Levothyroxinnatrium"],
+  "medicationGroup": "Thyreoideahormon",
+  "clinicalCategories": ["Hormoner"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "H03AA01",
+  "forms": ["tabletter"],
+  "indicationShort": "Stofskiftehormon (thyroidea)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "fucidin",
+  "brandName": "Fucidin",
+  "activeSubstance": "Fusidinsyre",
+  "activeSubstanceRaw": "fusidinsyre",
+  "alternativeNames": ["Natriumfusidat"],
+  "medicationGroup": "Antibiotikum (fusidinsyre)",
+  "clinicalCategories": ["Infektioner"],
+  "careSettings": ["Hjemmepleje", "Hospital"],
+  "atc": "D06AX01",
+  "forms": ["creme", "oral suspension", "salve"],
+  "indicationShort": "Antibiotikum",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "furix",
+  "brandName": "Furix",
+  "activeSubstance": "Furosemid",
+  "activeSubstanceRaw": "furosemid",
+  "alternativeNames": ["Furosemid", "Diural"],
+  "medicationGroup": "Loop-diuretikum",
+  "clinicalCategories": ["Vanddrivende medicin", "Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C03CA01",
+  "forms": ["tabletter"],
+  "indicationShort": "Vanddrivende (loop-diuretikum)",
+  "halfLife": {
+    "status": "verified",
+    "display": "ca. 2 timer",
+    "measLabel": "Terminal halveringstid",
+    "source": "StatPearls (NCBI Bookshelf) — Furosemide",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK499921/",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "StatPearls (NCBI Bookshelf) — Furosemide",
+    "url": "https://www.ncbi.nlm.nih.gov/books/NBK499921/",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "hjertemagnyl",
+  "brandName": "Hjertemagnyl",
+  "activeSubstance": "Acetylsalicylsyre",
+  "activeSubstanceRaw": "acetylsalicylsyre",
+  "alternativeNames": ["Acetylsalicylsyre", "Magnyl", "ASA"],
+  "medicationGroup": "Trombocythæmmer",
+  "clinicalCategories": ["Blodfortyndende medicin"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "B01AC06",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Trombocythæmmer (lavdosis ASA)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "ipren",
+  "brandName": "Ipren",
+  "activeSubstance": "Ibuprofen",
+  "activeSubstanceRaw": "ibuprofen",
+  "alternativeNames": ["Ibuprofen", "Brufen", "Ibumetin"],
+  "medicationGroup": "NSAID",
+  "clinicalCategories": ["Smertestillende"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "M01AE01",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Smertestillende (NSAID)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "jardiance",
+  "brandName": "Jardiance",
+  "activeSubstance": "Empagliflozin",
+  "activeSubstanceRaw": "empagliflozin",
+  "alternativeNames": ["Empagliflozin"],
+  "medicationGroup": "SGLT2-hæmmer",
+  "clinicalCategories": ["Diabetes", "Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "A10BK03",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Diabetesmiddel (SGLT2-hæmmer)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "lantus",
+  "brandName": "Lantus",
+  "activeSubstance": "Insulin glargin",
+  "activeSubstanceRaw": "insulin glargin",
+  "alternativeNames": ["Insulin glargin", "Abasaglar"],
+  "medicationGroup": "Langtidsvirkende insulinanalog",
+  "clinicalCategories": ["Diabetes"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "A10AE04",
+  "forms": ["injektionsvæske, opløsning", "injektionsvæske, opløsning i cylinderampul"],
+  "indicationShort": "Langtidsvirkende insulin",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "marevan",
+  "brandName": "Marevan",
+  "activeSubstance": "Warfarin",
+  "activeSubstanceRaw": "warfarinnatrium",
+  "alternativeNames": ["Warfarinnatrium"],
+  "medicationGroup": "Vitamin K-antagonist",
+  "clinicalCategories": ["Blodfortyndende medicin"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "B01AA03",
+  "forms": ["tabletter"],
+  "indicationShort": "Blodfortyndende (VKA, INR-styret)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "metformin",
+  "brandName": "Metformin",
+  "activeSubstance": "Metformin",
+  "activeSubstanceRaw": "metforminhydrochlorid",
+  "alternativeNames": ["Metforminhydrochlorid", "Glucophage"],
+  "medicationGroup": "Biguanid",
+  "clinicalCategories": ["Diabetes"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "A10BA02",
+  "forms": ["depottabletter", "filmovertrukne tabletter"],
+  "indicationShort": "Diabetesmiddel (biguanid)",
+  "halfLife": {
+    "status": "verified",
+    "display": "plasma ca. 6 timer",
+    "measLabel": "Halveringstid",
+    "source": "FDA-produktinformation — Metformin",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Metformin",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "metoprolol",
+  "brandName": "Metoprolol",
+  "activeSubstance": "Metoprolol",
+  "activeSubstanceRaw": "metoprololsuccinat",
+  "alternativeNames": ["Metoprololsuccinat", "Metoprololtartrat", "Selo-Zok"],
+  "medicationGroup": "Selektiv beta-blokker",
+  "clinicalCategories": ["Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C07AB02",
+  "forms": ["depottabletter"],
+  "indicationShort": "Beta-blokker (hjerte/kredsløb)",
+  "halfLife": {
+    "status": "verified",
+    "display": "3–7 timer",
+    "measLabel": "Halveringstid",
+    "source": "FDA-produktinformation — Metoprolol",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Metoprolol",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "morfin",
+  "brandName": "Morfin",
+  "activeSubstance": "Morfin",
+  "activeSubstanceRaw": "morphinhydrochloridtrihydrat",
+  "alternativeNames": ["Morphin", "Contalgin"],
+  "medicationGroup": "Opioid",
+  "clinicalCategories": ["Smertestillende"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N02AA01",
+  "forms": ["injektionsvæske", "injektionsvæske, opløsning", "suppositorier", "tabletter"],
+  "indicationShort": "Stærkt smertestillende (opioid)",
+  "halfLife": {
+    "status": "verified",
+    "display": "1,5–2 timer",
+    "measLabel": "Eliminationshalveringstid",
+    "source": "Produktinformation (Pfizer) — Morphine",
+    "url": "https://pfizermedicalinformation.com/morphine/clinical-pharmacology",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "Produktinformation (Pfizer) — Morphine",
+    "url": "https://pfizermedicalinformation.com/morphine/clinical-pharmacology",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "movicol",
+  "brandName": "Movicol",
+  "activeSubstance": "Macrogol (kombination)",
+  "activeSubstanceRaw": "kaliumchlorid, macrogol 3350, natriumchlorid, natriumhydrogencarbonat",
+  "alternativeNames": ["Macrogol 3350", "Macrogol"],
+  "medicationGroup": "Osmotisk laksativ",
+  "clinicalCategories": ["Mave og tarm"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "A06AD65",
+  "forms": ["pulver til oral opløsning, enkeltdosisbeholder"],
+  "indicationShort": "Afføringsmiddel (osmotisk laksativ)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "novorapid",
+  "brandName": "NovoRapid",
+  "activeSubstance": "Insulin aspart",
+  "activeSubstanceRaw": "insulin aspart",
+  "alternativeNames": ["Insulin aspart"],
+  "medicationGroup": "Hurtigvirkende insulinanalog",
+  "clinicalCategories": ["Diabetes"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "A10AB05",
+  "forms": ["injektionsvæske, opløsning"],
+  "indicationShort": "Hurtigvirkende insulin",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "olanzapin",
+  "brandName": "Olanzapin",
+  "activeSubstance": "Olanzapin",
+  "activeSubstanceRaw": "olanzapin",
+  "alternativeNames": ["Zyprexa"],
+  "medicationGroup": "Atypisk antipsykotikum",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N05AH03",
+  "forms": ["filmovertrukne tabletter", "smeltetabletter"],
+  "indicationShort": "Antipsykotikum",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "oxazepam",
+  "brandName": "Oxazepam",
+  "activeSubstance": "Oxazepam",
+  "activeSubstanceRaw": "oxazepam",
+  "alternativeNames": ["Alopam"],
+  "medicationGroup": "Benzodiazepin",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N05BA04",
+  "forms": ["tabletter"],
+  "indicationShort": "Angstdæmpende/beroligende (benzodiazepin)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "panodil",
+  "brandName": "Panodil",
+  "activeSubstance": "Paracetamol",
+  "activeSubstanceRaw": "paracetamol",
+  "alternativeNames": ["Paracetamol", "Pinex", "Pamol"],
+  "medicationGroup": "Analgetikum / antipyretikum",
+  "clinicalCategories": ["Smertestillende"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"],
+  "atc": "N02BE01",
+  "forms": ["filmovertrukne tabletter", "tabletter med modificeret udløsning"],
+  "indicationShort": "Smertestillende/febernedsættende",
+  "halfLife": {
+    "status": "verified",
+    "display": "1–4 timer",
+    "measLabel": "Halveringstid",
+    "source": "Produktresumé (HPRA, Irland) — Paracetamol",
+    "url": "https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "Produktresumé (HPRA, Irland) — Paracetamol",
+    "url": "https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "pantoprazol",
+  "brandName": "Pantoprazol",
+  "activeSubstance": "Pantoprazol",
+  "activeSubstanceRaw": "pantoprazolnatriumsesquihydrat",
+  "alternativeNames": ["Pantoprazolnatrium", "Pantoloc"],
+  "medicationGroup": "Protonpumpehæmmer",
+  "clinicalCategories": ["Mave og tarm"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"],
+  "atc": "A02BC02",
+  "forms": ["enterotabletter", "pulver til injektionsvæske, opløsning"],
+  "indicationShort": "Syrehæmmende (PPI)",
+  "halfLife": {
+    "status": "verified",
+    "display": "ca. 1 time",
+    "measLabel": "Terminal halveringstid",
+    "source": "FDA-produktinformation — Protonix (pantoprazol)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Protonix (pantoprazol)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "quetiapin",
+  "brandName": "Quetiapin",
+  "activeSubstance": "Quetiapin",
+  "activeSubstanceRaw": "quetiapin fumarat",
+  "alternativeNames": ["Quetiapinfumarat", "Seroquel"],
+  "medicationGroup": "Atypisk antipsykotikum",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N05AH04",
+  "forms": ["depottabletter", "filmovertrukne tabletter"],
+  "indicationShort": "Antipsykotikum",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "ramipril",
+  "brandName": "Ramipril",
+  "activeSubstance": "Ramipril",
+  "activeSubstanceRaw": "ramipril",
+  "alternativeNames": ["Triatec"],
+  "medicationGroup": "ACE-hæmmer",
+  "clinicalCategories": ["Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C09AA05",
+  "forms": ["tabletter"],
+  "indicationShort": "ACE-hæmmer (blodtryk/hjerte)",
+  "halfLife": {
+    "status": "verified",
+    "display": "13–17 timer",
+    "measLabel": "Halveringstid",
+    "source": "FDA-produktinformation — Altace (ramipril)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf",
+    "verifiedAt": "2026-10-08"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }, {
+    "title": "FDA-produktinformation — Altace (ramipril)",
+    "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf",
+    "verifiedAt": "2026-10-08",
+    "scope": "halveringstid"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "risperidon",
+  "brandName": "Risperidon",
+  "activeSubstance": "Risperidon",
+  "activeSubstanceRaw": "risperidon",
+  "alternativeNames": ["Risperdal"],
+  "medicationGroup": "Atypisk antipsykotikum",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N05AX08",
+  "forms": ["filmovertrukne tabletter", "smeltetabletter"],
+  "indicationShort": "Antipsykotikum",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "sertralin",
+  "brandName": "Sertralin",
+  "activeSubstance": "Sertralin",
+  "activeSubstanceRaw": "sertralinhydrochlorid",
+  "alternativeNames": ["Sertralinhydrochlorid", "Zoloft"],
+  "medicationGroup": "SSRI",
+  "clinicalCategories": ["Psykofarmaka"],
+  "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N06AB06",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Antidepressivum (SSRI)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "spiriva",
+  "brandName": "Spiriva",
+  "activeSubstance": "Tiotropium",
+  "activeSubstanceRaw": "tiotropiumbromidmonohydrat",
+  "alternativeNames": ["Tiotropiumbromid"],
+  "medicationGroup": "Langtidsvirkende antikolinergikum (LAMA)",
+  "clinicalCategories": ["Luftvejssygdomme"],
+  "careSettings": ["Hjemmepleje", "Hospital"],
+  "atc": "R03BB04",
+  "forms": ["inhalationspulver, hård kapsel"],
+  "indicationShort": "Luftvejsudvidende (LAMA)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "spironolacton",
+  "brandName": "Spironolacton",
+  "activeSubstance": "Spironolakton",
+  "activeSubstanceRaw": "spironolacton",
+  "alternativeNames": ["Spiron"],
+  "medicationGroup": "Aldosteronantagonist (kaliumbesparende diuretikum)",
+  "clinicalCategories": ["Vanddrivende medicin", "Hjerte og kredsløb"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "C03DA01",
+  "forms": ["filmovertrukne tabletter"],
+  "indicationShort": "Kaliumbesparende diuretikum",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "tramadol",
+  "brandName": "Tramadol",
+  "activeSubstance": "Tramadol",
+  "activeSubstanceRaw": "tramadolhydrochlorid",
+  "alternativeNames": ["Tramadolhydrochlorid", "Dolol", "Mandolgin"],
+  "medicationGroup": "Opioid (svagt) / monoaminerg",
+  "clinicalCategories": ["Smertestillende"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "N02AX02",
+  "forms": ["depottabletter", "kapsler, hårde", "tabletter"],
+  "indicationShort": "Smertestillende (svagt opioid)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "ventoline",
+  "brandName": "Ventoline",
+  "activeSubstance": "Salbutamol",
+  "activeSubstanceRaw": "salbutamolsulfat",
+  "alternativeNames": ["Salbutamolsulfat", "Airomir"],
+  "medicationGroup": "Korttidsvirkende beta2-agonist (SABA)",
+  "clinicalCategories": ["Luftvejssygdomme"],
+  "careSettings": ["Hjemmepleje", "Hospital"],
+  "atc": "R03AC02",
+  "forms": ["inhalationspulver, afdelt", "inhalationsspray, suspension", "inhalationsvæske til nebulisator, opløsning", "injektionsvæske", "koncentrat til infusionsvæske, opløsning", "oral opløsning"],
+  "indicationShort": "Luftvejsudvidende (SABA)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}, {
+  "id": "xarelto",
+  "brandName": "Xarelto",
+  "activeSubstance": "Rivaroxaban",
+  "activeSubstanceRaw": "rivaroxaban",
+  "alternativeNames": ["Rivaroxaban"],
+  "medicationGroup": "Faktor Xa-hæmmer (DOAK)",
+  "clinicalCategories": ["Blodfortyndende medicin"],
+  "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"],
+  "atc": "B01AF01",
+  "forms": ["filmovertrukne tabletter", "granulat til oral suspension"],
+  "indicationShort": "Blodfortyndende (DOAK)",
+  "halfLife": {
+    "status": "unverified"
+  },
+  "sources": [{
+    "title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler",
+    "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/",
+    "verifiedAt": "2026-10-10",
+    "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"
+  }],
+  "clinicalStatus": "pending_review",
+  "lastReviewed": "2026-10-10"
+}];
+const MEDLIB_CATS = ["Alle", "Hjerte og kredsløb", "Vanddrivende medicin", "Blodfortyndende medicin", "Diabetes", "Smertestillende", "Psykofarmaka", "Luftvejssygdomme", "Mave og tarm", "Infektioner", "Hormoner", "Neurologi"];
+const MEDLIB_SETTINGS = ["Alle", "Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"];
+const ML_FAV_KEY = "klario_medlib_fav_v1";
+const ML_RECENT_KEY = "klario_medlib_recent_v1";
+function mlRead(k) {
+  try {
+    return JSON.parse(localStorage.getItem(k) || "[]") || [];
+  } catch (e) {
+    return [];
+  }
+}
+function mlWrite(k, a) {
+  try {
+    localStorage.setItem(k, JSON.stringify(a));
+  } catch (e) {}
+}
+const mlNorm = s => (s == null ? "" : String(s)).toLowerCase().trim();
+function mlMatch(m, q) {
+  const s = mlNorm(q);
+  if (!s) return true;
+  const hay = [m.brandName, m.activeSubstance, m.activeSubstanceRaw, m.medicationGroup, m.indicationShort].concat(m.alternativeNames || []).concat(m.clinicalCategories || []);
+  return hay.some(x => mlNorm(x).indexOf(s) >= 0);
+}
+
+/* collapsible section; compact "Ikke verificeret" tag in header (no repeated boxes) */
+function MedLibSec({
+  id,
+  title,
+  openSet,
+  toggle,
+  status,
+  children
+}) {
+  const open = openSet.has(id);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      background: C.surface,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => toggle(id),
+    "aria-expanded": open,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      padding: "14px 15px",
+      display: "flex",
+      alignItems: "center",
+      gap: 9
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 15.5,
+      fontWeight: 800,
+      color: C.ink,
+      lineHeight: 1.3
+    }
+  }, title), status === "verified" ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 800,
+      color: "#0B7A6E",
+      background: tint("#0FAE9E", "18"),
+      padding: "2px 7px",
+      borderRadius: 6,
+      flexShrink: 0
+    }
+  }, "Verificeret") : status === "unverified" ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10,
+      fontWeight: 800,
+      color: "#8A5A0B",
+      background: tint("#B7791F", "16"),
+      padding: "2px 7px",
+      borderRadius: 6,
+      flexShrink: 0
+    }
+  }, "Ikke verificeret") : null, /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 18,
+    color: C.inkFaint,
+    style: {
+      transform: open ? "rotate(180deg)" : "none",
+      transition: "transform .15s",
+      flexShrink: 0
+    }
+  })), open ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 15px 15px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 10
+    }
+  }, children) : null);
+}
+/* short muted "pending" line (not a big repeated warning box) */
+function MedLibPendingLine({
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: "#7A4E0A",
+      background: tint("#B7791F", "0C"),
+      borderRadius: 9,
+      padding: "9px 11px",
+      lineHeight: 1.5
+    }
+  }, children || "Ikke verificeret – afventer faglig gennemgang. Må ikke bruges som handlingsanvisning. Slå op i en godkendt kilde.");
+}
+function MedicinBibliotek({
+  sel,
+  setSel,
+  onTest
+}) {
+  const [q, setQ] = useState("");
+  const [fa, setFa] = useState("Alle");
+  const [fb, setFb] = useState("Alle");
+  const [favs, setFavs] = useState(mlRead(ML_FAV_KEY));
+  const [recents, setRecents] = useState(mlRead(ML_RECENT_KEY));
+  const [openSet, setOpenSet] = useState(() => new Set(["s1", "s2"]));
+  const toggle = id => setOpenSet(p => {
+    const n = new Set(p);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const isFav = id => favs.indexOf(id) >= 0;
+  const toggleFav = id => {
+    const n = isFav(id) ? favs.filter(x => x !== id) : [id].concat(favs);
+    setFavs(n);
+    mlWrite(ML_FAV_KEY, n);
+  };
+  const byId = id => MEDLIB.find(m => m.id === id);
+  const open = id => {
+    setSel(id);
+    const n = [id].concat(recents.filter(x => x !== id)).slice(0, 8);
+    setRecents(n);
+    mlWrite(ML_RECENT_KEY, n);
+    setOpenSet(new Set(["s1", "s2"]));
+    try {
+      window.scrollTo(0, 0);
+    } catch (e) {}
+  };
+
+  // ---------- DETAIL ----------
+  if (sel) {
+    const m = byId(sel);
+    if (!m) {
+      setSel(null);
+      return null;
+    }
+    const hl = m.halfLife || {};
+    const verHL = hl.status === "verified";
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 11,
+        paddingBottom: 32
+      },
+      className: "anim"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: `1px solid ${C.line}`,
+        borderRadius: 16,
+        background: C.surface,
+        padding: 15
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 11
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        background: tint("#7A5AF5", "16"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Pill, {
+      size: 21,
+      color: "#5B37C7",
+      strokeWidth: 2.1
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 20,
+        fontWeight: 800,
+        color: C.ink,
+        lineHeight: 1.15
+      }
+    }, m.brandName), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        color: C.inkSoft,
+        marginTop: 3
+      }
+    }, "Aktivt stof: ", /*#__PURE__*/React.createElement("b", null, m.activeSubstance)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: C.inkSoft,
+        marginTop: 1
+      }
+    }, m.medicationGroup)), /*#__PURE__*/React.createElement("button", {
+      onClick: () => toggleFav(m.id),
+      "aria-label": "Favorit",
+      style: {
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        padding: 4,
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Star, {
+      size: 21,
+      color: isFav(m.id) ? "#E8A72E" : C.inkFaint,
+      fill: isFav(m.id) ? "#E8A72E" : "none"
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6,
+        marginTop: 11
+      }
+    }, m.atc ? /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: C.inkSoft,
+        background: tint(C.ink, "07"),
+        padding: "3px 8px",
+        borderRadius: 7
+      }
+    }, "ATC ", m.atc) : null, (m.clinicalCategories || []).map(c => /*#__PURE__*/React.createElement("span", {
+      key: c,
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#5B37C7",
+        background: tint("#7A5AF5", "12"),
+        padding: "3px 8px",
+        borderRadius: 7
+      }
+    }, c))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        marginTop: 12,
+        background: tint("#2E68E0", "0A"),
+        border: `1px solid ${tint("#2E68E0", "24")}`,
+        borderRadius: 10,
+        padding: "9px 11px"
+      }
+    }, /*#__PURE__*/React.createElement(ShieldCheck, {
+      size: 15,
+      color: "#2257D8",
+      style: {
+        flexShrink: 0
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11.5,
+        color: C.ink,
+        lineHeight: 1.45
+      }
+    }, "Identitet ", /*#__PURE__*/React.createElement("b", null, "verificeret"), " (L\xE6gemiddelstyrelsen). ", verHL ? "Halveringstid verificeret. " : "", "\xD8vrige kliniske afsnit ", /*#__PURE__*/React.createElement("b", null, "afventer faglig gennemgang"), " \u2013 ikke handlingsanvisende."))), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s1",
+      title: "1. Hvad er medicinen?",
+      openSet: openSet,
+      toggle: toggle
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        color: C.ink,
+        lineHeight: 1.55
+      }
+    }, m.brandName, " indeholder det aktive stof ", /*#__PURE__*/React.createElement("b", null, m.activeSubstance), " og h\xF8rer til gruppen ", /*#__PURE__*/React.createElement("b", null, m.medicationGroup.toLowerCase()), "."), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: C.inkFaint
+      }
+    }, "Klassifikation: ATC ", m.atc || "–", " (WHO/L\xE6gemiddelstyrelsen).")), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s2",
+      title: "2. Hvad bruges den til?",
+      openSet: openSet,
+      toggle: toggle,
+      status: "unverified"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        color: C.ink,
+        lineHeight: 1.55
+      }
+    }, "Overordnet l\xE6gemiddelgruppe: ", /*#__PURE__*/React.createElement("b", null, m.indicationShort), "."), /*#__PURE__*/React.createElement(MedLibPendingLine, null, "De konkrete indikationer (hvorn\xE5r og hvorfor pr\xE6paratet gives) er ikke verificeret i V1. Sl\xE5 op i pro.medicin.dk eller produktresum\xE9.")), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s3",
+      title: "3. Hvad skal jeg observere som SSA?",
+      openSet: openSet,
+      toggle: toggle,
+      status: "unverified"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, "Rutineobservationer vs. akutte advarselstegn, relevante vitalv\xE6rdier, v\xE6skebalance og dokumentation:"), /*#__PURE__*/React.createElement(MedLibPendingLine, null)), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s4",
+      title: "4. Medicin der kan anvendes sammen",
+      openSet: openSet,
+      toggle: toggle,
+      status: "unverified"
+    }, /*#__PURE__*/React.createElement(MedLibPendingLine, null, "Vises kun n\xE5r en verificeret klinisk indikation eller retningslinje underst\xF8tter det. KLARIO antyder aldrig, at endnu et pr\xE6parat automatisk er n\xF8dvendigt. Ingen verificerede relationer i V1.")), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s5",
+      title: "5. Bivirkninger og interaktioner",
+      openSet: openSet,
+      toggle: toggle,
+      status: "unverified"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, "Almindelige og alvorlige bivirkninger, symptomer der kr\xE6ver hurtig handling, samt klinisk vigtige interaktioner:"), /*#__PURE__*/React.createElement(MedLibPendingLine, null, "Ikke verificeret i V1. Brug en godkendt kilde for bivirkninger og interaktioner."), /*#__PURE__*/React.createElement("a", {
+      href: "https://pro.medicin.dk/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        textDecoration: "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        fontWeight: 700,
+        color: "#5B37C7",
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement(Pill, {
+      size: 15,
+      color: "#7A5AF5"
+    }), "Tjek interaktioner p\xE5 Pro.medicin.dk ", /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 14,
+      color: "#5B37C7"
+    })))), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s6",
+      title: "6. Farmakologi",
+      openSet: openSet,
+      toggle: toggle,
+      status: verHL ? "verified" : "unverified"
+    }, verHL ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: `1px solid ${tint("#0FAE9E", "40")}`,
+        background: tint("#0FAE9E", "08"),
+        borderRadius: 10,
+        padding: "10px 12px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        color: C.ink
+      }
+    }, hl.measLabel || "Halveringstid", " (T\xBD): ", /*#__PURE__*/React.createElement("b", {
+      style: {
+        color: "#0B7A6E"
+      }
+    }, hl.display)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkSoft,
+        marginTop: 4
+      }
+    }, "Kilde: ", hl.source, " \xB7 kontrolleret ", hl.verifiedAt)) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13.5,
+        color: C.ink
+      }
+    }, "Halveringstid (T\xBD): ", /*#__PURE__*/React.createElement("b", {
+      style: {
+        color: "#8A5A0B"
+      }
+    }, "Ikke verificeret")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, /*#__PURE__*/React.createElement("b", null, "Formuleringer i DK:"), " ", m.forms && m.forms.length ? m.forms.join(", ") : "–", ". Depot/IR/plaster/injektion kan have forskellig kinetik og sidestilles ikke."), /*#__PURE__*/React.createElement(MedLibPendingLine, null, "Farmakodynamik, absorption, fordeling, metabolisme, udskillelse, virkningsstart og -varighed er ikke verificeret. KLARIO opfinder ikke farmakologiske v\xE6rdier.")), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s7",
+      title: "7. Test din viden",
+      openSet: openSet,
+      toggle: toggle
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, "Medicin-specifikke sp\xF8rgsm\xE5l bygges kun p\xE5 verificeret indhold. Indtil da kan du teste din generelle viden."), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onTest && onTest(),
+      style: {
+        width: "100%",
+        border: "none",
+        borderRadius: 11,
+        padding: "13px",
+        background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+        color: "#fff",
+        fontFamily: "inherit",
+        fontSize: 14.5,
+        fontWeight: 800,
+        cursor: "pointer",
+        minHeight: 48
+      }
+    }, "Test din viden om denne medicin")), /*#__PURE__*/React.createElement(MedLibSec, {
+      id: "s8",
+      title: "8. Officielle kilder",
+      openSet: openSet,
+      toggle: toggle
+    }, /*#__PURE__*/React.createElement("a", {
+      href: "https://pro.medicin.dk/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        textDecoration: "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: `1px solid ${tint("#7A5AF5", "33")}`,
+        background: tint("#7A5AF5", "0A"),
+        borderRadius: 11,
+        padding: "12px 13px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement(Pill, {
+      size: 17,
+      color: "#7A5AF5"
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#5B37C7"
+      }
+    }, "\xC5bn p\xE5 Pro.medicin.dk"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkSoft
+      }
+    }, "\xC5bner forsiden \u2013 s\xF8g selv pr\xE6paratet")), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 17,
+      color: "#7A5AF5"
+    }))), /*#__PURE__*/React.createElement("a", {
+      href: "https://min.medicin.dk/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        textDecoration: "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: `1px solid ${tint("#0FAE9E", "33")}`,
+        background: tint("#0FAE9E", "0A"),
+        borderRadius: 11,
+        padding: "12px 13px",
+        display: "flex",
+        alignItems: "center",
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement(Info, {
+      size: 17,
+      color: "#0B9488"
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#0B7A6E"
+      }
+    }, "\xC5bn p\xE5 Min.medicin.dk"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkSoft
+      }
+    }, "\xC5bner forsiden \u2013 borgervenlig information")), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 17,
+      color: "#0B9488"
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkFaint,
+        lineHeight: 1.5,
+        marginTop: 2
+      }
+    }, "Forsider \xE5bnes, da verificerede dyb-links ikke er bekr\xE6ftet. Kilder:"), (m.sources || []).map((s, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        fontSize: 11,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, "\u2022 ", s.title, s.scope ? " (" + s.scope + ")" : "", s.verifiedAt ? " · " + s.verifiedAt : "")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkFaint,
+        marginTop: 4
+      }
+    }, "Sidst gennemg\xE5et: ", m.lastReviewed, ". Status: pending_review (klinisk indhold).")));
+  }
+
+  // ---------- LIBRARY HOME ----------
+  const list = MEDLIB.filter(m => mlMatch(m, q) && (fa === "Alle" || (m.careSettings || []).indexOf(fa) >= 0) && (fb === "Alle" || (m.clinicalCategories || []).indexOf(fb) >= 0)).sort((a, b) => a.brandName.toLowerCase() < b.brandName.toLowerCase() ? -1 : 1);
+  const favList = favs.map(byId).filter(Boolean);
+  const recentList = recents.map(byId).filter(Boolean);
+  const Card = ({
+    m
+  }) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: `1px solid ${C.line}`,
+      background: C.surface,
+      borderRadius: 13,
+      padding: "11px 12px",
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => open(m.id),
+    "aria-label": m.brandName,
+    style: {
+      flex: 1,
+      minWidth: 0,
+      textAlign: "left",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      padding: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    }
+  }, m.brandName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 1,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    }
+  }, m.activeSubstance, " \xB7 ", m.medicationGroup), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkFaint,
+      marginTop: 2,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis"
+    }
+  }, m.indicationShort)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => toggleFav(m.id),
+    "aria-label": "Favorit",
+    style: {
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      padding: 4,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Star, {
+    size: 18,
+    color: isFav(m.id) ? "#E8A72E" : C.inkFaint,
+    fill: isFav(m.id) ? "#E8A72E" : "none"
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => open(m.id),
+    "aria-label": "\xC5bn",
+    style: {
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      padding: 2,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 19,
+    color: C.inkFaint
+  })));
+  const Pills = ({
+    opts,
+    val,
+    set
+  }) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 7,
+      overflowX: "auto",
+      paddingBottom: 3,
+      paddingRight: 18,
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none"
+    }
+  }, opts.map(o => /*#__PURE__*/React.createElement("button", {
+    key: o,
+    onClick: () => set(o),
+    style: {
+      whiteSpace: "nowrap",
+      border: `1px solid ${val === o ? "#5B37C7" : C.line}`,
+      background: val === o ? tint("#7A5AF5", "14") : C.surface,
+      color: val === o ? "#5B37C7" : C.inkSoft,
+      borderRadius: 99,
+      padding: "7px 13px",
+      fontSize: 13,
+      fontWeight: 700,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      flexShrink: 0,
+      minHeight: 36
+    }
+  }, o))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 3,
+      width: 24,
+      pointerEvents: "none",
+      background: `linear-gradient(90deg, rgba(255,255,255,0), ${C.bg || "#fff"})`
+    }
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 13,
+      paddingBottom: 32
+    },
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0,
+      fontSize: 22,
+      fontWeight: 800,
+      color: C.ink,
+      letterSpacing: -0.3
+    }
+  }, "KLARIO Medicinbibliotek"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: "5px 0 0",
+      fontSize: 13.5,
+      color: C.inkSoft,
+      lineHeight: 1.5
+    }
+  }, "Find medicin, forst\xE5 virkningen og l\xE6r, hvad du skal observere i praksis.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      background: tint("#2E68E0", "0A"),
+      border: `1px solid ${tint("#2E68E0", "22")}`,
+      borderRadius: 10,
+      padding: "8px 11px"
+    }
+  }, /*#__PURE__*/React.createElement(ShieldCheck, {
+    size: 14,
+    color: "#2257D8",
+    style: {
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11.5,
+      color: C.ink,
+      lineHeight: 1.45
+    }
+  }, "Uddannelses- og opslagsv\xE6rkt\xF8j. Identitet verificeret; kliniske afsnit markeret ", /*#__PURE__*/React.createElement("b", null, "Ikke verificeret"), " er ikke handlingsanvisende.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 9,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      background: C.surface,
+      padding: "12px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 18,
+    color: C.inkFaint,
+    style: {
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: "S\xF8g efter medicin, aktivt stof eller l\xE6gemiddelgruppe\u2026",
+    "aria-label": "S\xF8g medicin",
+    autoCapitalize: "none",
+    autoComplete: "off",
+    style: {
+      flex: 1,
+      minWidth: 0,
+      border: "none",
+      outline: "none",
+      background: "transparent",
+      fontSize: 16,
+      color: C.ink,
+      fontFamily: "inherit"
+    }
+  }), q ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setQ(""),
+    "aria-label": "Ryd",
+    style: {
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      padding: 2,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 17,
+    color: C.inkFaint
+  })) : null), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: C.inkFaint,
+      letterSpacing: 0.3
+    }
+  }, "ARBEJDSOMR\xC5DE"), /*#__PURE__*/React.createElement(Pills, {
+    opts: MEDLIB_SETTINGS,
+    val: fa,
+    set: setFa
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 800,
+      color: C.inkFaint,
+      letterSpacing: 0.3
+    }
+  }, "MEDICINSK KATEGORI"), /*#__PURE__*/React.createElement(Pills, {
+    opts: MEDLIB_CATS,
+    val: fb,
+    set: setFb
+  })), q === "" && fa === "Alle" && fb === "Alle" && favList.length ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionHead, {
+    title: "Favoritter"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, favList.map(m => /*#__PURE__*/React.createElement(Card, {
+    key: m.id,
+    m: m
+  })))) : null, q === "" && fa === "Alle" && fb === "Alle" && recentList.length ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionHead, {
+    title: "Senest set"
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, recentList.map(m => /*#__PURE__*/React.createElement(Card, {
+    key: m.id,
+    m: m
+  })))) : null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(SectionHead, {
+    title: "Alle lægemidler (" + list.length + ")"
+  }), list.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      color: C.inkFaint,
+      margin: "4px 0 0"
+    }
+  }, "Ingen match. Pr\xF8v et andet s\xF8geord eller nulstil filtrene.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 8
+    }
+  }, list.map(m => /*#__PURE__*/React.createElement(Card, {
+    key: m.id,
+    m: m
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10.5,
+      color: C.inkFaint,
+      textAlign: "center",
+      lineHeight: 1.6
+    }
+  }, MEDLIB.length, " l\xE6gemidler \xB7 identitet verificeret mod L\xE6gemiddelstyrelsen \xB7 ", MEDLIB.filter(m => m.halfLife && m.halfLife.status === "verified").length, " med verificeret T\xBD.", /*#__PURE__*/React.createElement("br", null), "careSettings er redaktionelle navigations-tags, ikke klinisk vejledning."));
+}
 function HalfLifeView({
   onTest
 }) {
@@ -9602,8 +13308,13 @@ function HalfLifeView({
   const [looked, setLooked] = useState(false);
   const [picks, setPicks] = useState([]);
   const [pickId, setPickId] = useState(null);
+  const [pickEntry, setPickEntry] = useState(null); // index entry for the chosen match (combo/review/atc)
+  const [comboSub, setComboSub] = useState(null); // substance chosen inside a combination product
   const [hlCache, setHlCache] = useState(hlCacheRead);
   const [calcSrc, setCalcSrc] = useState(null);
+  const [halfHi, setHalfHi] = useState("");
+  const [manual, setManual] = useState(hlManualRead);
+  const [manualInput, setManualInput] = useState("");
   const calcRef = useRef(null);
   const cacheHit = res => {
     if (!res || !res.subId) return;
@@ -9619,28 +13330,47 @@ function HalfLifeView({
   };
   const doLookup = () => {
     setLooked(true);
+    setComboSub(null);
     const ms = medMatches(medDS, look);
     if (ms.length === 0) {
       setPicks([]);
       setPickId(null);
+      setPickEntry(null);
       return;
     }
     if (ms.length === 1) {
       setPicks([]);
-      setPickId(ms[0].subId);
-      cacheHit(halflifeLookupId(ms[0].subId));
+      const m = ms[0];
+      const entry = m.entry || medEntryForQuery(medDS, look);
+      setPickId(m.subId);
+      setPickEntry(entry);
+      if (!(entry && entry.combo)) cacheHit(medGet(medDS, m.subId));
       return;
     }
     setPicks(ms);
     setPickId(null);
+    setPickEntry(null);
   };
-  const selectPick = subId => {
+  const selectPick = m => {
+    const subId = m && m.subId || m;
+    const entry = m && m.entry || null;
     setPickId(subId);
+    setPickEntry(entry);
     setPicks([]);
-    cacheHit(medGet(medDS, subId));
+    setComboSub(null);
+    if (!(entry && entry.combo)) cacheHit(medGet(medDS, subId));
+  };
+  const scrollCalc = () => {
+    try {
+      if (calcRef.current) calcRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    } catch (e) {}
   };
   const applyToCalc = (entry, opt) => {
     setHalf(String(opt.h).replace(".", ","));
+    setHalfHi("");
     setRes(null);
     setErr("");
     setCalcSrc({
@@ -9648,12 +13378,70 @@ function HalfLifeView({
       label: opt.label,
       kilde: entry.kilde
     });
-    try {
-      if (calcRef.current) calcRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    } catch (e) {}
+    scrollCalc();
+  };
+  const applyToCalcRange = card => {
+    const hs = (card.calcOptions || []).map(o => o.h).filter(x => isFinite(x));
+    if (!hs.length) return;
+    const lo = Math.min.apply(null, hs),
+      hi = Math.max.apply(null, hs);
+    setHalf(String(lo).replace(".", ","));
+    setHalfHi(String(hi).replace(".", ","));
+    setRes(null);
+    setErr("");
+    setCalcSrc({
+      med: card.substans,
+      label: "interval " + hlFmt(lo, 2) + "\u2013" + hlFmt(hi, 2) + " t",
+      kilde: card.kilde
+    });
+    scrollCalc();
+  };
+  const applyManual = (subId, subName) => {
+    const v = hlParse(manualInput);
+    if (!isFinite(v) || v <= 0) {
+      setErr("Indtast en gyldig halveringstid (timer).");
+      return;
+    }
+    const m = Object.assign({}, hlManualRead());
+    m[subId] = {
+      h: v,
+      ts: Date.now()
+    };
+    hlManualWrite(m);
+    setManual(m);
+    setHalf(String(v).replace(".", ","));
+    setHalfHi("");
+    setRes(null);
+    setErr("");
+    setManualInput("");
+    setCalcSrc({
+      med: subName,
+      label: "manuelt indtastet",
+      kilde: "Manuelt indtastet \u2013 ikke verificeret",
+      manual: true
+    });
+    scrollCalc();
+  };
+  const useManual = (subId, subName) => {
+    const mm = hlManualRead()[subId];
+    if (!mm) return;
+    setHalf(String(mm.h).replace(".", ","));
+    setHalfHi("");
+    setRes(null);
+    setErr("");
+    setCalcSrc({
+      med: subName,
+      label: "manuelt indtastet",
+      kilde: "Manuelt indtastet \u2013 ikke verificeret",
+      manual: true
+    });
+    scrollCalc();
+  };
+  const clearManual = subId => {
+    const m = Object.assign({}, hlManualRead());
+    delete m[subId];
+    hlManualWrite(m);
+    setManual(m);
   };
   const reverify = (subId, url) => {
     const c = Object.assign({}, hlCacheRead());
@@ -9680,6 +13468,7 @@ function HalfLifeView({
     const h = hlParse(half),
       t = hlParse(elapsed),
       a = amount.trim() === "" ? null : hlParse(amount);
+    const hh = halfHi.trim() === "" ? null : hlParse(halfHi);
     if (!isFinite(h) || h <= 0) {
       setErr("Indtast en gyldig halveringstid større end 0.");
       setRes(null);
@@ -9695,23 +13484,40 @@ function HalfLifeView({
       setRes(null);
       return;
     }
+    if (hh != null && (!isFinite(hh) || hh <= 0)) {
+      setErr("Den høje halveringstid skal være større end 0.");
+      setRes(null);
+      return;
+    }
     setErr("");
     const frac = Math.pow(0.5, t / h);
-    setRes({
+    let ex = {};
+    if (hh != null) {
+      const fh = Math.pow(0.5, t / hh);
+      ex = {
+        pctHi: fh * 100,
+        remainHi: a != null ? a * fh : null,
+        nHalfHi: t / hh,
+        hHi: hh
+      };
+    }
+    setRes(Object.assign({
       h,
       t,
       a,
       pct: frac * 100,
       remain: a != null ? a * frac : null,
       nHalf: t / h
-    });
+    }, ex));
   };
   const clear = () => {
     setHalf("");
+    setHalfHi("");
     setElapsed("");
     setAmount("");
     setRes(null);
     setErr("");
+    setCalcSrc(null);
   };
 
   // decay curve 0..6 halvlives, marker at current elapsed (in half-lives)
@@ -9728,7 +13534,10 @@ function HalfLifeView({
     path += " L " + xOf(nh) + " " + yOf(Math.pow(0.5, nh) * 100);
   }
   const markNh = res ? res.nHalf : null;
-  const lookRes = looked && pickId ? medGet(medDS, pickId) : null;
+  const markNhHi = res && res.nHalfHi != null ? res.nHalfHi : null;
+  const isCombo = !!(pickEntry && pickEntry.combo && (pickEntry.subs || []).length > 1);
+  const effSub = comboSub || pickId;
+  const lookRes = looked && effSub ? medGet(medDS, effSub) : null;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -9805,7 +13614,31 @@ function HalfLifeView({
       fontWeight: 800,
       color: C.ink
     }
-  }, "Halveringstid-beregner")), calcSrc ? /*#__PURE__*/React.createElement("div", {
+  }, "Halveringstid-beregner")), calcSrc ? calcSrc.manual ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 9,
+      background: tint("#B7791F", "10"),
+      border: `1px solid ${tint("#B7791F", "33")}`,
+      borderRadius: 11,
+      padding: "10px 12px",
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 15,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#7A4E0A",
+      lineHeight: 1.5
+    }
+  }, "Halveringstid ", /*#__PURE__*/React.createElement("b", null, "manuelt indtastet"), " for ", /*#__PURE__*/React.createElement("b", null, calcSrc.med), " \u2013 ", /*#__PURE__*/React.createElement("b", null, "ikke verificeret"), ". Kontroll\xE9r selv v\xE6rdien mod en godkendt kilde.")) : /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "flex-start",
@@ -9846,6 +13679,7 @@ function HalfLifeView({
     onChange: e => {
       setHalf(e.target.value);
       setCalcSrc(null);
+      setHalfHi("");
     },
     inputMode: "decimal",
     placeholder: "fx 6",
@@ -9862,7 +13696,27 @@ function HalfLifeView({
       background: C.surface,
       fontFamily: "inherit"
     }
-  })), /*#__PURE__*/React.createElement("label", {
+  })), halfHi ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.inkSoft,
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, "Interval: beregnes ogs\xE5 for ", /*#__PURE__*/React.createElement("b", null, halfHi), " t ", /*#__PURE__*/React.createElement("button", {
+    onClick: () => setHalfHi(""),
+    style: {
+      border: "none",
+      background: "transparent",
+      color: "#5B37C7",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 12,
+      padding: 0
+    }
+  }, "Fjern")) : null, /*#__PURE__*/React.createElement("label", {
     style: {
       fontSize: 13,
       fontWeight: 700,
@@ -9973,7 +13827,7 @@ function HalfLifeView({
       color: C.inkSoft,
       fontWeight: 700
     }
-  }, "Tilbage i kroppen"), /*#__PURE__*/React.createElement("div", {
+  }, "Tilbage i kroppen", res.pctHi != null ? " (interval)" : ""), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 28,
       fontWeight: 800,
@@ -9981,19 +13835,19 @@ function HalfLifeView({
       letterSpacing: -0.5,
       marginTop: 2
     }
-  }, hlFmt(res.pct, 2), " %"), res.remain != null ? /*#__PURE__*/React.createElement("div", {
+  }, res.pctHi != null ? hlFmt(Math.min(res.pct, res.pctHi), 2) + "\u2013" + hlFmt(Math.max(res.pct, res.pctHi), 2) : hlFmt(res.pct, 2), " %"), res.remain != null ? /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 14,
       color: C.ink,
       marginTop: 2
     }
-  }, "\u2248 ", hlFmt(res.remain, 2), " af startm\xE6ngden") : null, /*#__PURE__*/React.createElement("div", {
+  }, "\u2248 ", res.remainHi != null ? hlFmt(Math.min(res.remain, res.remainHi), 2) + "\u2013" + hlFmt(Math.max(res.remain, res.remainHi), 2) : hlFmt(res.remain, 2), " af startm\xE6ngden") : null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12,
       color: C.inkFaint,
       marginTop: 6
     }
-  }, "Svarer til ", hlFmt(res.nHalf, 2), " halveringstid(er)"), /*#__PURE__*/React.createElement("div", {
+  }, "Svarer til ", res.nHalfHi != null ? hlFmt(Math.min(res.nHalf, res.nHalfHi), 2) + "\u2013" + hlFmt(Math.max(res.nHalf, res.nHalfHi), 2) : hlFmt(res.nHalf, 2), " halveringstid(er)"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 12.5,
       color: C.inkSoft,
@@ -10003,7 +13857,7 @@ function HalfLifeView({
       borderRadius: 9,
       padding: "8px 10px"
     }
-  }, "Udregning: 0,5", /*#__PURE__*/React.createElement("sup", null, "(", hlFmt(res.t, 2), " \xF7 ", hlFmt(res.h, 2), ")"), " = ", hlFmt(res.pct / 100, 4), " \u2192 ", hlFmt(res.pct, 2), " %")), /*#__PURE__*/React.createElement("svg", {
+  }, "Udregning: 0,5", /*#__PURE__*/React.createElement("sup", null, "(", hlFmt(res.t, 2), " \xF7 ", hlFmt(res.h, 2), ")"), " = ", hlFmt(res.pct, 2), " %", res.pctHi != null ? " · ved T½ " + hlFmt(res.hHi, 2) + " t: " + hlFmt(res.pctHi, 2) + " %" : "")), /*#__PURE__*/React.createElement("svg", {
     viewBox: "0 0 " + W + " " + H,
     style: {
       width: "100%",
@@ -10060,6 +13914,19 @@ function HalfLifeView({
     cy: yOf(res.pct),
     r: "4",
     fill: "#5B37C7"
+  })) : null, markNhHi != null && markNhHi <= nMax ? /*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("line", {
+    x1: xOf(markNhHi),
+    y1: 8,
+    x2: xOf(markNhHi),
+    y2: yOf(0),
+    stroke: "#9B7DF6",
+    strokeWidth: "1",
+    strokeDasharray: "3 3"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: xOf(markNhHi),
+    cy: yOf(res.pctHi),
+    r: "4",
+    fill: "#9B7DF6"
   })) : null)) : null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 13
@@ -10181,7 +14048,7 @@ function HalfLifeView({
       marginBottom: 11,
       lineHeight: 1.5
     }
-  }, "S\xF8g p\xE5 handelsnavn eller aktivt stof (fx Furix \u2192 furosemid). Klario viser kun en T\xBD, n\xE5r den er kontrolleret mod en navngiven kilde \u2014 ellers henviser vi til pro.medicin.dk."), /*#__PURE__*/React.createElement("div", {
+  }, "S\xF8g p\xE5 handelsnavn, aktivt stof eller ATC-kode (fx Furix, furosemid eller C03CA01). S\xF8gningen ", /*#__PURE__*/React.createElement("b", null, "identificerer"), " l\xE6gemidlet; en ", /*#__PURE__*/React.createElement("b", null, "halveringstid"), " vises kun, n\xE5r den er kontrolleret mod en navngiven kilde \u2014 ellers henviser vi til en medicinkilde."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8
@@ -10194,12 +14061,14 @@ function HalfLifeView({
       setLooked(false);
       setPicks([]);
       setPickId(null);
+      setPickEntry(null);
+      setComboSub(null);
     },
     onKeyDown: e => {
       if (e.key === "Enter") doLookup();
     },
-    placeholder: "Fx Furix eller furosemid\u2026",
-    "aria-label": "S\xF8g l\xE6gemiddel",
+    placeholder: "Fx Furix, furosemid eller C03CA01\u2026",
+    "aria-label": "S\xF8g l\xE6gemiddel, stof eller ATC-kode",
     autoComplete: "off",
     autoCapitalize: "none",
     style: {
@@ -10254,6 +14123,8 @@ function HalfLifeView({
       setLook(r.subName);
       setPicks([]);
       setPickId(r.subId);
+      setPickEntry(null);
+      setComboSub(null);
       setLooked(true);
     },
     style: {
@@ -10294,9 +14165,9 @@ function HalfLifeView({
       flexDirection: "column",
       gap: 8
     }
-  }, picks.map(p => /*#__PURE__*/React.createElement("button", {
-    key: p.subId,
-    onClick: () => selectPick(p.subId),
+  }, picks.map((p, pi) => /*#__PURE__*/React.createElement("button", {
+    key: p.subId + "_" + pi,
+    onClick: () => selectPick(p),
     style: {
       textAlign: "left",
       border: `1px solid ${C.line}`,
@@ -10307,16 +14178,42 @@ function HalfLifeView({
       fontFamily: "inherit",
       display: "flex",
       alignItems: "center",
-      gap: 8
+      gap: 8,
+      flexWrap: "wrap"
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
       flex: 1,
+      minWidth: 120,
       fontSize: 14.5,
       fontWeight: 700,
       color: C.ink
     }
-  }, p.subName), p.verified ? /*#__PURE__*/React.createElement("span", {
+  }, p.combo ? (p.subs || []).map(s => medSubName(medDS, s)).join(" + ") : p.subName, p.atc ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.inkFaint
+    }
+  }, " \xB7 ", String(p.atc).toUpperCase()) : null), p.combo ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 800,
+      color: "#5B37C7",
+      background: tint("#7A5AF5", "16"),
+      padding: "2px 7px",
+      borderRadius: 7
+    }
+  }, "Kombination") : null, p.review ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 10.5,
+      fontWeight: 800,
+      color: "#8A5A0B",
+      background: tint("#B7791F", "16"),
+      padding: "2px 7px",
+      borderRadius: 7
+    }
+  }, "Usikker") : null, p.verified ? /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10.5,
       fontWeight: 800,
@@ -10325,32 +14222,29 @@ function HalfLifeView({
       padding: "2px 7px",
       borderRadius: 7
     }
-  }, "Verificeret") : /*#__PURE__*/React.createElement("span", {
+  }, "Verificeret T\xBD") : /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 10.5,
       fontWeight: 700,
-      color: "#8A5A0B",
-      background: tint("#B7791F", "16"),
+      color: C.inkSoft,
+      background: tint(C.ink, "0A"),
       padding: "2px 7px",
       borderRadius: 7
     }
-  }, "Ej verificeret"), /*#__PURE__*/React.createElement(ChevronRight, {
+  }, "T\xBD ej verificeret"), /*#__PURE__*/React.createElement(ChevronRight, {
     size: 16,
     color: C.inkFaint
-  }))))) : looked && pickId && lookRes ? (() => {
-    const r = lookRes;
-    if (r.status === "verified" || r.status === "previously-verified") {
-      const e = medToCard(r.record);
-      const stale = r.status === "previously-verified";
-      const rc = (hlCache[r.subId] || {}).rechecked;
-      const AC = stale ? "#B7791F" : "#0FAE9E";
-      const TX = stale ? "#8A5A0B" : "#0B7A6E";
+  }))))) : looked && pickId ? (() => {
+    // Combination medicine (requirement 3): show ALL active substances, never
+    // auto-pick one ingredient's half-life. User chooses a substance to view.
+    if (isCombo && !comboSub) {
+      const subList = pickEntry.subs || [];
       return /*#__PURE__*/React.createElement("div", {
         style: {
           marginTop: 12,
-          border: `1px solid ${tint(AC, "40")}`,
+          border: `1px solid ${tint("#7A5AF5", "33")}`,
           borderRadius: 13,
-          background: tint(AC, "08"),
+          background: tint("#7A5AF5", "07"),
           padding: "13px 14px"
         }
       }, /*#__PURE__*/React.createElement("div", {
@@ -10358,229 +14252,584 @@ function HalfLifeView({
           display: "inline-flex",
           alignItems: "center",
           gap: 6,
-          background: tint(AC, "18"),
-          color: TX,
+          background: tint("#7A5AF5", "16"),
+          color: "#5B37C7",
           borderRadius: 8,
           padding: "3px 9px",
           fontSize: 11,
           fontWeight: 800,
           marginBottom: 8
         }
-      }, /*#__PURE__*/React.createElement(ShieldCheck, {
+      }, /*#__PURE__*/React.createElement(Pill, {
         size: 13,
-        color: TX
-      }), stale ? "Tidligere verificeret – opdatering kræves" : "Verificeret"), /*#__PURE__*/React.createElement("div", {
+        color: "#5B37C7"
+      }), "Kombinationspr\xE6parat"), /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 16,
           fontWeight: 800,
           color: C.ink
         }
-      }, e.substans), /*#__PURE__*/React.createElement("div", {
+      }, look, pickEntry.atc ? /*#__PURE__*/React.createElement("span", {
         style: {
-          fontSize: 13,
+          fontSize: 12,
+          fontWeight: 700,
+          color: C.inkFaint
+        }
+      }, " \xB7 ", String(pickEntry.atc).toUpperCase()) : null), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12.5,
           color: C.inkSoft,
+          marginTop: 4,
+          lineHeight: 1.5
+        }
+      }, "Dette l\xE6gemiddel indeholder ", /*#__PURE__*/React.createElement("b", null, subList.length, " aktive stoffer"), ". Klario beregner ikke \xE9n samlet halveringstid for et kombinationspr\xE6parat \u2014 hvert stof har sin egen. V\xE6lg et stof for at se dets T\xBD."), pickEntry.review ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: "flex",
+          gap: 8,
+          marginTop: 9,
+          background: tint("#B7791F", "10"),
+          border: `1px solid ${tint("#B7791F", "33")}`,
+          borderRadius: 10,
+          padding: "9px 11px"
+        }
+      }, /*#__PURE__*/React.createElement(Info, {
+        size: 14,
+        color: "#8A5A0B",
+        style: {
+          flexShrink: 0,
           marginTop: 1
         }
-      }, "Aktivt stof: ", e.aktivt, e.brands && e.brands.length ? " · Handelsnavne: " + e.brands.join(", ") : ""), /*#__PURE__*/React.createElement("div", {
+      }), /*#__PURE__*/React.createElement("span", {
         style: {
-          fontSize: 15,
-          color: C.ink,
-          marginTop: 9
-        }
-      }, e.measLabel, " (T\xBD): ", /*#__PURE__*/React.createElement("b", {
-        style: {
-          color: TX
-        }
-      }, e.display)), e.range ? /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 13,
-          color: C.ink,
-          marginTop: 4,
+          fontSize: 11.5,
+          color: "#7A4E0A",
           lineHeight: 1.5
         }
-      }, e.range) : null, e.effekt ? /*#__PURE__*/React.createElement("div", {
+      }, "Usikker tilknytning: navnet optr\xE6der i kilden med forskellige salt-/prodrugformer. Kontroll\xE9r i medicinkilden.")) : null, /*#__PURE__*/React.createElement("div", {
         style: {
-          fontSize: 12.5,
-          color: C.inkSoft,
-          marginTop: 6,
-          lineHeight: 1.5
-        }
-      }, /*#__PURE__*/React.createElement("b", null, "Virkningsvarighed:"), " ", e.effekt) : null, e.faktorer ? /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12.5,
-          color: C.inkSoft,
-          marginTop: 4,
-          lineHeight: 1.5
-        }
-      }, /*#__PURE__*/React.createElement("b", null, "Elimination p\xE5virkes af:"), " ", e.faktorer) : null, e.klinisk ? /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12.5,
-          color: C.inkSoft,
-          marginTop: 4,
-          lineHeight: 1.5
-        }
-      }, /*#__PURE__*/React.createElement("b", null, "Klinisk:"), " ", e.klinisk) : null, e.calcOptions && e.calcOptions.length ? /*#__PURE__*/React.createElement("div", {
-        style: {
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
           marginTop: 11
         }
-      }, e.calcOptions.length === 1 ? /*#__PURE__*/React.createElement("button", {
-        onClick: () => applyToCalc(e, e.calcOptions[0]),
-        style: {
-          width: "100%",
-          border: "none",
-          borderRadius: 11,
-          padding: "11px",
-          background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
-          color: "#fff",
-          fontFamily: "inherit",
-          fontSize: 14,
-          fontWeight: 800,
-          cursor: "pointer"
-        }
-      }, "Brug denne halveringstid i beregneren") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12.5,
-          fontWeight: 700,
-          color: C.inkSoft,
-          marginBottom: 7
-        }
-      }, "Brug i beregneren (v\xE6lg v\xE6rdi \u2014 intervallet har flere):"), /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8
-        }
-      }, e.calcOptions.map((o, i) => /*#__PURE__*/React.createElement("button", {
-        key: i,
-        onClick: () => applyToCalc(e, o),
-        style: {
-          border: `1px solid ${tint("#7A5AF5", "40")}`,
-          background: tint("#7A5AF5", "0C"),
-          borderRadius: 10,
-          padding: "9px 13px",
-          fontSize: 13,
-          fontWeight: 800,
-          color: "#5B37C7",
-          cursor: "pointer",
-          fontFamily: "inherit"
-        }
-      }, o.label || "Brug"))))) : null, /*#__PURE__*/React.createElement("div", {
-        style: {
-          borderTop: `1px solid ${C.line}`,
-          marginTop: 11,
-          paddingTop: 10
-        }
-      }, stale ? /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12,
-          color: "#8A5A0B",
-          lineHeight: 1.5,
-          marginBottom: 4
-        }
-      }, "Denne post er over 12 m\xE5neder gammel. Bekr\xE6ft v\xE6rdien mod kilden, f\xF8r du bruger den.") : null, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12,
-          color: C.inkSoft,
-          lineHeight: 1.5
-        }
-      }, "Kilde: ", e.kilde), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12,
-          color: C.inkFaint,
-          marginTop: 2
-        }
-      }, "Kontrolleret: ", e.lastVerified, rc ? " · Gentjekket i appen: " + hlDate(rc) : "", ". En kontroldato er ikke bevis for, at oplysningen stadig er aktuel."), /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: "flex",
-          flexWrap: "wrap",
-          gap: 8,
-          marginTop: 9
-        }
-      }, /*#__PURE__*/React.createElement("a", {
-        href: e.kildeUrl,
-        target: "_blank",
-        rel: "noopener noreferrer",
-        style: {
-          textDecoration: "none"
-        }
-      }, /*#__PURE__*/React.createElement("span", {
-        style: {
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          border: `1px solid ${C.line}`,
-          borderRadius: 10,
-          padding: "8px 12px",
-          fontSize: 12.5,
-          fontWeight: 700,
-          color: C.ink
-        }
-      }, "\xC5bn kilde ", /*#__PURE__*/React.createElement(ChevronRight, {
-        size: 14,
-        color: C.inkFaint
-      }))), /*#__PURE__*/React.createElement("button", {
-        onClick: () => reverify(r.subId, e.kildeUrl),
-        style: {
-          border: `1px solid ${C.line}`,
-          background: C.surface,
-          borderRadius: 10,
-          padding: "8px 12px",
-          fontSize: 12.5,
-          fontWeight: 700,
-          color: C.ink,
-          cursor: "pointer",
-          fontFamily: "inherit"
-        }
-      }, "Gentjek kilde"))));
+      }, subList.map((sid, si) => {
+        const g = medGet(medDS, sid);
+        const ver = g.status === "verified" || g.status === "previously-verified";
+        return /*#__PURE__*/React.createElement("button", {
+          key: sid + "_" + si,
+          onClick: () => {
+            setComboSub(sid);
+            cacheHit(medGet(medDS, sid));
+          },
+          style: {
+            textAlign: "left",
+            border: `1px solid ${C.line}`,
+            background: C.surface,
+            borderRadius: 11,
+            padding: "11px 13px",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "flex",
+            alignItems: "center",
+            gap: 8
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            flex: 1,
+            fontSize: 14.5,
+            fontWeight: 700,
+            color: C.ink
+          }
+        }, medSubName(medDS, sid)), ver ? /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontSize: 10.5,
+            fontWeight: 800,
+            color: "#0B7A6E",
+            background: tint("#0FAE9E", "18"),
+            padding: "2px 7px",
+            borderRadius: 7
+          }
+        }, "Verificeret T\xBD") : /*#__PURE__*/React.createElement("span", {
+          style: {
+            fontSize: 10.5,
+            fontWeight: 700,
+            color: C.inkSoft,
+            background: tint(C.ink, "0A"),
+            padding: "2px 7px",
+            borderRadius: 7
+          }
+        }, "T\xBD ej verificeret"), /*#__PURE__*/React.createElement(ChevronRight, {
+          size: 16,
+          color: C.inkFaint
+        }));
+      })));
     }
-    if (r.status === "not-documented") {
-      const e = medToCard(r.record);
-      return /*#__PURE__*/React.createElement("div", {
-        style: {
-          marginTop: 12,
-          border: `1px solid ${C.line}`,
-          borderRadius: 12,
-          background: C.surface,
-          padding: "12px 14px"
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 15,
-          fontWeight: 800,
-          color: C.ink
-        }
-      }, e.substans), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 14,
-          fontWeight: 800,
-          color: C.inkSoft,
-          marginTop: 6
-        }
-      }, "Halveringstid ikke dokumenteret / ikke fastlagt"), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12.5,
-          color: C.inkSoft,
-          marginTop: 4,
-          lineHeight: 1.5
-        }
-      }, e.range || "Kilden angiver ikke én meningsfuld halveringstid for dette lægemiddel."), e.kildeUrl ? /*#__PURE__*/React.createElement("a", {
-        href: e.kildeUrl,
-        target: "_blank",
-        rel: "noopener noreferrer",
-        style: {
-          textDecoration: "none"
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          marginTop: 9,
-          fontSize: 12.5,
-          fontWeight: 700,
-          color: "#5B37C7"
-        }
-      }, "\xC5bn kilde \u2192")) : null);
-    }
-    if (r.status === "unverified") {
-      const e = medToCard(r.record);
+    const r = lookRes;
+    const backToCombo = isCombo ? /*#__PURE__*/React.createElement("button", {
+      onClick: () => setComboSub(null),
+      style: {
+        border: "none",
+        background: "transparent",
+        color: "#5B37C7",
+        fontWeight: 800,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        fontSize: 12.5,
+        padding: 0,
+        marginBottom: 9,
+        display: "flex",
+        alignItems: "center",
+        gap: 5
+      }
+    }, /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 14,
+      color: "#5B37C7",
+      style: {
+        transform: "rotate(180deg)"
+      }
+    }), "Tilbage til kombinationspr\xE6paratet") : null;
+    const reviewBanner = pickEntry && pickEntry.review && !isCombo ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8,
+        marginTop: 12,
+        marginBottom: -2,
+        background: tint("#B7791F", "10"),
+        border: `1px solid ${tint("#B7791F", "33")}`,
+        borderRadius: 11,
+        padding: "10px 12px"
+      }
+    }, /*#__PURE__*/React.createElement(Info, {
+      size: 15,
+      color: "#8A5A0B",
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11.5,
+        color: "#7A4E0A",
+        lineHeight: 1.5
+      }
+    }, "Usikker tilknytning: dette handelsnavn optr\xE6der i L\xE6gemiddelstyrelsens liste med forskellige salt-/prodrug-/formuleringsformer. Klario behandler dem ikke som ens \u2014 kontroll\xE9r det aktive stof i medicinkilden.")) : null;
+    const manualBlock = (subId, subName) => /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 11,
+        borderTop: `1px solid ${C.line}`,
+        paddingTop: 11
+      }
+    }, manual[subId] ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        flexWrap: "wrap",
+        marginBottom: 9
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12.5,
+        color: C.ink
+      }
+    }, "Manuelt indtastet: ", /*#__PURE__*/React.createElement("b", null, hlFmt(manual[subId].h, 2), " t"), " ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: "#8A5A0B"
+      }
+    }, "(ikke verificeret)")), /*#__PURE__*/React.createElement("button", {
+      onClick: () => useManual(subId, subName),
+      style: {
+        border: "none",
+        background: tint("#7A5AF5", "16"),
+        color: "#5B37C7",
+        borderRadius: 9,
+        padding: "6px 12px",
+        fontSize: 12.5,
+        fontWeight: 800,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      }
+    }, "Beregn"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => clearManual(subId),
+      style: {
+        border: `1px solid ${C.line}`,
+        background: C.surface,
+        color: C.inkSoft,
+        borderRadius: 9,
+        padding: "6px 12px",
+        fontSize: 12.5,
+        fontWeight: 700,
+        cursor: "pointer",
+        fontFamily: "inherit"
+      }
+    }, "Ryd")) : null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: C.inkSoft,
+        marginBottom: 6
+      }
+    }, "Indtast en halveringstid, du selv har kontrolleret (timer):"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      value: manualInput,
+      onChange: ev => setManualInput(ev.target.value),
+      inputMode: "decimal",
+      placeholder: "fx 8",
+      "aria-label": "Manuel halveringstid i timer",
+      style: {
+        flex: 1,
+        boxSizing: "border-box",
+        border: `1px solid ${C.line}`,
+        borderRadius: 10,
+        padding: "10px 12px",
+        fontSize: 15,
+        color: C.ink,
+        background: C.surface,
+        fontFamily: "inherit"
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: () => applyManual(subId, subName),
+      style: {
+        border: "none",
+        borderRadius: 10,
+        padding: "10px 14px",
+        background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+        color: "#fff",
+        fontFamily: "inherit",
+        fontSize: 13.5,
+        fontWeight: 800,
+        cursor: "pointer"
+      }
+    }, "Gem & beregn")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: C.inkFaint,
+        marginTop: 6,
+        lineHeight: 1.5
+      }
+    }, "Markeres som manuelt indtastet og ikke-verificeret. Kontroll\xE9r altid mod en godkendt kilde."), /*#__PURE__*/React.createElement("a", {
+      href: "https://pro.medicin.dk/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      style: {
+        textDecoration: "none"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 9,
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: "#5B37C7",
+        display: "flex",
+        alignItems: "center",
+        gap: 6
+      }
+    }, /*#__PURE__*/React.createElement(Pill, {
+      size: 15,
+      color: "#7A5AF5"
+    }), "Find halveringstid i medicinkilde ", /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 14,
+      color: "#5B37C7"
+    }))));
+    const card = (() => {
+      if (r.status === "verified" || r.status === "previously-verified") {
+        const e = medToCard(r.record);
+        const stale = r.status === "previously-verified";
+        const rc = (hlCache[r.subId] || {}).rechecked;
+        const AC = stale ? "#B7791F" : "#0FAE9E";
+        const TX = stale ? "#8A5A0B" : "#0B7A6E";
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 12,
+            border: `1px solid ${tint(AC, "40")}`,
+            borderRadius: 13,
+            background: tint(AC, "08"),
+            padding: "13px 14px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: tint(AC, "18"),
+            color: TX,
+            borderRadius: 8,
+            padding: "3px 9px",
+            fontSize: 11,
+            fontWeight: 800,
+            marginBottom: 8
+          }
+        }, /*#__PURE__*/React.createElement(ShieldCheck, {
+          size: 13,
+          color: TX
+        }), stale ? "Tidligere verificeret – opdatering kræves" : "Verificeret"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 16,
+            fontWeight: 800,
+            color: C.ink
+          }
+        }, e.substans), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 13,
+            color: C.inkSoft,
+            marginTop: 1
+          }
+        }, "Aktivt stof: ", e.aktivt, e.brands && e.brands.length ? " · Handelsnavne: " + e.brands.join(", ") : ""), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 15,
+            color: C.ink,
+            marginTop: 9
+          }
+        }, e.measLabel, " (T\xBD): ", /*#__PURE__*/React.createElement("b", {
+          style: {
+            color: TX
+          }
+        }, e.display)), e.range ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 13,
+            color: C.ink,
+            marginTop: 4,
+            lineHeight: 1.5
+          }
+        }, e.range) : null, e.effekt ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            color: C.inkSoft,
+            marginTop: 6,
+            lineHeight: 1.5
+          }
+        }, /*#__PURE__*/React.createElement("b", null, "Virkningsvarighed:"), " ", e.effekt) : null, e.faktorer ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            color: C.inkSoft,
+            marginTop: 4,
+            lineHeight: 1.5
+          }
+        }, /*#__PURE__*/React.createElement("b", null, "Elimination p\xE5virkes af:"), " ", e.faktorer) : null, e.klinisk ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            color: C.inkSoft,
+            marginTop: 4,
+            lineHeight: 1.5
+          }
+        }, /*#__PURE__*/React.createElement("b", null, "Klinisk:"), " ", e.klinisk) : null, e.calcOptions && e.calcOptions.length ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 12
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12,
+            fontWeight: 800,
+            color: "#5B37C7",
+            letterSpacing: 0.4,
+            marginBottom: 7
+          }
+        }, "BEREGN HALVERINGSTID"), e.calcOptions.length === 1 ? /*#__PURE__*/React.createElement("button", {
+          onClick: () => applyToCalc(e, e.calcOptions[0]),
+          style: {
+            width: "100%",
+            border: "none",
+            borderRadius: 11,
+            padding: "12px",
+            background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+            color: "#fff",
+            fontFamily: "inherit",
+            fontSize: 14.5,
+            fontWeight: 800,
+            cursor: "pointer",
+            minHeight: 46
+          }
+        }, "Beregn halveringstid") : /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8
+          }
+        }, e.calcOptions.map((o, i) => /*#__PURE__*/React.createElement("button", {
+          key: i,
+          onClick: () => applyToCalc(e, o),
+          style: {
+            border: `1px solid ${tint("#7A5AF5", "40")}`,
+            background: tint("#7A5AF5", "0C"),
+            borderRadius: 10,
+            padding: "10px 14px",
+            fontSize: 13,
+            fontWeight: 800,
+            color: "#5B37C7",
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, o.label || "Beregn")), /*#__PURE__*/React.createElement("button", {
+          onClick: () => applyToCalcRange(e),
+          style: {
+            border: "none",
+            background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+            color: "#fff",
+            borderRadius: 10,
+            padding: "10px 14px",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, "Interval (lav\u2013h\xF8j)")), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 11,
+            color: C.inkFaint,
+            marginTop: 6,
+            lineHeight: 1.5
+          }
+        }, "Overf\xF8rer v\xE6rdien til beregneren. V\xE6lg selv tid; ved interval beregnes begge endepunkter.")) : null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            borderTop: `1px solid ${C.line}`,
+            marginTop: 11,
+            paddingTop: 10
+          }
+        }, stale ? /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12,
+            color: "#8A5A0B",
+            lineHeight: 1.5,
+            marginBottom: 4
+          }
+        }, "Denne post er over 12 m\xE5neder gammel. Bekr\xE6ft v\xE6rdien mod kilden, f\xF8r du bruger den.") : null, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12,
+            color: C.inkSoft,
+            lineHeight: 1.5
+          }
+        }, "Kilde: ", e.kilde), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12,
+            color: C.inkFaint,
+            marginTop: 2
+          }
+        }, "Kontrolleret: ", e.lastVerified, rc ? " · Gentjekket i appen: " + hlDate(rc) : "", ". En kontroldato er ikke bevis for, at oplysningen stadig er aktuel."), /*#__PURE__*/React.createElement("div", {
+          style: {
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+            marginTop: 9
+          }
+        }, /*#__PURE__*/React.createElement("a", {
+          href: e.kildeUrl,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          style: {
+            textDecoration: "none"
+          }
+        }, /*#__PURE__*/React.createElement("span", {
+          style: {
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            border: `1px solid ${C.line}`,
+            borderRadius: 10,
+            padding: "8px 12px",
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: C.ink
+          }
+        }, "\xC5bn kilde ", /*#__PURE__*/React.createElement(ChevronRight, {
+          size: 14,
+          color: C.inkFaint
+        }))), /*#__PURE__*/React.createElement("button", {
+          onClick: () => reverify(r.subId, e.kildeUrl),
+          style: {
+            border: `1px solid ${C.line}`,
+            background: C.surface,
+            borderRadius: 10,
+            padding: "8px 12px",
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: C.ink,
+            cursor: "pointer",
+            fontFamily: "inherit"
+          }
+        }, "Gentjek kilde"))));
+      }
+      if (r.status === "not-documented") {
+        const e = medToCard(r.record);
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 12,
+            border: `1px solid ${C.line}`,
+            borderRadius: 12,
+            background: C.surface,
+            padding: "12px 14px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 15,
+            fontWeight: 800,
+            color: C.ink
+          }
+        }, e.substans), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 14,
+            fontWeight: 800,
+            color: C.inkSoft,
+            marginTop: 6
+          }
+        }, "Halveringstid ikke dokumenteret / ikke fastlagt"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            color: C.inkSoft,
+            marginTop: 4,
+            lineHeight: 1.5
+          }
+        }, e.range || "Kilden angiver ikke én meningsfuld halveringstid for dette lægemiddel."), e.kildeUrl ? /*#__PURE__*/React.createElement("a", {
+          href: e.kildeUrl,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          style: {
+            textDecoration: "none"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 9,
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: "#5B37C7"
+          }
+        }, "\xC5bn kilde \u2192")) : null, manualBlock(r.subId, e.substans));
+      }
+      if (r.status === "unverified") {
+        const e = medToCard(r.record);
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            marginTop: 12,
+            border: `1px solid ${tint("#B7791F", "33")}`,
+            background: tint("#B7791F", "0C"),
+            borderRadius: 12,
+            padding: "12px 14px"
+          }
+        }, /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 15,
+            fontWeight: 800,
+            color: C.ink
+          }
+        }, e.substans), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 14,
+            fontWeight: 800,
+            color: "#8A5A0B",
+            marginTop: 6
+          }
+        }, "Ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+          style: {
+            fontSize: 12.5,
+            color: "#7A4E0A",
+            marginTop: 4,
+            lineHeight: 1.5
+          }
+        }, "Der er en post for ", e.substans, ", men halveringstiden er ikke tilstr\xE6kkeligt verificeret. Sl\xE5 op i en godkendt kilde."), manualBlock(r.subId, e.substans));
+      }
       return /*#__PURE__*/React.createElement("div", {
         style: {
           marginTop: 12,
@@ -10591,54 +14840,32 @@ function HalfLifeView({
         }
       }, /*#__PURE__*/React.createElement("div", {
         style: {
-          fontSize: 15,
-          fontWeight: 800,
+          fontSize: 13.5,
           color: C.ink
         }
-      }, e.substans), /*#__PURE__*/React.createElement("div", {
+      }, "Aktivt stof: ", /*#__PURE__*/React.createElement("b", null, r.subName)), pickEntry && (pickEntry.atc || pickEntry.source) ? /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11.5,
+          color: C.inkSoft,
+          marginTop: 2
+        }
+      }, pickEntry.atc ? "ATC " + String(pickEntry.atc).toUpperCase() : "", pickEntry.atc && pickEntry.source ? " · " : "", pickEntry.source ? "Identifikation: " + pickEntry.source : "") : null, /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 14,
           fontWeight: 800,
           color: "#8A5A0B",
           marginTop: 6
         }
-      }, "Ikke verificeret"), /*#__PURE__*/React.createElement("div", {
+      }, "Halveringstid ikke verificeret"), /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 12.5,
           color: "#7A4E0A",
           marginTop: 4,
           lineHeight: 1.5
         }
-      }, "Der er en post for ", e.substans, ", men halveringstiden er ikke tilstr\xE6kkeligt verificeret. Sl\xE5 op i en godkendt kilde."));
-    }
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 12,
-        border: `1px solid ${tint("#B7791F", "33")}`,
-        background: tint("#B7791F", "0C"),
-        borderRadius: 12,
-        padding: "12px 14px"
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 13.5,
-        color: C.ink
-      }
-    }, "Aktivt stof: ", /*#__PURE__*/React.createElement("b", null, r.subName)), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 14,
-        fontWeight: 800,
-        color: "#8A5A0B",
-        marginTop: 6
-      }
-    }, "Oplysning ikke tilg\xE6ngelig"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 12.5,
-        color: "#7A4E0A",
-        marginTop: 4,
-        lineHeight: 1.5
-      }
-    }, "Klario har endnu ikke en kildekontrolleret T\xBD for ", r.subName, ". Klario opfinder ikke en v\xE6rdi \u2014 sl\xE5 den op i en godkendt kilde."));
+      }, "L\xE6gemidlet er ", /*#__PURE__*/React.createElement("b", null, "identificeret"), ", men Klario har endnu ikke en kildekontrolleret T\xBD for ", r.subName, ". Klario opfinder ikke en v\xE6rdi \u2014 sl\xE5 den op i en godkendt kilde eller indtast en, du selv har kontrolleret."), manualBlock(r.subId, r.subName));
+    })();
+    return /*#__PURE__*/React.createElement(React.Fragment, null, backToCombo, reviewBanner, card);
   })() : looked ? /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 12,
@@ -10714,14 +14941,33 @@ function HalfLifeView({
       color: C.inkSoft,
       lineHeight: 1.5
     }
-  }, "Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede v\xE6rdier kommer fra en kurateret, kildekontrolleret database i appen. Bekr\xE6ft altid klinisk i pro.medicin.dk og f\xF8lg ordination.")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10.5,
-      color: C.inkFaint,
-      marginTop: 8,
-      textAlign: "center"
-    }
-  }, "Datas\xE6t ", medMeta && medMeta.datasetVersion ? medMeta.datasetVersion : "—", " \xB7 ", medMeta && medMeta.recordCount != null ? medMeta.recordCount : "—", " verificerede stoffer \xB7 ", medOrigin === "network" ? "opdateret fra data-fil" : medOrigin === "cache" ? "fra lokal cache" : "medbragt i appen")), /*#__PURE__*/React.createElement("button", {
+  }, "Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede v\xE6rdier kommer fra en kurateret, kildekontrolleret database i appen. Bekr\xE6ft altid klinisk i pro.medicin.dk og f\xF8lg ordination.")), (() => {
+    const liveSubs = Object.keys(medDS.substances || {}).length;
+    const liveVer = (medDS.records || []).length;
+    const liveNames = (medDS.index || []).length;
+    const isDev = medOrigin === "dev" || medMeta && medMeta.nameIndexDev;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10.5,
+        color: C.inkFaint,
+        marginTop: 8,
+        textAlign: "center",
+        lineHeight: 1.5
+      }
+    }, isDev ? /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: "inline-block",
+        fontSize: 9.5,
+        fontWeight: 800,
+        color: "#8A5A0B",
+        background: tint("#B7791F", "18"),
+        border: `1px solid ${tint("#B7791F", "33")}`,
+        borderRadius: 6,
+        padding: "1px 6px",
+        marginBottom: 4
+      }
+    }, "UDVIKLING \xB7 officielt indeks (L\xE6gemiddelstyrelsen) \xB7 ikke i produktion") : null, /*#__PURE__*/React.createElement("br", null), "Datas\xE6t T\xBD ", medMeta && medMeta.datasetVersion ? medMeta.datasetVersion : "—", " \xB7 ", liveSubs, " stoffer s\xF8gbare, ", liveNames, " navne, ", liveVer, " med verificeret T\xBD \xB7 ", medOrigin === "network" ? "opdateret fra data-fil" : medOrigin === "cache" ? "fra lokal cache" : medOrigin === "dev" ? "udviklings-indeks" : "medbragt i appen", /*#__PURE__*/React.createElement("br", null), "Navne-indeks: ", isDev ? "Lægemiddelstyrelsen — gengivet med kildeangivelse (ikke-kommerciel, afventer bekræftelse)" : "Klario kurateret · officielt indeks fra Lægemiddelstyrelsen kan tilføjes med kildeangivelse", ".");
+  })()), /*#__PURE__*/React.createElement("button", {
     onClick: () => onTest("halveringstid"),
     style: {
       width: "100%",
@@ -15258,6 +19504,7 @@ function DocxViewer({
 }
 function Klario() {
   const [screen, setScreen] = useState("hjem");
+  const [medlibSel, setMedlibSel] = useState(null);
   const [activeCat, setActiveCat] = useState(null);
   const [query, setQuery] = useState("");
   const [favs, setFavs] = useState(() => new Set());
@@ -15795,9 +20042,9 @@ function Klario() {
     setFarmaItem(null);
     scrollTop();
   };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat" || screen === "anatomi" || screen === "farmakologi";
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat" || screen === "anatomi" || screen === "farmakologi" || screen === "medicinbibliotek";
   const curCase = caseView ? caseById(caseView) : null;
-  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : screen === "anatomi" ? "Anatomi & fysiologi" : screen === "farmakologi" ? farmaSec ? (FARMA_SECTIONS.find(x => x.id === farmaSec) || {}).title || "Farmakologi" : "Farmakologi" : curTerm ? curTerm.term : "Fagligt sprog";
+  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : screen === "anatomi" ? "Anatomi & fysiologi" : screen === "farmakologi" ? farmaSec ? (FARMA_SECTIONS.find(x => x.id === farmaSec) || {}).title || "Farmakologi" : "Farmakologi" : screen === "medicinbibliotek" ? medlibSel ? (MEDLIB.find(x => x.id === medlibSel) || {}).brandName || "Medicinbibliotek" : "Medicinbibliotek" : curTerm ? curTerm.term : "Fagligt sprog";
   const pfBack = () => {
     if (screen === "plejeprocedurer" && procView) {
       setProcView(null);
@@ -15832,6 +20079,16 @@ function Klario() {
     }
     if (screen === "farmakologi") {
       setScreen("kategorier");
+      scrollTop();
+      return;
+    }
+    if (screen === "medicinbibliotek" && medlibSel) {
+      setMedlibSel(null);
+      scrollTop();
+      return;
+    }
+    if (screen === "medicinbibliotek") {
+      setScreen("hjem");
       scrollTop();
       return;
     }
@@ -17254,6 +21511,62 @@ function Klario() {
   }, /*#__PURE__*/React.createElement(SectionHead, {
     title: "Medicinopslag"
   }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setMedlibSel(null);
+      setScreen("medicinbibliotek");
+      scrollTop();
+    },
+    "aria-label": "Medicinbibliotek",
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: `1px solid ${tint("#7A5AF5", "2E")}`,
+      background: `linear-gradient(160deg, ${tint("#7A5AF5", "12")}, ${C.surface})`,
+      borderRadius: 18,
+      padding: 15,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      boxShadow: "0 1px 3px rgba(21,33,43,0.05)",
+      minHeight: 66,
+      marginBottom: 11
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      background: tint("#7A5AF5", "1E"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Pill, {
+    size: 23,
+    color: "#5B37C7",
+    strokeWidth: 2.1
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, "Medicinbibliotek"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.inkSoft,
+      marginTop: 2
+    }
+  }, "S\xF8g medicin, aktivt stof og l\xE6gemiddelgruppe.")), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 20,
+    color: C.inkFaint
+  })), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       setCalcGroup("medicin");
       setCalcView(null);
@@ -18915,7 +23228,7 @@ function Klario() {
       flexDirection: "column",
       gap: 11
     }
-  }, CALC_TOOLS.filter(t => calcGroup === "bmi" ? t.id === "bmi" : t.id === "medicin" || t.id === "infusion").map(t => /*#__PURE__*/React.createElement("button", {
+  }, CALC_TOOLS.filter(t => calcGroup === "bmi" ? t.id === "bmi" : t.id === "medicin" || t.id === "infusion" || t.id === "blodtryk").map(t => /*#__PURE__*/React.createElement("button", {
     key: t.id,
     onClick: () => {
       setCalcView(t.id);
@@ -18985,7 +23298,10 @@ function Klario() {
   }, /*#__PURE__*/React.createElement(InfusionsBeregner, null)), !activeCat && screen === "lommeregnere" && calcView === "bmi" && /*#__PURE__*/React.createElement("div", {
     key: "c-bmi",
     className: "anim"
-  }, /*#__PURE__*/React.createElement(BmiBeregner, null)), !activeCat && screen === "plejeprocedurer" && !procView && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(BmiBeregner, null)), !activeCat && screen === "lommeregnere" && calcView === "blodtryk" && /*#__PURE__*/React.createElement("div", {
+    key: "c-blodtryk",
+    className: "anim"
+  }, /*#__PURE__*/React.createElement(BlodtryksBeregner, null)), !activeCat && screen === "plejeprocedurer" && !procView && /*#__PURE__*/React.createElement("div", {
     className: "anim"
   }, /*#__PURE__*/React.createElement("p", {
     style: {
@@ -19536,7 +23852,14 @@ function Klario() {
       marginTop: 16,
       lineHeight: 1.5
     }
-  }, "Latinske betegnelser f\xF8lger g\xE6ngs anatomisk nomenklatur. Er noget uklart, s\xE5 kontroll\xE9r med din uddannelse eller lokale kilder.")))), !activeCat && screen === "farmakologi" && /*#__PURE__*/React.createElement("div", {
+  }, "Latinske betegnelser f\xF8lger g\xE6ngs anatomisk nomenklatur. Er noget uklart, s\xE5 kontroll\xE9r med din uddannelse eller lokale kilder.")))), !activeCat && screen === "medicinbibliotek" && /*#__PURE__*/React.createElement(MedicinBibliotek, {
+    sel: medlibSel,
+    setSel: setMedlibSel,
+    onTest: () => {
+      setScreen("quizoversigt");
+      scrollTop();
+    }
+  }), !activeCat && screen === "farmakologi" && /*#__PURE__*/React.createElement("div", {
     className: "anim"
   }, farmaSec === null ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("p", {
     style: {
