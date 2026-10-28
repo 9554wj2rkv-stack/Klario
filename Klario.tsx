@@ -1051,6 +1051,11 @@ const PLEJE_GENERAL_NOTE = "Dette er generel faglig vejledning. Følg altid borg
 
 const PLEJE_PROCS = [
   {
+    id: "p-injektioner", title: "Injektioner", desc: "Subkutan, intramuskulær, intravenøs og intradermal injektion — SC, IM, IV, ID. Faglig undervisning, illustrationer, tjekliste og quiz.", Icon: Plus,
+    ord: ["t-observation", "t-dokumentation"],
+    localNote: "Følg altid lokal instruks, produktresumé og din delegation.",
+  },
+  {
     id: "p-kateter", title: "Kateterpleje", desc: "Hygiejne, observation og sikker håndtering af kateter.", Icon: Droplets,
     formaal: ["Vedligeholde hygiejne omkring kateteret.", "Nedsætte risiko for komplikationer og infektion.", "Observere kateter, urin og borgerens tilstand."],
     brug: ["Engangshandsker", "Vaskeklude og vand (efter lokal instruks)", "Håndklæde", "Affaldspose"],
@@ -1621,6 +1626,225 @@ function TermCard({ t, onOpen }) {
   );
 }
 
+/* ===== KLARIO Injektioner (undervisningssektion) ========================
+ * SC/IM/IV/ID moduler. Procedurespecifik (ingen fælles vinkel/kanyle/aspiration).
+ * Vaccinationsvejledning holdes adskilt fra øvrig medicin. Kilder: SSI,
+ * Sundhedsstyrelsen, Lægehåndbogen (se kilder). Afventer faglig gennemgang —
+ * markeret i UI. Al tekst er ægte UTF-8 (JSX fortolker ikke \u-escapes). */
+const INJ = {"modules": [{"id": "sc", "code": "SC", "title": "Subkutan injektion", "color": "#0FAE9E", "g1": "#2BC7B4", "g2": "#0B9488", "short": "I underhuden (fedtlaget). Langsom, jævn optagelse.", "key": [["Vinkel", "45° eller 90° (efter kanyle/fedtlag)"], ["Lag", "Underhud (subcutis/fedt)"], ["Optagelse", "Langsom og jævn"], ["Aspiration", "Normalt ikke"]], "hvad": "Subkutan injektion (SC) gives i underhuden — det løse fedt- og bindevævslag lige under huden og over musklen. Lægemidlet optages langsommere end i muskel, hvilket giver en jævn og forlænget virkning.", "hvor": "Områder med subkutant fedt: maveskindet (ca. 5 cm fra navlen), forside/yderside af låret, bagsiden af overarmen og evt. øvre, ydre balde. Skift (rotér) systematisk mellem stederne for at skåne vævet.", "hvornaar": "Når et lægemiddel skal optages langsomt og jævnt, eller ikke egner sig til muskel eller vene. Bruges ofte til selvadministration i hjemmet.", "laegemidler": ["Insulin", "Lavmolekylært heparin (fx dalteparin, enoxaparin, tinzaparin)", "GLP-1-analoger (fx semaglutid)", "Visse vacciner (fx levende svækkede, MFR) — se vaccinationsafsnittet", "Morfin s.c. i palliativ pleje"], "anatomi": "Rækkefølgen er: hud (epidermis + dermis) → subkutant fedtlag (subcutis) → muskel. SC skal ramme fedtlaget. Hos en tynd person kan man løfte en hudfold og bruge mindre vinkel, så man ikke rammer muskel.", "udstyr": "Kort, tynd kanyle (fx insulinpen eller -sprøjte). Kanylelængden vælges efter personens fedtlag — følg produkt- og lokal instruks. Mange SC-lægemidler leveres i færdige penne eller sprøjter.", "forberedelse": ["Tjek ordination og de rigtige kontroller (borger, præparat, dosis, vej, tidspunkt).", "Udfør håndhygiejne (hånddesinfektion).", "Find og vurdér injektionsstedet; skift sted i forhold til sidst.", "Huden desinficeres normalt ikke, hvis den er synligt ren — følg lokal instruks."], "fremgang": ["Løft evt. en hudfold mellem to fingre.", "Stik kanylen i den vinkel, der passer til kanylelængde og fedtlag — typisk 45° (lang kanyle/tynd person) eller 90° (kort kanyle).", "Injicér langsomt.", "Aspiration er normalt ikke nødvendig ved subkutan injektion.", "Træk kanylen ud, og slip hudfolden.", "Læg kanylen direkte i kanylebøtten."], "obsFoer": ["Injektionsstedet (hud intakt, ingen infektion eller lipohypertrofi)", "Allergier", "Rigtig borger og ordination"], "obsEfter": ["Lokal reaktion (rødme, hævelse, blødning)", "Tegn på allergisk reaktion", "Virkning og bivirkning afhængigt af lægemidlet"], "komplikationer": ["Blødning eller blåt mærke", "Lokal irritation eller infektion", "Lipohypertrofi ved gentagne injektioner samme sted (fx insulin) → rotér", "Utilsigtet intramuskulær injektion (for dyb)"], "dok": ["Dokumentér præparat, dosis, injektionssted, tidspunkt og dine initialer", "Notér og rotér injektionssted, hvor det er relevant", "Patientsikkerhed: de rigtige kontroller og samtykke"]}, {"id": "im", "code": "IM", "title": "Intramuskulær injektion", "color": "#2E68E0", "g1": "#4F86F4", "g2": "#2257D8", "short": "Direkte i en muskel. Hurtigere optagelse end subkutant.", "key": [["Vinkel", "90°"], ["Lag", "Muskel"], ["Optagelse", "Hurtigere"], ["Aspiration", "Vacciner: nej · andre: følg lokal instruks"]], "hvad": "Intramuskulær injektion (IM) gives direkte i en muskel, som har god blodforsyning. Det giver hurtigere optagelse end subkutant og kan rumme lidt større volumen.", "hvor": "Voksne: deltoideus (overarm — bruges til de fleste vacciner), vastus lateralis (lårets yderside) og ventrogluteus (hoften). Spædbørn 0–12 mdr.: vastus lateralis. Brug korrekte anatomiske landemærker, så du undgår nerver og store kar.", "hvornaar": "Når hurtigere virkning ønskes, ved lægemidler der skal i muskel, og til de fleste vacciner til voksne og større børn.", "laegemidler": ["De fleste vacciner (se vaccinationsafsnittet)", "Visse antibiotika", "Vitamin B12 (hydroxocobalamin)", "Depotpræparater (fx visse antipsykotika)", "Adrenalin i.m. ved anafylaksi (anterolateralt på låret)"], "anatomi": "Kanylen passerer hud og subkutant fedt og skal nå ind i muskelvævet. Fedtlagets tykkelse og muskelmassen afgør, hvor lang kanylen skal være. Forkert sted kan ramme en nerve (fx n. radialis ved deltoideus, n. ischiadicus ved ballen) eller et kar.", "udstyr": "Længere kanyle end ved SC, så musklen nås gennem fedtlaget. Kanylelængde og -tykkelse vælges efter alder, muskelmasse og lægemiddel — følg produkt- og lokal instruks.", "forberedelse": ["Tjek ordination og de rigtige kontroller.", "Udfør håndhygiejne.", "Find de korrekte anatomiske landemærker.", "Ved vaccination desinficeres huden normalt ikke, hvis den er synligt ren (SSI). For øvrige lægemidler: følg lokal instruks."], "fremgang": ["Stræk huden over injektionsstedet (evt. Z-track-teknik ved vævsirriterende lægemidler).", "Stik kanylen i 90° ind i musklen.", "Ved vacciner aspireres IKKE (SSI/WHO) — der er ikke store kar på de anbefalede steder.", "For visse andre i.m.-lægemidler kan lokal instruks kræve langsom aspiration — følg den konkrete instruks og produktresuméet.", "Injicér langsomt.", "Træk kanylen ud, og læg den direkte i kanylebøtten."], "obsFoer": ["Korrekt landemærke og sted", "Allergier", "Ordination og borger"], "obsEfter": ["Lokal reaktion (smerte, rødme, hævelse)", "Tegn på allergisk reaktion/anafylaksi — særligt ved vacciner, hvor der observeres efter", "Virkning og bivirkning"], "komplikationer": ["Smerte og ømhed", "Nerveskade ved forkert sted", "Utilsigtet intravasal injektion", "Absces eller infektion", "Blødning/hæmatom"], "dok": ["Dokumentér præparat, dosis, sted (fx h. deltoideus), tidspunkt og initialer", "Ved vacciner: batch-/lotnummer efter lokal instruks", "Observationsperiode efter vaccination efter lokal instruks"]}, {"id": "iv", "code": "IV", "title": "Intravenøs injektion", "color": "#C2410C", "g1": "#F97316", "g2": "#C2410C", "short": "Direkte i en vene. Hurtigst virkende — kræver særlig kompetence.", "key": [["Vinkel", "I venen"], ["Lag", "Vene/blodbane"], ["Optagelse", "Hurtigst"], ["Kompetence", "Kræver særlig delegation"]], "hvad": "Intravenøs injektion (IV) gives direkte i en vene. Virkningen indtræder hurtigst af alle injektionsveje, fordi lægemidlet går direkte i blodbanen.", "hvor": "Perifere vener (fx håndryg eller underarm) via et venekateter (venflon), eller via et centralt venekateter (CVK). Kræver en etableret, kontrolleret adgang.", "hvornaar": "Når hurtig og sikker effekt er nødvendig, ved lægemidler der kun kan gives intravenøst, eller ved væske- og infusionsbehandling.", "laegemidler": ["Mange intravenøse antibiotika", "Intravenøse væsker og infusioner", "Visse smertestillende og akutmedicin", "Kontraststoffer"], "anatomi": "Vene → direkte i blodbanen. Nærheden til arterier og nerver kræver præcis teknik. Hvis lægemidlet ender uden for venen (ekstravasation), kan vævet tage skade.", "udstyr": "Venekateter/venflon, intravenøs adgang og evt. infusionssæt og pumpe. Steril håndtering.", "forberedelse": ["Kræver særlig kompetence og delegation — intravenøs administration er typisk forbeholdt sygeplejerske eller læge og ligger normalt uden for grundlæggende SSA-kompetence.", "Tjek ordination, forligelighed og de rigtige kontroller.", "Håndhygiejne og aseptisk teknik.", "Kontrollér, at adgangen fungerer (tilbageløb/gennemskylning efter lokal instruks)."], "fremgang": ["Følg lokal instruks for intravenøs administration og aseptisk teknik.", "Kontrollér den intravenøse adgang før indgift.", "Giv lægemidlet i den ordinerede hastighed.", "Observér borgeren tæt under og efter indgift.", "Håndtér kanyle og udstyr sikkert i kanylebøtten."], "obsFoer": ["Fungerende intravenøs adgang", "Forligelighed og ordination", "Allergier"], "obsEfter": ["Tegn på ekstravasation (hævelse, smerte, manglende indløb)", "Flebitis (rødme og varme langs venen)", "Hurtig bivirkning eller anafylaksi", "Virkning"], "komplikationer": ["Ekstravasation/infiltration", "Flebitis", "Infektion og i værste fald sepsis", "Luftemboli", "Hurtig og kraftig bivirkning på grund af den hurtige effekt"], "dok": ["Dokumentér præparat, dosis, hastighed, tidspunkt, adgang og initialer", "Observationer under og efter indgift", "Afvigelser og tiltag"]}, {"id": "id", "code": "ID", "title": "Intradermal injektion", "color": "#7A5AF5", "g1": "#9B7DF6", "g2": "#5B37C7", "short": "I selve huden (dermis). Danner en kvaddel. Bruges til tests.", "key": [["Vinkel", "10–15°"], ["Lag", "Hud (dermis)"], ["Optagelse", "Meget langsom"], ["Aspiration", "Nej"]], "hvad": "Intradermal injektion (ID) gives i selve huden (læderhuden/dermis), lige under det yderste hudlag. Der dannes en lille blære (kvaddel). Optagelsen er meget langsom — teknikken bruges til tests og lokal reaktion.", "hvor": "Oftest indersiden af underarmen (volart). Huden skal være sund og uden ar og behåring.", "hvornaar": "Til tuberkulintest (Mantoux), visse allergitests og anlæggelse af en bedøvelseskvaddel. Der gives meget små volumina (ca. 0,1 ml).", "laegemidler": ["Tuberkulin (Mantoux-test)", "Allergener til intrakutantest", "Lokalbedøvelse som kvaddel", "BCG-vaccine (gives intradermalt — se vaccinationsafsnittet)"], "anatomi": "Kanylen lægges næsten fladt i huden, så spidsen bliver i dermis. Rammer man for dybt (subkutant), dannes der ingen kvaddel, og fx en Mantoux-test bliver usikker.", "udstyr": "Meget tynd, kort kanyle og en lille sprøjte med fin gradinddeling. Skråspidsen (bevel) vender opad.", "forberedelse": ["Tjek ordination og indikation.", "Udfør håndhygiejne.", "Vælg et sundt hudområde på volar underarm.", "Følg lokal instruks for hud-desinfektion."], "fremgang": ["Stræk huden let.", "Hold kanylen næsten fladt — ca. 10–15° — med skråspidsen opad.", "Før kanylespidsen ind i huden (dermis).", "Injicér langsomt, indtil der dannes en tydelig kvaddel/blære.", "Træk kanylen ud; undgå at massere stedet.", "Aflæs/markér efter instruks (fx aflæses Mantoux efter 48–72 timer)."], "obsFoer": ["Sund hud uden ar eller infektion", "Allergistatus", "Indikation og ordination"], "obsEfter": ["At der dannes en kvaddel (ellers er injektionen for dyb)", "Lokal reaktion", "Aflæsning på det korrekte tidspunkt (fx Mantoux)"], "komplikationer": ["Ingen kvaddel (for dyb injektion) → usikkert resultat", "Blødning", "Lokal eller allergisk reaktion", "Infektion"], "dok": ["Dokumentér præparat/test, dosis, sted, tidspunkt og initialer", "Aflæsningstidspunkt og -resultat (fx Mantoux i mm)", "Patientsikkerhed og samtykke"]}], "compare": {"cols": ["SC", "IM", "IV", "ID"], "rows": [["Vinkel", "45°/90°", "90°", "I venen", "10–15°"], ["Lag", "Underhud (fedt)", "Muskel", "Vene/blodbane", "Hud (dermis)"], ["Optagelse", "Langsom/jævn", "Hurtigere", "Hurtigst", "Meget langsom"], ["Typiske", "Insulin, heparin", "Vacciner, B12", "I.v.-antibiotika, væske", "Mantoux, allergitest"], ["Aspiration", "Normalt nej", "Vacciner: nej*", "Tilbageløb", "Nej"]], "note": "*Ved ikke-vaccine-lægemidler kan lokal instruks kræve aspiration. Følg altid produktresumé og lokal instruks. Forenklet undervisningsoversigt."}, "checklist": ["Rigtig borger — bekræft identitet med to identifikatorer", "Ordination/recept kontrolleret", "Rigtigt lægemiddel", "Rigtig dosis", "Rigtig administrationsvej", "Rigtigt tidspunkt", "Allergier tjekket", "Samtykke indhentet", "Håndhygiejne udført", "Faglig kompetence og delegation er på plads", "Plan for observation før og efter", "Dokumentation klar"], "equipment": [{"t": "Injektionspenne", "b": ["Færdigfyldte penne med dosisindstilling (fx insulin, GLP-1, heparin).", "Sæt en ny kanyle på hver gang, og fjern den efter brug.", "Kontrollér for luft/flow efter produktinstruks (priming).", "Opbevar efter instruks (fx insulin), og rotér injektionssted."]}, {"t": "Ampuller (glas)", "b": ["Engangsglas der knækkes ved mærket — brug en serviet om halsen.", "Træk op med optræks-/filterkanyle efter lokal instruks.", "Skift til injektionskanyle før injektion.", "Kassér glas i kanylebøtte/glasaffald efter instruks."]}, {"t": "Hætteglas (vials)", "b": ["Desinficér gummimembranen før optræk.", "Træk evt. luft ind svarende til volumen, og træk dosis op.", "Fjern luftbobler før injektion.", "Mærk åbnet glas med dato/tid efter lokal instruks."]}, {"t": "Kanylesikkerhed", "b": ["Brug sikkerhedskanyler, hvor det er muligt.", "Sæt ALDRIG hætten på kanylen igen (recap ikke).", "Aktivér sikkerhedsmekanismen straks efter brug."]}, {"t": "Kanyleaffald (skarpt affald)", "b": ["Læg kanylen direkte i en godkendt kanylebøtte.", "Fyld ikke bøtten over max-stregen, og luk den, når den er fuld.", "Kanyler må aldrig i almindeligt affald (Arbejdstilsynet).", "Ved stikuheld: følg arbejdsstedets stikuheldsinstruks straks."]}], "sources": [{"t": "Statens Serum Institut — Injektionsteknik (subkutan)", "u": "https://www.ssi.dk/vaccinationer/administration-af-vacciner/injektionsteknik/subkutan-injektion", "d": "2026-10-28"}, {"t": "Statens Serum Institut — Intramuskulær injektion (børn og voksne)", "u": "https://www.ssi.dk/vaccinationer/administration-af-vacciner/injektionsteknik/intramuskulaer-injektion-beorn-og-voksne", "d": "2026-10-28"}, {"t": "Statens Serum Institut — Håndtering af vacciner", "u": "https://www.ssi.dk/vaccinationer/haandtering-af-vacciner", "d": "2026-10-28"}, {"t": "Lægehåndbogen (sundhed.dk) — Tuberkulintest (Mantoux)", "u": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/lunger/undersoegelser/tuberkulintest-mantoux-test/", "d": "2026-10-28"}, {"t": "Sundhedsstyrelsen (sst.dk) — medicinhåndtering", "u": "https://www.sst.dk", "d": "2026-10-28"}, {"t": "Arbejdstilsynet (at.dk) — kanyler og stikuheld", "u": "https://at.dk", "d": "2026-10-28"}], "review": "Indholdet er udarbejdet til undervisning og bygger på generel dansk vejledning (SSI, Sundhedsstyrelsen, Lægehåndbogen). Det er endnu ikke gennemgået punkt for punkt af en fagperson. Kontrollér altid mod gældende lokal instruks, produktresumé og din delegation, før du handler. Afventer faglig gennemgang — især: kanylelængde/-type, hud-desinfektion og aspiration ved ikke-vaccine-lægemidler afhænger af præparat og lokal instruks.", "vaccineNote": "Vaccinationsspecifik vejledning adskiller sig fra øvrig medicin. SSI anbefaler fx, at der IKKE aspireres ved vacciner, og at huden normalt ikke desinficeres, hvis den er synligt ren. Følg altid SSI's aktuelle vejledning for den konkrete vaccine — bland den ikke sammen med regler for andre injektionslægemidler."};
+
+/* Forenklet undervisningsdiagram: hudlag + injektionsdybder/vinkler */
+function InjLayersSVG() {
+  const W = 320, H = 210, L = 96;
+  const yEpi = 34, yDerm = 50, ySub = 86, yMus = 150;
+  return (
+    <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", height: "auto", background: C.surface, border: "1px solid " + C.line, borderRadius: 14 }} role="img" aria-label="Forenklet diagram over hudlag og injektionsdybder">
+      <rect x={L} y={yEpi} width={W - L - 8} height={yDerm - yEpi} fill="#F4D9C6" />
+      <rect x={L} y={yDerm} width={W - L - 8} height={ySub - yDerm} fill="#E7B59A" />
+      <rect x={L} y={ySub} width={W - L - 8} height={yMus - ySub} fill="#F7E7A6" />
+      <rect x={L} y={yMus} width={W - L - 8} height={H - yMus - 10} fill="#D98A8A" />
+      {[["Epidermis", yEpi + 11], ["Dermis (hud)", yDerm + 12], ["Underhud (fedt)", ySub + 22], ["Muskel", yMus + 22]].map((r, i) => (
+        <text key={i} x={10} y={r[1]} fontSize="10" fill={C.inkSoft} fontWeight="600">{r[0]}</text>
+      ))}
+      {/* ID ~10-15° into dermis */}
+      <line x1={L + 8} y1={yDerm - 6} x2={L + 62} y2={yDerm + 7} stroke="#5B37C7" strokeWidth="2.4" />
+      <text x={L + 20} y={yDerm - 9} fontSize="9" fill="#5B37C7" fontWeight="800">ID 10–15°</text>
+      {/* SC 45° into subcutis */}
+      <line x1={L + 150} y1={yDerm - 10} x2={L + 180} y2={ySub + 8} stroke="#0B9488" strokeWidth="2.4" />
+      <text x={L + 120} y={yDerm - 12} fontSize="9" fill="#0B9488" fontWeight="800">SC 45°</text>
+      {/* IM 90° into muscle */}
+      <line x1={W - 40} y1={yEpi - 6} x2={W - 40} y2={yMus + 18} stroke="#2257D8" strokeWidth="2.4" />
+      <text x={W - 70} y={yEpi - 9} fontSize="9" fill="#2257D8" fontWeight="800">IM 90°</text>
+      {/* IV: vein in subcutis */}
+      <ellipse cx={L + 96} cy={ySub + 22} rx="22" ry="7" fill="#9CC1F0" stroke="#2257D8" strokeWidth="1" />
+      <text x={L + 70} y={ySub + 44} fontSize="9" fill="#C2410C" fontWeight="800">IV (i vene)</text>
+    </svg>
+  );
+}
+/* Forenklet kropskort med injektionssteder */
+function InjSitesSVG() {
+  const W = 320, H = 220;
+  const dot = (x, y, c) => <circle cx={x} cy={y} r="5" fill={c} stroke="#fff" strokeWidth="1.4" />;
+  return (
+    <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", height: "auto", background: C.surface, border: "1px solid " + C.line, borderRadius: 14 }} role="img" aria-label="Forenklet kropskort med injektionssteder">
+      {/* very simplified body */}
+      <circle cx="160" cy="30" r="16" fill={tint(C.ink, "10")} />
+      <rect x="138" y="48" width="44" height="70" rx="14" fill={tint(C.ink, "10")} />
+      <rect x="112" y="52" width="20" height="60" rx="9" fill={tint(C.ink, "10")} />
+      <rect x="188" y="52" width="20" height="60" rx="9" fill={tint(C.ink, "10")} />
+      <rect x="142" y="116" width="16" height="78" rx="8" fill={tint(C.ink, "10")} />
+      <rect x="162" y="116" width="16" height="78" rx="8" fill={tint(C.ink, "10")} />
+      {dot(126, 60, "#2257D8")}<text x="20" y="62" fontSize="9.5" fill={C.inkSoft}>Deltoideus (IM)</text>
+      {dot(150, 86, "#0B9488")}<text x="212" y="88" fontSize="9.5" fill={C.inkSoft}>Maveskind (SC)</text>
+      {dot(146, 150, "#2257D8")}<text x="20" y="152" fontSize="9.5" fill={C.inkSoft}>Vastus lateralis (IM)</text>
+      {dot(188, 100, "#7A5AF5")}<text x="210" y="118" fontSize="9.5" fill={C.inkSoft}>Volar underarm (ID)</text>
+      {dot(176, 120, "#C2410C")}<text x="210" y="150" fontSize="9.5" fill={C.inkSoft}>Ventrogluteus (IM)</text>
+    </svg>
+  );
+}
+
+function InjExpand({ id, title, openSet, toggle, children }) {
+  const open = openSet.has(id);
+  return (
+    <div style={{ border: "1px solid " + C.line, borderRadius: 13, background: C.surface, overflow: "hidden" }}>
+      <button onClick={() => toggle(id)} aria-expanded={open} style={{ width: "100%", textAlign: "left", border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: "13px 14px", display: "flex", alignItems: "center", gap: 9 }}>
+        <span style={{ flex: 1, fontSize: 15, fontWeight: 800, color: C.ink, lineHeight: 1.3 }}>{title}</span>
+        <ChevronDown size={18} color={C.inkFaint} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }} />
+      </button>
+      {open ? <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 9 }}>{children}</div> : null}
+    </div>
+  );
+}
+const InjP = ({ children }) => <div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.55 }}>{children}</div>;
+const InjUL = ({ items }) => (<ul style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 4 }}>{items.map((x, i) => <li key={i} style={{ fontSize: 13, color: C.ink, lineHeight: 1.5 }}>{x}</li>)}</ul>);
+
+function InjReviewBanner() {
+  return (
+    <div style={{ display: "flex", gap: 9, background: tint("#B7791F", "10"), border: "1px solid " + tint("#B7791F", "33"), borderRadius: 12, padding: "11px 13px" }}>
+      <Info size={16} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+      <span style={{ fontSize: 12, color: "#7A4E0A", lineHeight: 1.55 }}><b>Undervisning — afventer faglig gennemgang.</b> {INJ.review}</span>
+    </div>
+  );
+}
+
+function Injektioner({ view, setView, onQuiz, isFav, onFav }) {
+  const [openSet, setOpenSet] = useState(() => new Set(["s1"]));
+  const toggle = (id) => setOpenSet((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const [checks, setChecks] = useState(() => new Set());
+  const mod = INJ.modules.find((m) => m.id === view);
+
+  // ----- a single module -----
+  if (mod) {
+    const sec = (id, title, node) => <InjExpand id={id} title={title} openSet={openSet} toggle={toggle}>{node}</InjExpand>;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 11, paddingBottom: 36 }} className="anim">
+        <div style={{ borderRadius: 16, padding: 15, background: "linear-gradient(160deg," + tint(mod.color, "16") + "," + tint(mod.color, "08") + ")", border: "1px solid " + tint(mod.color, "2E") }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: tint(mod.color, "1E"), color: mod.g2, borderRadius: 8, padding: "3px 9px", fontSize: 12, fontWeight: 800 }}>{mod.code}</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, marginTop: 7 }}>{mod.title}</div>
+          <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>{mod.short}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+            {mod.key.map((k, i) => <span key={i} style={{ fontSize: 11, fontWeight: 700, color: mod.g2, background: tint(mod.color, "12"), padding: "3px 8px", borderRadius: 8 }}>{k[0]}: {k[1]}</span>)}
+          </div>
+        </div>
+        <InjReviewBanner />
+        {sec("s1", "1. Hvad er det?", <InjP>{mod.hvad}</InjP>)}
+        {sec("s2", "2. Hvor i kroppen gives injektionen?", <InjP>{mod.hvor}</InjP>)}
+        {sec("s3", "3. Hvornår anvendes den?", <InjP>{mod.hvornaar}</InjP>)}
+        {sec("s4", "4. Eksempler på lægemidler", <InjUL items={mod.laegemidler} />)}
+        {sec("s5", "5. Relevant anatomi", <><InjP>{mod.anatomi}</InjP><InjLayersSVG /><div style={{ fontSize: 10.5, color: C.inkFaint }}>Forenklet undervisningsdiagram — ikke anatomisk målfast.</div></>)}
+        {sec("s6", "6. Udstyr og kanyler", <InjP>{mod.udstyr}</InjP>)}
+        {sec("s7", "7. Forberedelse og hygiejne", <InjUL items={mod.forberedelse} />)}
+        {sec("s8", "8. Fremgangsmåde — faglig undervisning", <><InjUL items={mod.fremgang} /><div style={{ fontSize: 11, color: "#7A4E0A", background: tint("#B7791F", "0C"), borderRadius: 9, padding: "8px 10px", lineHeight: 1.5 }}>Vinkel, kanyle og aspiration er specifikke for netop denne injektionstype og det konkrete lægemiddel. Følg altid lokal instruks.</div></>)}
+        {sec("s9", "9. Observation før og efter", <><div style={{ fontSize: 12.5, fontWeight: 800, color: C.inkSoft }}>Før</div><InjUL items={mod.obsFoer} /><div style={{ fontSize: 12.5, fontWeight: 800, color: C.inkSoft, marginTop: 4 }}>Efter</div><InjUL items={mod.obsEfter} /></>)}
+        {sec("s10", "10. Mulige komplikationer", <InjUL items={mod.komplikationer} />)}
+        {sec("s11", "11. Dokumentation og patientsikkerhed", <InjUL items={mod.dok} />)}
+        <div style={{ border: "1px solid " + C.line, borderRadius: 13, background: C.surface, padding: "13px 14px" }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 7 }}>12. Test din viden</div>
+          <button onClick={onQuiz} style={{ width: "100%", border: "none", borderRadius: 11, padding: "13px", background: "linear-gradient(135deg," + mod.g1 + "," + mod.g2 + ")", color: "#fff", fontFamily: "inherit", fontSize: 14.5, fontWeight: 800, cursor: "pointer", minHeight: 48 }}>Test din viden om injektioner</button>
+        </div>
+      </div>
+    );
+  }
+
+  // ----- checklist -----
+  if (view === "checklist") {
+    const done = checks.size, total = INJ.checklist.length;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingBottom: 36 }} className="anim">
+        <div><div style={{ fontSize: 19, fontWeight: 800, color: C.ink }}>Tjekliste før injektion</div><div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>Interaktiv huskeliste. Intet gemmes, og listen erstatter ikke lokal instruks.</div></div>
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft }}>{done}/{total} klaret</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {INJ.checklist.map((c, i) => { const on = checks.has(i); return (
+            <button key={i} onClick={() => setChecks((p) => { const n = new Set(p); n.has(i) ? n.delete(i) : n.add(i); return n; })} style={{ textAlign: "left", display: "flex", alignItems: "center", gap: 11, border: "1px solid " + (on ? tint("#0FAE9E", "40") : C.line), background: on ? tint("#0FAE9E", "0A") : C.surface, borderRadius: 12, padding: "12px 13px", cursor: "pointer", fontFamily: "inherit" }}>
+              <span style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0, border: "2px solid " + (on ? "#0B9488" : C.inkFaint), background: on ? "#0B9488" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 900 }}>{on ? "✓" : ""}</span>
+              <span style={{ fontSize: 14, color: C.ink, lineHeight: 1.4 }}>{c}</span>
+            </button>
+          ); })}
+        </div>
+        <button onClick={() => setChecks(new Set())} style={{ border: "1px solid " + C.line, borderRadius: 12, padding: "12px", background: C.surface, color: C.inkSoft, fontFamily: "inherit", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>Nulstil</button>
+        <div style={{ display: "flex", gap: 9, background: tint(C.ink, "05"), border: "1px solid " + C.line, borderRadius: 12, padding: "11px 13px" }}><Info size={15} color={C.inkSoft} style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 11.5, color: C.inkSoft, lineHeight: 1.5 }}>Følg altid din delegation og arbejdsstedets instruks. Ved tvivl: stop og spørg den ansvarlige.</span></div>
+      </div>
+    );
+  }
+
+  // ----- equipment -----
+  if (view === "udstyr") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 11, paddingBottom: 36 }} className="anim">
+        <div><div style={{ fontSize: 19, fontWeight: 800, color: C.ink }}>Udstyr og skarpt affald</div><div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>Penne, ampuller, hætteglas, kanylesikkerhed og bortskaffelse.</div></div>
+        {INJ.equipment.map((e, i) => (
+          <div key={i} style={{ border: "1px solid " + C.line, borderRadius: 13, background: C.surface, padding: "13px 14px" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 7 }}>{e.t}</div>
+            <InjUL items={e.b} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // ----- compare / illustration -----
+  if (view === "sammenlign") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 13, paddingBottom: 36 }} className="anim">
+        <div><div style={{ fontSize: 19, fontWeight: 800, color: C.ink }}>Sammenlign SC · IM · IV · ID</div><div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>Overblik over lag, vinkel og optagelse.</div></div>
+        <InjLayersSVG />
+        <InjSitesSVG />
+        <div style={{ border: "1px solid " + C.line, borderRadius: 13, overflow: "hidden", background: C.surface }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr 1fr 1fr", background: tint(C.ink, "06"), fontSize: 11, fontWeight: 800, color: C.inkSoft }}>
+            <div style={{ padding: "8px 8px" }}></div>
+            {INJ.compare.cols.map((c) => <div key={c} style={{ padding: "8px 8px", textAlign: "center" }}>{c}</div>)}
+          </div>
+          {INJ.compare.rows.map((r, i) => (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1fr 1fr 1fr", borderTop: "1px solid " + C.line, fontSize: 11 }}>
+              <div style={{ padding: "8px 8px", fontWeight: 700, color: C.inkSoft }}>{r[0]}</div>
+              {r.slice(1).map((v, j) => <div key={j} style={{ padding: "8px 8px", textAlign: "center", color: C.ink, lineHeight: 1.35 }}>{v}</div>)}
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10.5, color: C.inkFaint, lineHeight: 1.5 }}>{INJ.compare.note}</div>
+      </div>
+    );
+  }
+
+  // ----- overview -----
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 13, paddingBottom: 36 }} className="anim">
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <p style={{ margin: 0, flex: 1, fontSize: 13.5, color: C.inkSoft, lineHeight: 1.55 }}>Fire injektionstyper med faglig undervisning, illustrationer, tjekliste og quiz. Til SSA-elever og personale.</p>
+        <button onClick={onFav} aria-label="Gem som favorit" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 4, flexShrink: 0 }}><Star size={22} color={isFav ? "#F5A623" : C.inkFaint} fill={isFav ? "#F5A623" : "none"} /></button>
+      </div>
+      <InjReviewBanner />
+      <div style={{ display: "flex", gap: 9, background: tint("#2E68E0", "0A"), border: "1px solid " + tint("#2E68E0", "24"), borderRadius: 12, padding: "11px 13px" }}>
+        <ShieldCheck size={16} color="#2257D8" style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.55 }}><b>Vacciner:</b> {INJ.vaccineNote}</span>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {INJ.modules.map((m) => (
+          <button key={m.id} onClick={() => setView(m.id)} aria-label={m.title} style={{ textAlign: "left", border: "1px solid " + tint(m.color, "2E"), borderRadius: 16, padding: 13, cursor: "pointer", background: "linear-gradient(160deg," + tint(m.color, "14") + "," + tint(m.color, "06") + ")", display: "flex", flexDirection: "column", gap: 8, minHeight: 108 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 12, background: tint(m.color, "1E"), color: m.g2, fontWeight: 900, fontSize: 14 }}>{m.code}</span>
+            <div><div style={{ fontSize: 14.5, fontWeight: 800, color: C.ink, lineHeight: 1.2 }}>{m.title}</div><div style={{ fontSize: 11, color: C.inkSoft, marginTop: 3, lineHeight: 1.35 }}>{m.short}</div></div>
+          </button>
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+        {[["sammenlign", "Sammenlign & illustrationer", "Hudlag, vinkler og kropskort"], ["checklist", "Tjekliste før injektion", "Interaktiv sikkerhedstjekliste"], ["udstyr", "Udstyr og skarpt affald", "Penne, ampuller, hætteglas, kanyler"]].map((t) => (
+          <button key={t[0]} onClick={() => setView(t[0])} style={{ textAlign: "left", border: "1px solid " + C.line, background: C.surface, borderRadius: 14, padding: "13px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 11, fontFamily: "inherit" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: tint(C.primary, "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><ClipboardList size={20} color={C.primary} /></div>
+            <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 800, color: C.ink }}>{t[1]}</div><div style={{ fontSize: 11.5, color: C.inkSoft }}>{t[2]}</div></div>
+            <ChevronRight size={18} color={C.inkFaint} />
+          </button>
+        ))}
+      </div>
+      <button onClick={onQuiz} style={{ width: "100%", border: "none", borderRadius: 14, padding: "14px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Test din viden om injektioner</button>
+      <div style={{ border: "1px solid " + C.line, borderRadius: 13, background: tint(C.ink, "04"), padding: "12px 14px" }}>
+        <div style={{ fontSize: 12.5, fontWeight: 800, color: C.ink, marginBottom: 6 }}>Kilder & revision</div>
+        {INJ.sources.map((s, i) => (<a key={i} href={s.u} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ fontSize: 11.5, color: "#2257D8", lineHeight: 1.5, marginBottom: 3 }}>{s.t} · konsulteret {s.d} →</div></a>))}
+        <div style={{ fontSize: 11, color: C.inkFaint, marginTop: 5, lineHeight: 1.5 }}>Følg altid gældende lokal instruks, produktresumé og din delegation. KLARIO opfinder ikke kliniske værdier; uverificerede detaljer er markeret til gennemgang.</div>
+      </div>
+    </div>
+  );
+}
+
 function ProcDetail({ p, onTerm, onQuiz, onCase }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
@@ -2021,17 +2245,1351 @@ function BmiBeregner() {
   );
 }
 
+function calculateBP(rows, method) {
+  for (let i = 0; i < 3; i++) {
+    const r = rows[i];
+    if (!Number.isFinite(r.s) || !Number.isFinite(r.d)) return { error: "Udfyld både systolisk og diastolisk for alle tre målinger." };
+    if (!(r.s >= 50 && r.s <= 300)) return { error: "Måling " + (i + 1) + ": systolisk skal være mellem 50 og 300 mmHg." };
+    if (!(r.d >= 30 && r.d <= 200)) return { error: "Måling " + (i + 1) + ": diastolisk skal være mellem 30 og 200 mmHg." };
+    if (!(r.s > r.d)) return { error: "Måling " + (i + 1) + ": systolisk skal være større end diastolisk." };
+  }
+  const idx = method === "alle" ? [0, 1, 2] : [1, 2];
+  const sysAvg = idx.reduce((a, i) => a + rows[i].s, 0) / idx.length;
+  const diaAvg = idx.reduce((a, i) => a + rows[i].d, 0) / idx.length;
+  const devSys = Math.abs(rows[1].s - rows[2].s);
+  const devDia = Math.abs(rows[1].d - rows[2].d);
+  // round ONLY the final result
+  return { sysAvg: sysAvg, diaAvg: diaAvg, sysR: Math.round(sysAvg), diaR: Math.round(diaAvg), idx: idx, devSys: devSys, devDia: devDia, warn: devSys > 5 || devDia > 5 };
+}
+
+const BT_GUIDE_URL = "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/undersoegelser-og-proever/kliniske-procedurer/hjertekar/blodtryksmaaling/";
+function BlodtryksBeregner() {
+  const [s1, setS1] = useState(""); const [d1, setD1] = useState("");
+  const [s2, setS2] = useState(""); const [d2, setD2] = useState("");
+  const [s3, setS3] = useState(""); const [d3, setD3] = useState("");
+  const [method, setMethod] = useState("2og3");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const reset = () => { setS1(""); setD1(""); setS2(""); setD2(""); setS3(""); setD3(""); setMethod("2og3"); setRes(null); setErr(""); };
+  const calc = () => {
+    setRes(null); setErr("");
+    const rows = [{ s: parseNum(s1), d: parseNum(d1) }, { s: parseNum(s2), d: parseNum(d2) }, { s: parseNum(s3), d: parseNum(d3) }];
+    const r = calculateBP(rows, method);
+    if (r.error) { setErr(r.error); return; }
+    const lbl = method === "alle" ? "Gennemsnit af alle tre målinger" : "Gennemsnit af måling 2 og 3 (standard)";
+    const sNums = r.idx.map((i) => fmtNum(rows[i].s)).join(" + ");
+    const dNums = r.idx.map((i) => fmtNum(rows[i].d)).join(" + ");
+    const n = r.idx.length;
+    const udregning = "Systolisk: (" + sNums + ") ÷ " + n + " = " + fmtNum(r.sysAvg, 2) + " → afrundet " + r.sysR + ". Diastolisk: (" + dNums + ") ÷ " + n + " = " + fmtNum(r.diaAvg, 2) + " → afrundet " + r.diaR + ".";
+    setRes({ method: lbl, udregning: udregning, sysR: r.sysR, diaR: r.diaR, warn: r.warn, devSys: r.devSys, devDia: r.devDia });
+  };
+  const INP = { width: "100%", boxSizing: "border-box", border: "1px solid " + C.line, borderRadius: 11, padding: "12px 13px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit", outline: "none" };
+  const bpRow = (n, sv, setS, dv, setD, hint) => (
+    <div style={{ border: "1px solid " + C.line, borderRadius: 14, padding: "12px 13px", background: C.surface }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 9, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 14, fontWeight: 800, color: C.ink }}>Måling {n}</span>
+        {hint ? <span style={{ fontSize: 11, color: C.inkFaint }}>{hint}</span> : null}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: C.inkSoft, marginBottom: 5 }}>Systolisk (øvre)</div>
+          <input value={sv} onChange={(e) => setS(e.target.value)} inputMode="numeric" placeholder="fx 138" aria-label={"Måling " + n + " systolisk"} style={INP} />
+        </div>
+        <div>
+          <div style={{ fontSize: 11.5, fontWeight: 600, color: C.inkSoft, marginBottom: 5 }}>Diastolisk (nedre)</div>
+          <input value={dv} onChange={(e) => setD(e.target.value)} inputMode="numeric" placeholder="fx 86" aria-label={"Måling " + n + " diastolisk"} style={INP} />
+        </div>
+      </div>
+    </div>
+  );
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 13, paddingBottom: 90 }}>
+      <p style={{ margin: 0, fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Indtast tre blodtryksmålinger. Beregneren viser gennemsnittet i mmHg og runder først det endelige resultat af. Ingen data gemmes.</p>
+      {bpRow(1, s1, setS1, d1, setD1, "indgår ikke i standard-gennemsnittet")}
+      {bpRow(2, s2, setS2, d2, setD2, "")}
+      {bpRow(3, s3, setS3, d3, setD3, "")}
+
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.inkSoft, marginBottom: 7 }}>Beregningsmetode</div>
+        <CSeg opts={[{ v: "2og3", l: "Gns. af måling 2 og 3 (standard)" }, { v: "alle", l: "Gns. af alle tre" }]} val={method} set={(v) => { setMethod(v); setRes(null); }} />
+      </div>
+
+      <CActions onCalc={calc} onReset={reset} />
+      {err && <CError msg={err} />}
+
+      {res && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          <div style={{ border: "1px solid " + tint(C.primary, "33"), background: tint(C.primary, "0A"), borderRadius: 16, padding: 16 }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft }}>Gennemsnitsblodtryk</div>
+            <div style={{ fontSize: 34, fontWeight: 800, color: C.ink, letterSpacing: -0.5, marginTop: 2 }}>{res.sysR}/{res.diaR} <span style={{ fontSize: 18, fontWeight: 700, color: C.inkSoft }}>mmHg</span></div>
+            <div style={{ marginTop: 11, paddingTop: 11, borderTop: "1px solid " + tint(C.primary, "22") }}>
+              <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5 }}><b>Metode:</b> {res.method}</div>
+              <div style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.55, marginTop: 5 }}><b>Udregning:</b> {res.udregning}</div>
+            </div>
+          </div>
+          {res.warn && (
+            <div style={{ display: "flex", gap: 10, background: tint("#B7791F", "12"), border: "1px solid " + tint("#B7791F", "33"), borderRadius: 13, padding: "12px 14px" }}>
+              <Info size={18} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div style={{ fontSize: 12.5, lineHeight: 1.5, color: "#7A4E0A" }}>Måling 2 og 3 afviger mere end 5 mmHg (systolisk {res.devSys}, diastolisk {res.devDia}). Overvej supplerende målinger efter gældende procedure.</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <a href={BT_GUIDE_URL} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
+        <div style={{ border: "1px solid " + tint(C.primary, "33"), background: tint(C.primary, "0A"), borderRadius: 13, padding: "12px 14px", display: "flex", alignItems: "center", gap: 10 }}>
+          <Activity size={18} color={C.primary} style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: C.primary }}>Vejledning om blodtryksmåling (Sundhed.dk)</div>
+            <div style={{ fontSize: 11.5, color: C.inkSoft }}>Lægehåndbogen · faglig reference</div>
+          </div>
+          <ChevronRight size={17} color={C.primary} />
+        </div>
+      </a>
+
+      <div style={{ display: "flex", gap: 10, background: tint(C.primary, "0A"), border: "1px solid " + tint(C.primary, "22"), borderRadius: 13, padding: "12px 14px" }}>
+        <Info size={17} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} />
+        <div style={{ fontSize: 12.5, lineHeight: 1.5, color: C.ink }}>En fuld hjemmeblodtryksundersøgelse kræver normalt målinger både morgen og aften over flere dage. Denne beregner udregner kun gennemsnittet af én måleserie. Den stiller ikke diagnoser og giver ingen behandlingsforslag — følg altid lokal procedure og faglig vurdering.</div>
+      </div>
+    </div>
+  );
+}
+
 const CALC_TOOLS = [
   { id: "medicin", title: "Medicinberegner", sub: "Dosis, styrke og mængde", Icon: Pill, kw: "medicinberegner medicinberegning dosis tabletter kapsler flydende medicin styrke mængde mg ml mikrogram" },
   { id: "infusion", title: "Infusioner", sub: "ml/time, tid og volumen", Icon: Droplets, kw: "infusioner infusionsberegner infusion ml/time tid volumen dråber/minut dråber/min dråbefaktor" },
   { id: "bmi", title: "BMI-beregner", sub: "Højde + vægt → BMI", Icon: Gauge, kw: "bmi bmi-beregner højde vægt body mass index" },
+  { id: "blodtryk", title: "Blodtryksberegner", sub: "Gennemsnit af 3 målinger", Icon: Activity, kw: "blodtryk blodtryksberegner systolisk diastolisk mmhg gennemsnit tre maalinger hjemmeblodtryk bt" },
 ];
 const calcSearch = (q) => { const s = (q || "").trim().toLowerCase(); return s ? CALC_TOOLS.filter((c) => (c.title + " " + c.sub + " " + c.kw).toLowerCase().includes(s)) : []; };
 
 /* Pseudo-categories so Fagligt sprog, Plejeprocedurer and Test Viden appear in the
    KLINISKE KATEGORIER grid with the same card design (they keep their own screens). */
+/* ===== FAGLIGT SPROG — Anatomi & fysiologi =============================
+ *  Dansk → fagligt → latin opslag for SSA-elever og sundhedspersonale.
+ *  Latinske betegnelser følger gængs anatomisk nomenklatur (Terminologia
+ *  Anatomica). Betegnelser der IKKE kan verificeres sikkert markeres med
+ *  flag:true ("Til faglig kontrol") frem for at blive opfundet.
+ *  Data er struktureret med stabile id'er, så en interaktiv kropsillustration
+ *  senere kan mappe et tryk (bodyKey) direkte til et opslag.
+ * ===================================================================== */
+const ANAT_SUBS = [
+  { id: "alle", label: "Alle" },
+  { id: "ydre", label: "Kroppens ydre anatomi" },
+  { id: "organer", label: "Organer" },
+  { id: "systemer", label: "Organsystemer" },
+  { id: "indre", label: "Indre anatomi" },
+  { id: "retning", label: "Retningsbegreber" },
+  { id: "fysiologi", label: "Fysiologi" },
+];
+const ANAT_TYPE_LABEL = { region: "Kropsregion", knogle: "Knogle", led: "Led", muskel: "Muskel", organ: "Organ", system: "Organsystem", struktur: "Struktur", retning: "Retningsbegreb" };
+
+const ANAT = [
+  /* ---------- Kroppens ydre anatomi: regioner ---------- */
+  { id: "a-hoved", sub: "ydre", type: "region", bodyKey: "hoved", daglig: "Hoved", faglig: "Hovedregion", latin: "Caput / Regio capitis", forklaring: "Hele hovedet inkl. kraniet.", placering: "Øverst på kroppen, over halsen.", syn: ["hovede", "cranium region"] },
+  { id: "a-ansigt", sub: "ydre", type: "region", bodyKey: "hoved", daglig: "Ansigt", faglig: "Ansigtsregion", latin: "Facies / Regio facialis", forklaring: "Forsiden af hovedet.", placering: "Forreste del af hovedet.", syn: ["fjæs"] },
+  { id: "a-hals", sub: "ydre", type: "region", bodyKey: "hals", daglig: "Hals", faglig: "Halsregion", latin: "Collum / Regio cervicalis", forklaring: "For- og sideflade af halsen.", placering: "Mellem hoved og brystkasse.", syn: ["strube"] },
+  { id: "a-nakke", sub: "ydre", type: "region", bodyKey: "hals", daglig: "Nakke", faglig: "Nakkeregion", latin: "Nucha / Regio cervicalis posterior", forklaring: "Bagsiden af halsen.", placering: "Bag på halsen.", syn: ["nakken"] },
+  { id: "a-skulder", sub: "ydre", type: "region", bodyKey: "skulder", daglig: "Skulder", faglig: "Skulderregion", latin: "Regio deltoidea", forklaring: "Området omkring skulderleddet.", placering: "Øverst på armen, ved kroppen.", syn: ["skuldre"], doc: "Nedsat bevægelighed i højre skulder." },
+  { id: "a-brystkasse", sub: "ydre", type: "region", bodyKey: "thorax", daglig: "Brystkasse", faglig: "Brystregion / thorax", latin: "Thorax / Regio thoracica", forklaring: "Brysthulen med ribben, hjerte og lunger.", placering: "Øverste del af kroppen.", syn: ["bryst", "brystkasse", "thorax"] },
+  { id: "a-ryg", sub: "ydre", type: "region", bodyKey: "ryg", daglig: "Ryg", faglig: "Rygregion", latin: "Dorsum / Regio dorsalis", forklaring: "Bagsiden af kroppen.", placering: "Bagsiden fra nakke til bækken.", syn: ["ryggen"] },
+  { id: "a-abdomen", sub: "ydre", type: "region", bodyKey: "abdomen", daglig: "Mave / abdomen", faglig: "Bugregion / abdomen", latin: "Abdomen / Regio abdominalis", forklaring: "Bughulen med mave-tarm-organer.", placering: "Mellem brystkasse og bækken.", syn: ["mave", "bug", "abdomen"], doc: "Borger angiver smerter i nedre abdomen." },
+  { id: "a-baekken", sub: "ydre", type: "region", bodyKey: "baekken", daglig: "Bækken", faglig: "Bækkenregion", latin: "Pelvis / Regio pelvica", forklaring: "Nederste del af bugen med bækkenorganer.", placering: "Mellem mave og lår.", syn: ["pelvis"] },
+  { id: "a-balle", sub: "ydre", type: "region", bodyKey: "balle", daglig: "Balle", faglig: "Glutealregion", latin: "Regio glutealis", forklaring: "Bagdelen; området over sædemusklerne.", placering: "Bageste del af bækken-/hofteregionen.", doc: "Der observeres rødme i højre glutealregion.", syn: ["balder", "bagdel", "sæde", "numse", "ende"] },
+  { id: "a-overarm", sub: "ydre", type: "region", bodyKey: "overarm", daglig: "Overarm", faglig: "Overarmsregion", latin: "Brachium / Regio brachialis", forklaring: "Armen mellem skulder og albue.", placering: "Øvre del af armen.", syn: ["overarme"] },
+  { id: "a-albue", sub: "ydre", type: "region", bodyKey: "albue", daglig: "Albue", faglig: "Albueregion", latin: "Cubitus / Regio cubitalis", forklaring: "Området omkring albueleddet.", placering: "Mellem overarm og underarm.", syn: ["albuer"] },
+  { id: "a-underarm", sub: "ydre", type: "region", bodyKey: "underarm", daglig: "Underarm", faglig: "Underarmsregion", latin: "Antebrachium / Regio antebrachialis", forklaring: "Armen mellem albue og håndled.", placering: "Nedre del af armen.", syn: ["underarme"] },
+  { id: "a-haand", sub: "ydre", type: "region", bodyKey: "haand", daglig: "Hånd", faglig: "Håndregion", latin: "Manus / Regio manus", forklaring: "Hånden fra håndled til fingerspidser.", placering: "For enden af underarmen.", syn: ["hænder"] },
+  { id: "a-fingre", sub: "ydre", type: "region", bodyKey: "haand", daglig: "Fingre", faglig: "Fingre", latin: "Digiti manus", forklaring: "Håndens fingre.", placering: "Yderst på hånden.", syn: ["finger"] },
+  { id: "a-hofte", sub: "ydre", type: "region", bodyKey: "hofte", daglig: "Hofte", faglig: "Hofteregion", latin: "Coxa / Regio coxae", forklaring: "Området omkring hofteleddet.", placering: "Mellem bækken og lår.", syn: ["hofter"] },
+  { id: "a-laar", sub: "ydre", type: "region", bodyKey: "laar", daglig: "Lår", faglig: "Lårregion", latin: "Femur (region) / Regio femoris", forklaring: "Benet mellem hofte og knæ. OBS: selve lårbenet (knoglen) hedder os femoris.", placering: "Øvre del af benet.", syn: ["lårene"], related: ["a-laarben"] },
+  { id: "a-knae", sub: "ydre", type: "region", bodyKey: "knae", daglig: "Knæ", faglig: "Knæregion", latin: "Genu / Regio genus", forklaring: "Området omkring knæleddet.", placering: "Mellem lår og underben.", syn: ["knæene"] },
+  { id: "a-underben", sub: "ydre", type: "region", bodyKey: "underben", daglig: "Underben", faglig: "Underbensregion", latin: "Crus / Regio cruris", forklaring: "Benet mellem knæ og ankel.", placering: "Nedre del af benet.", syn: ["skinneben region", "læg"] },
+  { id: "a-ankel", sub: "ydre", type: "region", bodyKey: "ankel", daglig: "Ankel", faglig: "Ankelregion", latin: "Regio talocruralis", forklaring: "Området omkring ankelleddet.", placering: "Mellem underben og fod.", syn: ["ankler", "malleol"] },
+  { id: "a-fod", sub: "ydre", type: "region", bodyKey: "fod", daglig: "Fod", faglig: "Fodregion", latin: "Pes / Regio pedis", forklaring: "Foden fra ankel til tæer.", placering: "Nederst på benet.", syn: ["fødder"], doc: "Tør, sprukken hud på højre fod." },
+  { id: "a-taeer", sub: "ydre", type: "region", bodyKey: "fod", daglig: "Tæer", faglig: "Tæer", latin: "Digiti pedis", forklaring: "Fodens tæer.", placering: "Yderst på foden.", syn: ["tå"] },
+
+  /* ---------- Knogler ---------- */
+  { id: "a-kranie", sub: "ydre", type: "knogle", bodyKey: "hoved", daglig: "Kranie", faglig: "Kranium", latin: "Cranium", forklaring: "Knoglerne der beskytter hjernen.", syn: ["hovedskal"] },
+  { id: "a-rygsoejle", sub: "ydre", type: "knogle", bodyKey: "ryg", daglig: "Rygsøjle", faglig: "Rygsøjle / ryghvirvler", latin: "Columna vertebralis (Vertebrae)", forklaring: "Søjlen af ryghvirvler; beskytter rygmarven.", syn: ["ryghvirvler", "hvirvler", "rygrad"] },
+  { id: "a-brystben", sub: "ydre", type: "knogle", bodyKey: "thorax", daglig: "Brystben", faglig: "Brystben", latin: "Sternum", forklaring: "Fladt ben midt på brystkassen.", syn: ["sternum"] },
+  { id: "a-ribben", sub: "ydre", type: "knogle", bodyKey: "thorax", daglig: "Ribben", faglig: "Ribben", latin: "Costae", forklaring: "Buede knogler der danner brystkassen.", syn: ["costae"] },
+  { id: "a-kraveben", sub: "ydre", type: "knogle", bodyKey: "skulder", daglig: "Kraveben", faglig: "Kraveben", latin: "Clavicula", forklaring: "Knogle mellem brystben og skulderblad.", syn: ["clavicula"] },
+  { id: "a-skulderblad", sub: "ydre", type: "knogle", bodyKey: "skulder", daglig: "Skulderblad", faglig: "Skulderblad", latin: "Scapula", forklaring: "Fladt ben på øvre ryg ved skulderen.", syn: ["scapula"] },
+  { id: "a-overarmsknogle", sub: "ydre", type: "knogle", bodyKey: "overarm", daglig: "Overarmsknogle", faglig: "Overarmsknogle", latin: "Humerus", forklaring: "Knoglen i overarmen.", syn: ["humerus"] },
+  { id: "a-spoleben", sub: "ydre", type: "knogle", bodyKey: "underarm", daglig: "Spoleben", faglig: "Spoleben", latin: "Radius", forklaring: "Underarmsknogle på tommelfingersiden.", syn: ["radius"] },
+  { id: "a-albueben", sub: "ydre", type: "knogle", bodyKey: "underarm", daglig: "Albueben", faglig: "Albueben", latin: "Ulna", forklaring: "Underarmsknogle på lillefingersiden.", syn: ["ulna"] },
+  { id: "a-hofteben", sub: "ydre", type: "knogle", bodyKey: "baekken", daglig: "Hofteben", faglig: "Hofteben", latin: "Os coxae", forklaring: "Bækkenknoglen i hver side.", syn: ["os coxae"] },
+  { id: "a-laarben", sub: "ydre", type: "knogle", bodyKey: "laar", daglig: "Lårben", faglig: "Lårben", latin: "Femur (Os femoris)", forklaring: "Kroppens største knogle i låret. OBS: adskil fra lår­REGIONEN.", syn: ["femur", "os femoris"] },
+  { id: "a-knaeskal", sub: "ydre", type: "knogle", bodyKey: "knae", daglig: "Knæskal", faglig: "Knæskal", latin: "Patella", forklaring: "Lille knogle foran knæleddet.", syn: ["patella"] },
+  { id: "a-skinneben", sub: "ydre", type: "knogle", bodyKey: "underben", daglig: "Skinneben", faglig: "Skinneben", latin: "Tibia", forklaring: "Den kraftige underbensknogle foran.", syn: ["tibia"] },
+  { id: "a-laegben", sub: "ydre", type: "knogle", bodyKey: "underben", daglig: "Lægben", faglig: "Lægben", latin: "Fibula", forklaring: "Tynd underbensknogle på ydersiden.", syn: ["fibula"] },
+  { id: "a-haelben", sub: "ydre", type: "knogle", bodyKey: "fod", daglig: "Hælben", faglig: "Hælben", latin: "Calcaneus", forklaring: "Den store knogle i hælen.", syn: ["calcaneus", "hæl"] },
+
+  /* ---------- Led ---------- */
+  { id: "a-skulderled", sub: "ydre", type: "led", bodyKey: "skulder", daglig: "Skulderled", faglig: "Skulderled", latin: "Articulatio humeri", forklaring: "Kugleled mellem overarm og skulderblad.", syn: ["glenohumeralled"] },
+  { id: "a-albueled", sub: "ydre", type: "led", bodyKey: "albue", daglig: "Albueled", faglig: "Albueled", latin: "Articulatio cubiti", forklaring: "Led mellem overarm og underarm.", syn: [] },
+  { id: "a-hofteled", sub: "ydre", type: "led", bodyKey: "hofte", daglig: "Hofteled", faglig: "Hofteled", latin: "Articulatio coxae", forklaring: "Kugleled mellem lårben og bækken.", syn: [] },
+  { id: "a-knaeled", sub: "ydre", type: "led", bodyKey: "knae", daglig: "Knæled", faglig: "Knæled", latin: "Articulatio genus", forklaring: "Hængselled mellem lårben og skinneben.", syn: [] },
+  { id: "a-ankelled", sub: "ydre", type: "led", bodyKey: "ankel", daglig: "Ankelled", faglig: "Ankelled", latin: "Articulatio talocruralis", forklaring: "Led mellem underben og fod.", syn: [] },
+
+  /* ---------- Muskler ---------- */
+  { id: "a-deltoid", sub: "ydre", type: "muskel", bodyKey: "skulder", daglig: "Skuldermuskel", faglig: "Deltamuskel", latin: "Musculus deltoideus", forklaring: "Løfter armen; almindeligt injektionssted i.m.", syn: ["deltoid", "deltamuskel"] },
+  { id: "a-biceps", sub: "ydre", type: "muskel", bodyKey: "overarm", daglig: "Bicepsmuskel", faglig: "Biceps", latin: "Musculus biceps brachii", forklaring: "Bøjer albuen.", syn: ["biceps"] },
+  { id: "a-quadriceps", sub: "ydre", type: "muskel", bodyKey: "laar", daglig: "Forlårsmuskel", faglig: "Quadriceps", latin: "Musculus quadriceps femoris", forklaring: "Stor forlårsmuskel; strækker knæet.", syn: ["quadriceps", "forlår"] },
+  { id: "a-gluteus", sub: "ydre", type: "muskel", bodyKey: "balle", daglig: "Sædemuskel", faglig: "Store baldemuskel", latin: "Musculus gluteus maximus", forklaring: "Kroppens store baldemuskel; strækker hoften.", syn: ["gluteus", "baldemuskel"] },
+  { id: "a-gastrocnemius", sub: "ydre", type: "muskel", bodyKey: "underben", daglig: "Lægmuskel", faglig: "Lægmuskel", latin: "Musculus gastrocnemius", forklaring: "Muskel på bagsiden af underbenet.", syn: ["læg", "lægmuskel"] },
+
+  /* ---------- Organer ---------- */
+  { id: "a-hjerte", sub: "organer", type: "organ", bodyKey: "thorax", daglig: "Hjerte", faglig: "Hjerte", latin: "Cor", system: "Kredsløbssystemet", forklaring: "Muskelpumpe der driver blodet rundt i kroppen.", placering: "I brysthulen (thorax), lidt til venstre.", funktion: "Pumper blod gennem det store og det lille kredsløb, så ilt og næring når ud til cellerne.", indre: [{ n: "Højre forkammer", l: "Atrium dextrum" }, { n: "Venstre forkammer", l: "Atrium sinistrum" }, { n: "Højre hjertekammer", l: "Ventriculus dexter" }, { n: "Venstre hjertekammer", l: "Ventriculus sinister" }, { n: "Hjerteklapper", l: "Valvae cordis (mitralis, tricuspidalis, aortae, pulmonalis)" }], begreber: ["Puls", "Blodtryk", "Systole/diastole"], doc: "Regelmæssig puls, 78 pr. min.", catLink: "diagnoser", syn: ["hjertet"] },
+  { id: "a-lunger", sub: "organer", type: "organ", bodyKey: "thorax", daglig: "Lunger", faglig: "Lunger", latin: "Pulmones (sg. Pulmo)", system: "Respirationssystemet", forklaring: "To organer der optager ilt og afgiver kuldioxid.", placering: "I brysthulen, på hver side af hjertet.", funktion: "Ilt fra luften optages i blodet, og kuldioxid afgives — gasudveksling i alveolerne.", indre: [{ n: "Lungelapper", l: "Lobi pulmonis" }, { n: "Bronkier", l: "Bronchi" }, { n: "Lungeblærer", l: "Alveoli pulmonis" }], begreber: ["Respiration", "Saturation (SpO₂)", "Dyspnø"], doc: "Rolig, ubesværet respiration 16 pr. min.", catLink: "observationer", syn: ["lunge"] },
+  { id: "a-lever", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Lever", faglig: "Lever", latin: "Hepar", system: "Fordøjelsessystemet", forklaring: "Stort stofskifteorgan der bl.a. afgifter og danner galde.", placering: "Øverst til højre i bughulen, under mellemgulvet.", funktion: "Omsætter næringsstoffer, afgifter stoffer og medicin og danner galde til fordøjelsen.", begreber: ["Stofskifte", "Galde", "Afgiftning"], syn: ["leveren"] },
+  { id: "a-nyrer", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Nyrer", faglig: "Nyrer", latin: "Ren (pl. Renes)", system: "Urinvejssystemet", forklaring: "To bønneformede organer der filtrerer blodet og danner urin.", placering: "Bagtil i bughulen (retroperitonealt), en i hver side.", funktion: "Filtrerer blodet, danner urin og regulerer væske-, elektrolyt-, syre-base-balance og blodtryk.", indre: [{ n: "Nyrebark", l: "Cortex renalis" }, { n: "Nyremarv", l: "Medulla renalis" }, { n: "Nyrebækken", l: "Pelvis renalis" }, { n: "Urinleder", l: "Ureter" }], begreber: ["Diurese", "Væskebalance", "Elektrolytter"], doc: "Diurese sv.t. indtag; klar, lys urin.", catLink: "normalvaerdier", syn: ["nyre"] },
+  { id: "a-urinblaere", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Urinblære", faglig: "Urinblære", latin: "Vesica urinaria", system: "Urinvejssystemet", forklaring: "Muskelpose der opsamler urin fra nyrerne.", placering: "Nederst i bækkenet.", funktion: "Opsamler og tømmer urin (vandladning).", begreber: ["Vandladning", "Residualurin", "Inkontinens"], syn: ["blære"] },
+  { id: "a-mavesaek", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Mavesæk", faglig: "Mavesæk / ventrikel", latin: "Ventriculus (Gaster)", system: "Fordøjelsessystemet", forklaring: "Muskelpose der blander og nedbryder maden.", placering: "Øverst til venstre i bughulen.", funktion: "Opbevarer maden, blander den med mavesyre og starter nedbrydningen af protein.", begreber: ["Mavesyre", "Fordøjelse"], syn: ["mave", "ventrikel"] },
+  { id: "a-tyndtarm", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Tyndtarm", faglig: "Tyndtarm", latin: "Intestinum tenue", system: "Fordøjelsessystemet", forklaring: "Lang tarm hvor størstedelen af næringen optages.", placering: "Midt i bughulen.", funktion: "Nedbryder maden videre og optager næringsstoffer til blodet.", indre: [{ n: "Tolvfingertarm", l: "Duodenum" }, { n: "Jejunum", l: "Jejunum" }, { n: "Ileum", l: "Ileum" }], begreber: ["Absorption", "Peristaltik"], syn: [] },
+  { id: "a-tyktarm", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Tyktarm", faglig: "Tyktarm", latin: "Intestinum crassum", system: "Fordøjelsessystemet", forklaring: "Tarm der opsuger vand og danner afføring.", placering: "Rammer bughulen som en ramme om tyndtarmen.", funktion: "Optager vand og salte og former afføringen.", indre: [{ n: "Blindtarm", l: "Caecum" }, { n: "Tyktarm", l: "Colon" }, { n: "Endetarm", l: "Rectum" }], begreber: ["Obstipation", "Afføring"], catLink: "ernaering", syn: ["colon"] },
+  { id: "a-endetarm", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Endetarm", faglig: "Endetarm / rectum", latin: "Rectum", system: "Fordøjelsessystemet", forklaring: "Sidste del af tarmen før anus.", placering: "Nederst i bækkenet.", funktion: "Opbevarer afføring indtil tømning.", syn: ["rectum", "endetarmen"] },
+  { id: "a-pancreas", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Bugspytkirtel", faglig: "Bugspytkirtel / pankreas", latin: "Pancreas", system: "Fordøjelses- og hormonsystemet", forklaring: "Kirtel der danner fordøjelsesenzymer og hormoner.", placering: "Bag mavesækken.", funktion: "Danner fordøjelsesenzymer til tarmen og hormonerne insulin og glukagon, der styrer blodsukkeret.", begreber: ["Insulin", "Blodsukker", "Enzymer"], catLink: "diagnoser", syn: ["pankreas"] },
+  { id: "a-milt", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Milt", faglig: "Milt", latin: "Lien (Splen)", system: "Lymfe- og immunsystemet", forklaring: "Organ der renser blodet og indgår i immunforsvaret.", placering: "Øverst til venstre i bughulen.", funktion: "Nedbryder gamle blodlegemer og hjælper immunforsvaret.", syn: ["milten"] },
+  { id: "a-hjerne", sub: "organer", type: "organ", bodyKey: "hoved", daglig: "Hjerne", faglig: "Hjerne", latin: "Encephalon", system: "Nervesystemet", forklaring: "Styrecentral for krop, sanser, tanker og bevægelse.", placering: "Inde i kraniet.", funktion: "Modtager sanseindtryk, styrer bevægelser og regulerer bevidsthed og vitale funktioner.", indre: [{ n: "Storhjerne", l: "Cerebrum" }, { n: "Lillehjerne", l: "Cerebellum" }, { n: "Hjernestamme", l: "Truncus encephali" }], begreber: ["Bevidsthedsniveau", "Neuron"], syn: ["hjernen"] },
+  { id: "a-thyroidea", sub: "organer", type: "organ", bodyKey: "hals", daglig: "Skjoldbruskkirtel", faglig: "Skjoldbruskkirtel", latin: "Glandula thyroidea", system: "Hormonsystemet", forklaring: "Hormonkirtel på halsen.", placering: "Foran på halsen, foran luftrøret.", funktion: "Danner stofskiftehormoner, der regulerer kroppens forbrænding.", begreber: ["Stofskifte", "Hormon"], syn: ["thyroidea", "skjoldbrusk"] },
+  { id: "a-galdeblaere", sub: "organer", type: "organ", bodyKey: "abdomen", daglig: "Galdeblære", faglig: "Galdeblære", latin: "Vesica biliaris (Vesica fellea)", system: "Fordøjelsessystemet", forklaring: "Lille pose der opbevarer galde.", placering: "Under leveren.", funktion: "Opbevarer og afgiver galde til fordøjelsen af fedt.", syn: ["galde"] },
+  { id: "a-spiseroer", sub: "organer", type: "organ", bodyKey: "thorax", daglig: "Spiserør", faglig: "Spiserør / øsofagus", latin: "Oesophagus", system: "Fordøjelsessystemet", forklaring: "Rør der fører maden fra svælg til mavesæk.", placering: "Bag luftrøret gennem brysthulen.", funktion: "Transporterer mad og væske til mavesækken ved peristaltik.", begreber: ["Synkning", "Peristaltik"], syn: ["øsofagus", "spiserøret"] },
+  { id: "a-livmoder", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Livmoder", faglig: "Livmoder", latin: "Uterus", system: "Reproduktionssystemet", forklaring: "Kvindeligt kønsorgan hvor fosteret udvikles.", placering: "I bækkenet.", funktion: "Rummer og ernærer et foster under graviditet.", syn: ["uterus"] },
+  { id: "a-aeggestokke", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Æggestokke", faglig: "Æggestokke / ovarier", latin: "Ovarium (pl. Ovaria)", system: "Reproduktionssystemet", forklaring: "Kvindelige kønskirtler der danner æg og hormoner.", placering: "På hver side af livmoderen.", funktion: "Danner æg og kønshormoner (østrogen/progesteron).", syn: ["ovarier"] },
+  { id: "a-testikler", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Testikler", faglig: "Testikler", latin: "Testis (pl. Testes)", system: "Reproduktionssystemet", forklaring: "Mandlige kønskirtler der danner sæd og hormoner.", placering: "I pungen.", funktion: "Danner sædceller og hormonet testosteron.", syn: ["testis"] },
+  { id: "a-prostata", sub: "organer", type: "organ", bodyKey: "baekken", daglig: "Blærehalskirtel", faglig: "Blærehalskirtel / prostata", latin: "Prostata", system: "Reproduktionssystemet", forklaring: "Kirtel omkring urinrøret hos mænd.", placering: "Under urinblæren.", funktion: "Danner en del af sædvæsken.", syn: ["prostata"] },
+
+  /* ---------- Organsystemer ---------- */
+  { id: "s-kredsloeb", sub: "systemer", type: "system", daglig: "Kredsløbssystemet", faglig: "Kredsløbssystemet", latin: "Systema cardiovasculare", forklaring: "Transporterer blod med ilt, næring og affaldsstoffer.", funktion: "Hjertet pumper blodet gennem arterier, kapillærer og vener, så cellerne får ilt og næring, og affaldsstoffer føres væk.", organer: ["Hjerte (Cor)", "Blodkar (arterier, vener, kapillærer)", "Blod"], begreber: ["Puls", "Blodtryk", "Iltning"], syn: ["hjerte-kar", "cirkulation"] },
+  { id: "s-respiration", sub: "systemer", type: "system", daglig: "Respirationssystemet", faglig: "Respirationssystemet", latin: "Systema respiratorium", forklaring: "Optager ilt og afgiver kuldioxid.", funktion: "Luft føres via næse, svælg, strubehoved, luftrør og bronkier til alveolerne, hvor ilt optages og kuldioxid afgives.", organer: ["Næse og svælg", "Strubehoved (Larynx)", "Luftrør (Trachea)", "Bronkier", "Lunger (Pulmones)"], begreber: ["Respirationsfrekvens", "Saturation", "Dyspnø"], syn: ["vejrtrækning", "åndedræt"] },
+  { id: "s-fordoejelse", sub: "systemer", type: "system", daglig: "Fordøjelsessystemet", faglig: "Fordøjelsessystemet", latin: "Systema digestorium", forklaring: "Nedbryder mad og optager næring.", funktion: "Maden nedbrydes fra mund til tarm, næringsstoffer optages, og resten bliver til afføring.", organer: ["Mund og spiserør", "Mavesæk (Ventriculus)", "Tyndtarm", "Tyktarm", "Lever, galdeblære, bugspytkirtel"], begreber: ["Peristaltik", "Absorption", "Obstipation"], syn: ["mave-tarm", "gastrointestinal"] },
+  { id: "s-urinveje", sub: "systemer", type: "system", daglig: "Urinvejssystemet", faglig: "Urinvejssystemet", latin: "Systema urinarium", forklaring: "Filtrerer blodet og udskiller urin.", funktion: "Nyrerne filtrerer blodet og danner urin, som via urinledere samles i blæren og tømmes gennem urinrøret.", organer: ["Nyrer (Renes)", "Urinledere (Ureteres)", "Urinblære (Vesica urinaria)", "Urinrør (Urethra)"], begreber: ["Diurese", "Væskebalance", "Inkontinens"], syn: ["urinveje"] },
+  { id: "s-nerve", sub: "systemer", type: "system", daglig: "Nervesystemet", faglig: "Nervesystemet", latin: "Systema nervosum", forklaring: "Styrer og koordinerer kroppens funktioner.", funktion: "Modtager, bearbejder og sender signaler, der styrer bevægelse, sanser og bevidsthed.", organer: ["Hjerne (Encephalon)", "Rygmarv (Medulla spinalis)", "Nerver (Nervi)"], begreber: ["Centralnervesystem (CNS)", "Perifert nervesystem (PNS)", "Refleks"], syn: ["nerver"] },
+  { id: "s-endokrin", sub: "systemer", type: "system", daglig: "Hormonsystemet", faglig: "Det endokrine system", latin: "Systema endocrinum", forklaring: "Regulerer kroppen via hormoner.", funktion: "Kirtler udskiller hormoner til blodet, der styrer bl.a. blodsukker, stofskifte og væskebalance.", organer: ["Skjoldbruskkirtel", "Bugspytkirtel", "Binyrer", "Hypofyse"], begreber: ["Hormon", "Insulin", "Stofskifte"], syn: ["endokrine system", "hormoner"] },
+  { id: "s-bevaege", sub: "systemer", type: "system", daglig: "Bevægeapparatet", faglig: "Bevægeapparatet", latin: "Systema musculoskeletale", forklaring: "Giver støtte, beskyttelse og bevægelse.", funktion: "Knogler danner skelettet, led gør bevægelse mulig, og muskler trækker sig sammen og bevæger kroppen.", organer: ["Knogler (Ossa)", "Led (Articulationes)", "Muskler (Musculi)", "Sener"], begreber: ["Fleksion", "Ekstension", "Mobilitet"], syn: ["muskler og knogler", "skelet"] },
+  { id: "s-hud", sub: "systemer", type: "system", daglig: "Hudsystemet", faglig: "Huden", latin: "Integumentum commune", forklaring: "Beskytter kroppen og regulerer temperatur.", funktion: "Huden er en barriere mod smitte, regulerer temperatur og indeholder sanseceller.", organer: ["Overhud (Epidermis)", "Læderhud (Dermis)", "Underhud (Subcutis)"], begreber: ["Tryksår", "Hudpleje", "Sansning"], catLink: "saarpleje", syn: ["hud"] },
+  { id: "s-lymfe", sub: "systemer", type: "system", daglig: "Lymfe- og immunsystemet", faglig: "Lymfe- og immunsystemet", latin: "Systema lymphoideum", forklaring: "Forsvarer kroppen mod infektion og styrer væskebalance.", funktion: "Lymfekar og lymfeknuder transporterer lymfevæske og hjælper immunforsvaret med at bekæmpe smitte.", organer: ["Lymfeknuder", "Milt (Lien)", "Thymus", "Lymfekar"], begreber: ["Immunforsvar", "Infektion", "Lymfe"], catLink: "mikrobiologi", syn: ["immunforsvar", "lymfe"] },
+  { id: "s-repro", sub: "systemer", type: "system", daglig: "Reproduktionssystemet", faglig: "Forplantningssystemet", latin: "Systema genitale", forklaring: "Står for forplantning.", funktion: "Danner kønsceller og hormoner og muliggør forplantning.", organer: ["Kvinde: livmoder, æggestokke", "Mand: testikler, prostata"], begreber: ["Kønshormoner", "Forplantning"], syn: ["kønsorganer", "forplantning"] },
+
+  /* ---------- Indre anatomi (dybere strukturer) ---------- */
+  { id: "i-cortex", sub: "indre", type: "struktur", daglig: "Nyrebark", faglig: "Nyrebark", latin: "Cortex renalis", forklaring: "Nyrens yderste lag, hvor blodet filtreres.", placering: "Yderst i nyren.", syn: ["cortex"] },
+  { id: "i-medulla", sub: "indre", type: "struktur", daglig: "Nyremarv", faglig: "Nyremarv", latin: "Medulla renalis", forklaring: "Nyrens indre del med samlerør til urin.", placering: "Inderst i nyren.", syn: ["medulla"] },
+  { id: "i-pelvisrenalis", sub: "indre", type: "struktur", daglig: "Nyrebækken", faglig: "Nyrebækken", latin: "Pelvis renalis", forklaring: "Tragtformet rum hvor urinen samles før urinlederen.", placering: "Centralt i nyren.", syn: [] },
+  { id: "i-ureter", sub: "indre", type: "struktur", daglig: "Urinleder", faglig: "Urinleder", latin: "Ureter", forklaring: "Rør der leder urin fra nyre til blære.", placering: "Fra nyrebækken til urinblære.", syn: ["ureter"] },
+  { id: "i-atrium", sub: "indre", type: "struktur", daglig: "Forkamre", faglig: "Hjertets forkamre", latin: "Atrium dextrum et sinistrum", forklaring: "Hjertets to øverste kamre, der modtager blod.", placering: "Øverst i hjertet.", syn: ["atrier", "forkammer"] },
+  { id: "i-ventrikel", sub: "indre", type: "struktur", daglig: "Hjertekamre", faglig: "Hjertets hjertekamre", latin: "Ventriculus dexter et sinister", forklaring: "Hjertets to nederste kamre, der pumper blod ud.", placering: "Nederst i hjertet.", syn: ["ventrikler", "hjertekammer"] },
+  { id: "i-alveoler", sub: "indre", type: "struktur", daglig: "Lungeblærer", faglig: "Alveoler", latin: "Alveoli pulmonis", forklaring: "Små blærer i lungerne hvor gasudveksling sker.", placering: "Yderst i lungerne.", syn: ["alveoler"] },
+
+  /* ---------- Anatomiske retningsbegreber ---------- */
+  { id: "d-anterior", sub: "retning", type: "retning", daglig: "Anterior", faglig: "Foran / forreste", latin: "Anterior", forklaring: "Foran på kroppen.", eksempel: "Knæskallen sidder anteriort på knæet.", syn: ["foran", "forreste", "ventral"] },
+  { id: "d-posterior", sub: "retning", type: "retning", daglig: "Posterior", faglig: "Bagest / bagved", latin: "Posterior", forklaring: "Bagpå kroppen.", eksempel: "Skulderbladet ligger posteriort.", syn: ["bagved", "bagest", "dorsal"] },
+  { id: "d-superior", sub: "retning", type: "retning", daglig: "Superior", faglig: "Opad / øverst", latin: "Superior", forklaring: "Nærmere hovedet / opadtil.", eksempel: "Hovedet er superiort for halsen.", syn: ["opad", "øverst", "over"] },
+  { id: "d-inferior", sub: "retning", type: "retning", daglig: "Inferior", faglig: "Nedad / nederst", latin: "Inferior", forklaring: "Nærmere fødderne / nedadtil.", eksempel: "Fødderne er inferiort for knæene.", syn: ["nedad", "nederst", "under"] },
+  { id: "d-medial", sub: "retning", type: "retning", daglig: "Medial", faglig: "Mod midtlinjen", latin: "Medialis", forklaring: "Tættere på kroppens midtlinje.", eksempel: "Storetåen sidder medialt på foden.", syn: ["mod midten", "indad"] },
+  { id: "d-lateral", sub: "retning", type: "retning", daglig: "Lateral", faglig: "Væk fra midtlinjen", latin: "Lateralis", forklaring: "Længere væk fra kroppens midtlinje.", eksempel: "Lilletåen sidder lateralt på foden.", syn: ["udad", "til siden"] },
+  { id: "d-proximal", sub: "retning", type: "retning", daglig: "Proksimal", faglig: "Nærmere kroppens centrum", latin: "Proximalis", forklaring: "Tættere på kroppen / udspringet af en lem.", eksempel: "Albuen ligger proksimalt for håndleddet.", syn: ["nærmere kroppen"] },
+  { id: "d-distal", sub: "retning", type: "retning", daglig: "Distal", faglig: "Længere væk fra kroppens centrum", latin: "Distalis", forklaring: "Længere væk fra kroppen / yderst på en lem.", eksempel: "Håndleddet ligger distalt for albuen.", syn: ["yderst", "længere ude"] },
+  { id: "d-dorsal", sub: "retning", type: "retning", daglig: "Dorsal", faglig: "På rygsiden / bagside", latin: "Dorsalis", forklaring: "På bagsiden (fx håndryggen).", eksempel: "Håndryggen kaldes dorsalsiden.", syn: ["bagside", "rygside"] },
+  { id: "d-ventral", sub: "retning", type: "retning", daglig: "Ventral", faglig: "På bugsiden / forside", latin: "Ventralis", forklaring: "På forsiden (bugsiden).", eksempel: "Maven er på ventralsiden.", syn: ["forside", "bugside"] },
+];
+
+const anatById = (id) => ANAT.find((a) => a.id === id);
+const anatText = (a) => (a.daglig + " " + (a.faglig || "") + " " + (a.latin || "") + " " + (a.forklaring || "") + " " + (a.system || "") + " " + (a.syn || []).join(" ") + " " + (a.indre || []).map((x) => x.n + " " + x.l).join(" ")).toLowerCase();
+function anatSearch(q) { const s = (q || "").trim().toLowerCase(); if (!s) return []; return ANAT.filter((a) => anatText(a).indexOf(s) >= 0); }
+function anatBySub(sub) { if (sub === "fysiologi") return ANAT.filter((a) => a.funktion); if (!sub || sub === "alle") return ANAT.slice(); return ANAT.filter((a) => a.sub === sub); }
+
+function AnatCard({ a, onOpen }) {
+  const sub2 = a.latin && a.latin !== a.daglig ? a.latin : (a.faglig && a.faglig !== a.daglig ? a.faglig : "");
+  return (
+    <button onClick={() => onOpen(a.id)} aria-label={a.daglig} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 14, padding: "12px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, boxShadow: "0 1px 2px rgba(21,33,43,0.04)", minHeight: 54 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>{a.daglig}</div>
+        {sub2 ? <div style={{ fontSize: 12.5, color: "#0B9488", fontStyle: "italic", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sub2}</div> : null}
+      </div>
+      {a.flag ? <span style={{ fontSize: 10.5, fontWeight: 700, color: "#8A5A0B", background: tint("#B7791F", "18"), padding: "2px 7px", borderRadius: 7, flexShrink: 0 }}>Til kontrol</span> : null}
+      <ChevronRight size={17} color={C.inkFaint} style={{ flexShrink: 0 }} />
+    </button>
+  );
+}
+
+function AnatDetail({ a, onCat, onTest }) {
+  const badge = ANAT_TYPE_LABEL[a.type] || "";
+  const isDir = a.sub === "retning";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+          {badge ? <span style={{ fontSize: 11, fontWeight: 800, color: "#0B9488", background: tint("#0FAE9E", "14"), padding: "3px 9px", borderRadius: 8 }}>{badge}</span> : null}
+          {a.flag ? <span style={{ fontSize: 11, fontWeight: 800, color: "#8A5A0B", background: tint("#B7791F", "18"), padding: "3px 9px", borderRadius: 8 }}>Til faglig kontrol</span> : null}
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 800, color: C.ink, letterSpacing: -0.4 }}>{a.daglig}</div>
+        {a.faglig && a.faglig !== a.daglig ? <div style={{ fontSize: 14, color: C.inkSoft, marginTop: 2 }}>{a.faglig}</div> : null}
+        {a.latin ? <div style={{ display: "inline-block", fontSize: 13.5, fontWeight: 700, color: "#0B9488", fontStyle: "italic", background: tint("#0FAE9E", "0E"), border: `1px solid ${tint("#0FAE9E", "26")}`, borderRadius: 9, padding: "4px 10px", marginTop: 8 }}>{a.latin}</div> : null}
+        {a.system ? <div style={{ fontSize: 12.5, color: C.inkFaint, marginTop: 7 }}>{a.system}</div> : null}
+      </div>
+      {a.forklaring ? <p style={{ margin: 0, fontSize: 14.5, color: C.ink, lineHeight: 1.55 }}>{a.forklaring}</p> : null}
+
+      {isDir ? (
+        a.eksempel ? <div style={{ background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 12, padding: "12px 14px" }}><div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginBottom: 3 }}>Eksempel</div><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.5 }}>{a.eksempel}</div></div> : null
+      ) : (
+        <>
+          {a.placering ? <Acc title="Placering"><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{a.placering}</div></Acc> : null}
+          {a.funktion ? <Acc title={a.type === "system" ? "Sådan fungerer det" : "Funktion (fysiologi)"}><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{a.funktion}</div></Acc> : null}
+          {a.indre && a.indre.length ? <Acc title="Indre anatomi"><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{a.indre.map((x, i) => <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, borderTop: i > 0 ? `1px solid ${C.line}` : "none", paddingTop: i > 0 ? 8 : 0 }}><span style={{ fontSize: 14, color: C.ink }}>{x.n}</span><span style={{ fontSize: 13, color: "#0B9488", fontStyle: "italic", textAlign: "right" }}>{x.l}</span></div>)}</div></Acc> : null}
+          {a.organer && a.organer.length ? <Acc title="Organer / dele i systemet"><Bullets items={a.organer} color="#0FAE9E" /></Acc> : null}
+          {a.begreber && a.begreber.length ? <Acc title="Faglige begreber"><Bullets items={a.begreber} color={C.primary} /></Acc> : null}
+          {a.doc ? <Acc title="Dokumentationseksempel"><div style={{ fontSize: 13.5, color: "#1F5136", background: tint("#0FAE9E", "0E"), borderRadius: 10, padding: "10px 12px", lineHeight: 1.5 }}>{a.doc}</div></Acc> : null}
+        </>
+      )}
+
+      <Acc title="Relateret viden">
+        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+          {a.catLink ? <button onClick={() => onCat(a.catLink)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: C.ink, display: "flex", alignItems: "center", gap: 8 }}><span style={{ flex: 1 }}>Åbn: {catTitleById(a.catLink)}</span><ChevronRight size={16} color={C.inkFaint} /></button> : null}
+          <button onClick={() => onTest("anatomi")} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: C.ink, display: "flex", alignItems: "center", gap: 8 }}><span style={{ flex: 1 }}>Test din viden om anatomi</span><ChevronRight size={16} color={C.inkFaint} /></button>
+        </div>
+      </Acc>
+      <div style={{ display: "flex", gap: 9, background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 12, padding: "10px 12px" }}>
+        <Info size={16} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>Klario er et lærings- og opslagsværktøj — ikke en medicinsk lærebog.</span>
+      </div>
+    </div>
+  );
+}
+
+/* ===== FARMAKOLOGI — Forstå hvordan lægemidler virker i kroppen =========
+ *  LÆRINGSområde for SSA-elever — IKKE behandlings- eller doseringsråd.
+ *  Indholdet er generel, lærebogsbaseret farmakologi. LægemiddelSPECIFIKKE
+ *  oplysninger (doser, interaktioner, kontraindikationer, knusning/deling)
+ *  opfindes ALDRIG her — de skal slås op i en aktuel, godkendt kilde
+ *  (pro.medicin.dk / min.medicin.dk) og afhænger af ordination, delegation
+ *  og lokale instrukser. Data er struktureret, så en fremtidig
+ *  "Hvordan virker denne medicin?"-funktion kan bygges på verificerede data.
+ * ===================================================================== */
+const FARMA_VERIFY = "Oplysningen er ikke verificeret — kontrollér i officiel lægemiddelkilde (pro.medicin.dk) og følg ordination og lokale instrukser.";
+const FARMA_SRC = "https://pro.medicin.dk/";
+
+const FARMA_SECTIONS = [
+  { id: "vej", title: "Medicinens vej gennem kroppen", sub: "Følg medicinen trin for trin" },
+  { id: "adme", title: "Farmakokinetik (ADME)", sub: "Hvad kroppen gør ved medicinen" },
+  { id: "dynamik", title: "Farmakodynamik", sub: "Hvad medicinen gør ved kroppen" },
+  { id: "admin", title: "Administrationsveje", sub: "Hvor og hvordan medicin gives" },
+  { id: "former", title: "Lægemiddelformer", sub: "Tablet, kapsel, plaster, dråber m.m." },
+  { id: "tid", title: "Virkning og virkningstid", sub: "Start, maks, varighed, T½, steady state" },
+  { id: "halveringstid", title: "Medicinens halveringstid (T½)", sub: "Forstå T½ + interaktiv beregner" },
+  { id: "bivirk", title: "Bivirkninger og interaktioner", sub: "Når medicin gør andet end ønsket" },
+  { id: "lever", title: "Lever og medicin", sub: "Metabolisme og first-pass" },
+  { id: "nyrer", title: "Nyrer og medicin", sub: "Udskillelse og elimination" },
+  { id: "aeldre", title: "Medicin hos ældre", sub: "Hvorfor ældre reagerer anderledes" },
+  { id: "sikkerhed", title: "Medicinsikkerhed", sub: "Sikker medicinhåndtering" },
+  { id: "obs", title: "Observationer som SSA", sub: "Før · efter · observér · reagér · dokumentér" },
+  { id: "furosemid", title: "Læringseksempel: Furosemid", sub: "Følg et lægemiddel fra tablet til virkning" },
+  { id: "begreber", title: "Faglige begreber", sub: "Søgbar farmakologisk ordbog" },
+  { id: "test", title: "Test din viden", sub: "Quiz om farmakologi" },
+];
+
+/* 1 — Medicinens vej gennem kroppen (tablet) */
+const FARMA_JOURNEY = [
+  { t: "Mund", q: "Tabletten synkes med vand.", m: "Nogle former (fx smeltetabletter eller sublingvale tabletter) begynder allerede i munden, men en almindelig tablet skal videre for at blive optaget." },
+  { t: "Spiserør", q: "Tabletten føres ned til mavesækken.", m: "Rigelig vand og oprejst stilling hjælper tabletten ned og mindsker risikoen for, at den sætter sig fast." },
+  { t: "Mavesæk", q: "Tabletten begynder at gå i opløsning.", m: "Mavesyren og bevægelserne opløser mange tabletter. Enterotabletter er lavet til IKKE at gå i stykker her, men først i tarmen." },
+  { t: "Tarm", q: "Det meste optages gennem tarmvæggen.", m: "Tyndtarmens store overflade er hovedstedet for optagelse (absorption) af de fleste tabletter." },
+  { t: "Absorption", q: "Lægemidlet passerer over i blodet.", m: "Hvor meget der optages og hvor hurtigt, afhænger bl.a. af lægemiddelform, mad i maven og lægemidlets egenskaber." },
+  { t: "Portåre → lever (first-pass)", q: "Blodet fra tarmen løber først gennem leveren.", m: "Leveren kan omdanne (metabolisere) en del af lægemidlet, før det når det store kredsløb. Det kaldes first-pass metabolisme og betyder, at mindre kan nå ud i kroppen." },
+  { t: "Blodbane", q: "Lægemidlet fordeles rundt i kroppen.", m: "Med blodet føres lægemidlet ud til væv og organer (distribution). En del kan være bundet til proteiner i blodet." },
+  { t: "Målorgan / receptor", q: "Lægemidlet virker der, hvor det binder.", m: "Effekten sker, hvor lægemidlet binder til sit mål — ofte en receptor på eller i cellerne i et bestemt organ." },
+  { t: "Metabolisme", q: "Lægemidlet omdannes — især i leveren.", m: "Leverens enzymer omdanner lægemidlet til stoffer, der lettere kan udskilles. Nogle omdannes til inaktive stoffer, andre til aktive." },
+  { t: "Udskillelse", q: "Lægemidlet forlader kroppen — især via nyrerne.", m: "Nyrerne udskiller mange lægemidler og deres nedbrydningsprodukter med urinen. Andre veje kan være galde/afføring, udånding eller sved." },
+];
+
+/* 2 — ADME */
+const FARMA_ADME = [
+  { k: "A", title: "Absorption", q: "Hvordan lægemidlet kommer ind i blodbanen.", m: "Fra fx tarmen optages lægemidlet over i blodet. Administrationsvej og lægemiddelform har stor betydning for, hvor meget og hvor hurtigt der optages. IV gives direkte i blodet og skal ikke absorberes." },
+  { k: "D", title: "Distribution", q: "Hvordan lægemidlet fordeles rundt i kroppen.", m: "Med blodet føres lægemidlet ud til væv og organer. Kropssammensætning (væske og fedt) og proteinbinding påvirker fordelingen — det er bl.a. derfor børn og ældre kan reagere anderledes." },
+  { k: "M", title: "Metabolisme", q: "Hvordan lægemidlet omdannes/nedbrydes.", m: "Sker især i LEVEREN ved hjælp af enzymer. Lægemidlet omdannes typisk til stoffer, der er lettere at udskille. Nedsat leverfunktion kan påvirke, hvordan visse lægemidler omsættes." },
+  { k: "E", title: "Excretion (udskillelse)", q: "Hvordan lægemidlet forlader kroppen.", m: "Sker især via NYRERNE med urinen. Nedsat nyrefunktion kan betyde, at visse lægemidler udskilles langsommere og kan ophobes. Andre veje: galde/afføring, udånding, sved." },
+];
+
+/* 3 — Farmakodynamik */
+const FARMA_DYN = [
+  { term: "Receptor", q: "Et sted på eller i en celle, hvor et lægemiddel kan binde og påvirke cellens aktivitet.", m: "Når et lægemiddel binder til sin receptor, kan cellens funktion øges eller hæmmes. Receptorer er ofte specifikke, så et lægemiddel virker mest bestemte steder." },
+  { term: "Agonist", q: "Et stof, der binder til en receptor og udløser en virkning.", m: "Agonisten aktiverer receptoren — lidt som at 'tænde' for cellens respons." },
+  { term: "Antagonist", q: "Et stof, der binder til en receptor og blokerer virkningen.", m: "Antagonisten hindrer, at receptoren aktiveres — den 'blokerer' responset." },
+  { term: "Ønsket virkning", q: "Den effekt, lægemidlet er givet for at opnå.", m: "Kaldes også den terapeutiske virkning. Det er målet med behandlingen." },
+  { term: "Bivirkning", q: "En uønsket virkning ud over den ønskede.", m: "Skyldes ofte, at lægemidlet også påvirker andre steder end målet. Nogle bivirkninger er milde, andre alvorlige." },
+  { term: "Dosis-respons", q: "Sammenhængen mellem dosis og effekt.", m: "Op til et vist punkt giver højere dosis ofte større effekt — men også større risiko for bivirkninger. Konkrete doser afhænger altid af ordination." },
+  { term: "Terapeutisk interval", q: "Området mellem for lav (uden effekt) og for høj (giftig) koncentration.", m: "Lægemidlet virker bedst inden for dette interval. Nogle lægemidler har et smalt interval og kræver ekstra opmærksomhed. Konkrete grænser slås op i godkendt kilde." },
+];
+
+/* 4 — Administrationsveje */
+const FARMA_ROUTES = [
+  { id: "oral", name: "Oral", full: "Gennem munden (peroralt)", hvor: "Synkes og optages i mave-tarm-kanalen.", hvordan: "Optages typisk i tarmen og passerer leveren (first-pass), før det når blodet.", kar: "Nem og almindelig vej. Virkning kommer typisk gradvist. Mad kan påvirke optagelsen.", obs: ["Kan borgeren synke sikkert?", "Er tabletten taget?", "Virkning og evt. mavegener"], sik: ["Følg ordination og lokale instrukser", "Ved synkebesvær: kontakt ansvarlig — knus/del aldrig uden verificeret info om det konkrete præparat"] },
+  { id: "sublingual", name: "Sublingual", full: "Under tungen", hvor: "Lægges under tungen.", hvordan: "Optages gennem slimhinden direkte til blodet og uden om first-pass i leveren.", kar: "Kan give hurtig virkning. Bruges til udvalgte lægemidler.", obs: ["At tabletten ikke synkes", "Hurtig virkning/effekt", "Ubehag i munden"], sik: ["Følg ordination", "Borger bør ikke spise/drikke, mens den opløses"] },
+  { id: "buccal", name: "Buccal", full: "Mellem kind og tandkød", hvor: "Placeres i kindslimhinden.", hvordan: "Optages gennem mundslimhinden til blodet.", kar: "Ligner sublingual; optages via mundhulen.", obs: ["Placering fastholdes", "Virkning", "Lokal irritation"], sik: ["Følg ordination og lokale instrukser"] },
+  { id: "inhalation", name: "Inhalation", full: "Gennem luftvejene", hvor: "Indåndes til lunger/luftveje.", hvordan: "Optages i luftvejene — virker ofte lokalt i lungerne.", kar: "Hurtig lokal effekt i luftvejene. Korrekt teknik er vigtig for effekten.", obs: ["Inhalationsteknik", "Respiration og effekt", "Mundpleje ved visse inhalationssteroider"], sik: ["Følg ordination", "Oplæring i korrekt device/teknik"] },
+  { id: "rektal", name: "Rektal", full: "Gennem endetarmen", hvor: "Føres op i endetarmen (fx stikpille).", hvordan: "Optages gennem slimhinden i endetarmen.", kar: "Kan bruges ved kvalme/opkast eller synkebesvær.", obs: ["At det er givet", "Virkning", "Lokal irritation"], sik: ["Følg ordination og lokale instrukser", "Respekter blufærdighed og samtykke"] },
+  { id: "kutan", name: "Kutan", full: "På huden", hvor: "Påføres huden (creme/salve).", hvordan: "Virker oftest lokalt på huden.", kar: "Lokal behandling; ringe optag til resten af kroppen for de fleste.", obs: ["Hudens tilstand", "Lokal effekt/irritation"], sik: ["Følg ordination", "Brug evt. handsker jf. instruks"] },
+  { id: "transdermal", name: "Transdermal", full: "Gennem huden (plaster)", hvor: "Plaster klæbes på huden.", hvordan: "Lægemidlet optages langsomt gennem huden til blodet.", kar: "Jævn afgivelse over tid. Skift og placering følger anvisning.", obs: ["At gammelt plaster er fjernet", "Hudreaktion", "At nyt sidder korrekt"], sik: ["Følg ordination og produktanvisning", "Notér skiftested/-tidspunkt jf. instruks"] },
+  { id: "sc", name: "Subkutan (SC)", full: "Under huden", hvor: "I underhudens fedtlag.", hvordan: "Optages gradvist fra underhuden til blodet.", kar: "Langsommere, jævn optagelse.", obs: ["Injektionssted (rødme, hævelse)", "Virkning"], sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke injektionsteknik"] },
+  { id: "im", name: "Intramuskulær (IM)", full: "I en muskel", hvor: "I muskelvæv.", hvordan: "Optages fra musklen til blodet.", kar: "Kan give hurtigere optag end SC pga. god blodforsyning.", obs: ["Injektionssted", "Virkning og evt. reaktion"], sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke injektionsteknik"] },
+  { id: "iv", name: "Intravenøs (IV)", full: "Direkte i blodbanen", hvor: "I en vene.", hvordan: "Gives direkte i blodet — skal ikke absorberes først.", kar: "Hurtig og fuld biotilgængelighed. Kræver særlig overvågning.", obs: ["Virkning kommer hurtigt", "Indstiksstedet", "Almen tilstand"], sik: ["Kræver kompetence/delegation og lokale instrukser", "Klario giver ikke administrationsteknik"] },
+];
+
+/* 5 — Lægemiddelformer */
+const FARMA_FORMS = [
+  { id: "tablet", name: "Tablet", hvad: "Fast form med aktivt stof + hjælpestoffer.", brug: "Synkes typisk med vand.", frig: "Går i opløsning i mave/tarm og optages derfra.", vig: "Om en konkret tablet må deles/knuses skal ALTID kontrolleres for det enkelte præparat." },
+  { id: "depot", name: "Depottablet", hvad: "Tablet der frigiver stoffet langsomt.", brug: "Synkes hel.", frig: "Afgiver lægemidlet gradvist over længere tid.", vig: "Må som udgangspunkt IKKE knuses/deles — det kan give for hurtig frigivelse. Kontrollér altid det konkrete præparat." },
+  { id: "entero", name: "Enterotablet", hvad: "Tablet med syrefast overtræk.", brug: "Synkes hel.", frig: "Går først i opløsning i tarmen, ikke i mavesækken.", vig: "Overtrækket beskytter stoffet eller mavesækken — knus/del ikke uden verificeret info." },
+  { id: "kapsel", name: "Kapsel", hvad: "Skal med pulver/granulat eller væske.", brug: "Synkes hel.", frig: "Skallen opløses, og indholdet frigives.", vig: "Åbning af kapsler skal kontrolleres for det konkrete præparat." },
+  { id: "mikstur", name: "Mikstur", hvad: "Flydende lægemiddel til at drikke.", brug: "Doseres med målebæger/-sprøjte.", frig: "Optages fra mave-tarm.", vig: "Omrystes evt. før brug; mål nøjagtigt jf. ordination." },
+  { id: "draaber", name: "Dråber", hvad: "Flydende form doseret i dråber.", brug: "Gives fx oralt.", frig: "Optages fra mave-tarm.", vig: "Antal dråber følger ordination; forveksl ikke øjen-/øredråber med orale dråber." },
+  { id: "bruse", name: "Brusetablet", hvad: "Tablet der opløses i vand.", brug: "Opløses helt, drikkes.", frig: "Optages som opløst væske.", vig: "Vent til den er helt opløst; vær opmærksom på indhold (fx natrium) jf. kilde." },
+  { id: "smelte", name: "Smeltetablet", hvad: "Tablet der smelter i munden.", brug: "Lægges på tungen.", frig: "Kan begynde optag i munden.", vig: "Skal ikke nødvendigvis synkes med vand — følg produktanvisning." },
+  { id: "inhal", name: "Inhalationsmedicin", hvad: "Lægemiddel til indånding.", brug: "Bruges med inhalator/spacer.", frig: "Virker i luftvejene.", vig: "Korrekt teknik er afgørende for effekten." },
+  { id: "supp", name: "Suppositorium (stikpille)", hvad: "Fast form til endetarmen.", brug: "Føres op i endetarmen.", frig: "Smelter og optages via slimhinden.", vig: "Følg lokale instrukser; respekter blufærdighed." },
+  { id: "creme", name: "Creme", hvad: "Blød, vandholdig form til huden.", brug: "Smøres tyndt på.", frig: "Virker oftest lokalt.", vig: "Følg ordination; trækker hurtigt ind." },
+  { id: "salve", name: "Salve", hvad: "Fedtet form til huden.", brug: "Smøres på.", frig: "Virker lokalt; mere fedtet end creme.", vig: "Følg anvisning for mængde og hyppighed." },
+  { id: "gel", name: "Gel", hvad: "Geléagtig form til hud/slimhinde.", brug: "Påføres lokalt.", frig: "Virker lokalt.", vig: "Følg produktanvisning." },
+  { id: "oejen", name: "Øjendråber", hvad: "Sterile dråber til øjet.", brug: "Dryppes i øjet.", frig: "Virker lokalt i øjet.", vig: "Undgå at røre øjet med spidsen; følg holdbarhed efter åbning." },
+  { id: "oere", name: "Øredråber", hvad: "Dråber til øregangen.", brug: "Dryppes i øret.", frig: "Virker lokalt.", vig: "Følg anvisning; forveksl ikke med øjendråber." },
+  { id: "naese", name: "Næsespray", hvad: "Spray til næseslimhinden.", brug: "Sprøjtes i næsen.", frig: "Virker lokalt eller optages via slimhinden.", vig: "Følg anvisning for antal pust." },
+  { id: "plaster", name: "Plaster (depotplaster)", hvad: "Klæbeplaster med lægemiddel.", brug: "Sættes på huden.", frig: "Afgiver lægemidlet langsomt gennem huden.", vig: "Fjern altid gammelt plaster; skift jf. anvisning." },
+  { id: "injektion", name: "Injektion", hvad: "Flydende lægemiddel til indsprøjtning.", brug: "Gives SC/IM/IV.", frig: "Optages hurtigt (IV øjeblikkeligt).", vig: "Kræver kompetence/delegation og lokale instrukser." },
+];
+
+/* 6 — Virkning og tid */
+const FARMA_TIMING = [
+  { term: "Virkningsstart", q: "Hvor lang tid der går, før effekten begynder.", m: "Afhænger bl.a. af administrationsvej og form — IV virker hurtigt, en depottablet langsommere." },
+  { term: "Maksimal effekt", q: "Hvornår virkningen typisk er størst.", m: "Koncentrationen i blodet er da på sit højeste for den enkelte dosis." },
+  { term: "Virkningsvarighed", q: "Hvor længe effekten varer.", m: "Bestemmer bl.a., hvor ofte et lægemiddel skal gives. Konkret dosering følger altid ordination." },
+  { term: "Halveringstid (T½)", q: "Tiden, før koncentrationen er faldet til omtrent det halve.", m: "Et lægemiddel med lang T½ bliver længere i kroppen. T½ kan ændres ved nedsat lever- eller nyrefunktion." },
+  { term: "Steady state", q: "Når tilførsel og udskillelse er nogenlunde i balance.", m: "Ved gentagen dosering når koncentrationen et stabilt niveau — typisk efter ca. 4-5 halveringstider." },
+];
+
+/* 7 — Bivirkninger og interaktioner */
+const FARMA_ADVERSE = [
+  { term: "Ønsket virkning", q: "Den effekt, lægemidlet gives for.", m: "Den terapeutiske virkning, der er målet med behandlingen." },
+  { term: "Bivirkning", q: "En uønsket virkning ud over den ønskede.", m: "Kan være mild (fx let kvalme) eller kræve handling. Konkrete bivirkninger for et præparat slås op i godkendt kilde." },
+  { term: "Alvorlig bivirkning", q: "En bivirkning, der kan være farlig.", m: "Kræver hurtig faglig vurdering. Videregiv observationer efter lokale instrukser/delegation." },
+  { term: "Allergisk reaktion", q: "Immunforsvarets reaktion på et lægemiddel.", m: "Kan vise sig som fx udslæt, hævelse eller — sjældnere — vejrtrækningsbesvær. Vejrtrækningsbesvær/hævelse i hals er akut — tilkald hjælp." },
+  { term: "Interaktion", q: "Når lægemidler (eller mad) påvirker hinandens virkning.", m: "Ét lægemiddel kan forstærke eller svække et andet. Konkrete interaktioner skal ALTID slås op i godkendt kilde." },
+  { term: "Kontraindikation", q: "En tilstand, hvor et lægemiddel ikke bør gives.", m: "Fx bestemte sygdomme eller tilstande. Konkrete kontraindikationer slås op i godkendt kilde." },
+  { term: "Forgiftning / overdosering", q: "For høj mængde lægemiddel i kroppen.", m: "Kan give alvorlige symptomer. Ved mistanke: handl efter lokale instrukser og tilkald hjælp." },
+];
+
+/* 8/9/10 — organ- og alderssektioner (structured) */
+const FARMA_LEVER = {
+  quick: "Leveren omdanner (metaboliserer) mange lægemidler, så de bliver lettere at udskille.",
+  points: [
+    "Leverens enzymer nedbryder/omdanner lægemidler.",
+    "First-pass: lægemidler fra tarmen passerer leveren FØR blodbanen — en del omdannes med det samme.",
+    "Nogle lægemidler omdannes til inaktive stoffer, andre til aktive.",
+    "Nedsat leverfunktion kan påvirke, hvordan visse lægemidler omsættes.",
+    "Interaktioner kan opstå, når lægemidler påvirker de samme leverenzymer — slå altid konkrete interaktioner op i godkendt kilde.",
+  ],
+  anat: "a-lever",
+};
+const FARMA_NYRER = {
+  quick: "Nyrerne filtrerer blodet og udskiller mange lægemidler og deres nedbrydningsprodukter med urinen.",
+  points: [
+    "Renal udskillelse: lægemidler forlader kroppen via nyrerne med urinen.",
+    "Nyrerne filtrerer blodet i nyrebarken (glomeruli).",
+    "Mange lægemidler afhænger af en velfungerende nyrefunktion for at blive udskilt.",
+    "Nedsat nyrefunktion kan betyde langsommere elimination og risiko for ophobning af visse lægemidler.",
+    "Væskebalance og nyrefunktion hænger sammen — se også observationer.",
+  ],
+  anat: "a-nyrer",
+};
+const FARMA_AELDRE = {
+  quick: "Ældre reagerer ofte anderledes på medicin — bl.a. fordi lever, nyrer og kropssammensætning ændrer sig.",
+  hvorfor: [
+    "Nyrefunktionen aftager ofte med alderen → langsommere udskillelse.",
+    "Leverfunktion og enzymaktivitet kan være ændret → ændret omsætning.",
+    "Ændret kropssammensætning (mindre vand, mere fedt) → ændret fordeling.",
+    "Væskebalancen er mere sårbar.",
+    "Polyfarmaci (mange lægemidler) → større risiko for interaktioner.",
+    "Øget følsomhed over for visse lægemidler.",
+  ],
+  obs: [
+    "Ændringer i vågenhed, forvirring eller svimmelhed.",
+    "Faldrisiko.",
+    "Tegn på dehydrering eller væskeophobning.",
+    "Ny eller ændret adfærd efter medicinændring.",
+    "Videregiv observationer efter lokale instrukser/delegation.",
+  ],
+};
+
+/* 11 — Medicinsikkerhed */
+const FARMA_SAFETY = [
+  { t: "Korrekt borger", d: "Er det den rigtige borger/patient? Identificér jf. lokal instruks." },
+  { t: "Korrekt lægemiddel", d: "Stemmer præparatet med ordinationen?" },
+  { t: "Korrekt dosis", d: "Er dosis som ordineret? Ved tvivl: spørg." },
+  { t: "Korrekt tidspunkt", d: "Gives det på det ordinerede tidspunkt?" },
+  { t: "Korrekt administrationsvej", d: "Gives det på den ordinerede måde (fx oralt, kutant)?" },
+  { t: "Dokumentation", d: "Registrér, at medicinen er givet, jf. lokal praksis." },
+  { t: "Observation af virkning", d: "Fik lægemidlet den forventede effekt?" },
+  { t: "Observation af bivirkninger", d: "Er der uønskede virkninger?" },
+  { t: "Ved tvivl", d: "Giv ikke — stop op, spørg ansvarlig og følg lokale instrukser." },
+  { t: "Delegation og instrukser", d: "Handl inden for din delegation og arbejdsstedets instrukser." },
+];
+
+/* 12 — Observationer som SSA */
+const FARMA_OBS = [
+  { t: "FØR", d: "Hvilke observationer kan være nødvendige før administration? (fx borgerens tilstand, kan borgeren synke, relevante målinger jf. instruks)" },
+  { t: "EFTER", d: "Hvilken virkning forventes af lægemidlet?" },
+  { t: "OBSERVÉR", d: "Er der ændringer i borgerens tilstand — ønsket effekt eller bivirkninger?" },
+  { t: "REAGÉR", d: "Hvornår skal observationer videregives? Følg lokale instrukser og delegation." },
+  { t: "DOKUMENTÉR", d: "Hvad er relevant at dokumentere (givet medicin, virkning, observationer)?" },
+];
+
+/* 13 — Faglige begreber (søgbar ordbog) */
+const FARMA_TERMS = [
+  { id: "f-farmakologi", term: "Farmakologi", forklaring: "Læren om lægemidler og deres virkning i kroppen.", eksempel: "Farmakologi dækker både, hvordan kroppen påvirker lægemidlet, og hvordan lægemidlet påvirker kroppen.", related: ["Farmakokinetik", "Farmakodynamik"] },
+  { id: "f-farmakokinetik", term: "Farmakokinetik", forklaring: "Hvad kroppen gør ved lægemidlet (ADME).", eksempel: "Absorption, distribution, metabolisme og udskillelse.", related: ["Absorption", "Metabolisme", "Elimination"] },
+  { id: "f-farmakodynamik", term: "Farmakodynamik", forklaring: "Hvad lægemidlet gør ved kroppen.", eksempel: "Hvordan et lægemiddel binder til en receptor og påvirker cellen.", related: ["Receptor", "Agonist", "Antagonist"] },
+  { id: "f-absorption", term: "Absorption", forklaring: "Optagelsen af lægemidlet i blodbanen.", eksempel: "En tablet optages gennem tarmvæggen.", related: ["Biotilgængelighed"] },
+  { id: "f-distribution", term: "Distribution", forklaring: "Fordelingen af lægemidlet rundt i kroppen.", eksempel: "Blodet fører lægemidlet ud til væv og organer.", related: [] },
+  { id: "f-metabolisme", term: "Metabolisme", forklaring: "Omdannelsen/nedbrydningen af lægemidlet, især i leveren.", eksempel: "Leverens enzymer omdanner lægemidlet.", related: ["First-pass metabolisme", "Lever"] },
+  { id: "f-elimination", term: "Elimination", forklaring: "Den samlede fjernelse af lægemidlet (metabolisme + udskillelse).", eksempel: "Nedsat nyrefunktion kan gøre eliminationen langsommere.", related: ["Ekskretion", "Halveringstid"] },
+  { id: "f-ekskretion", term: "Ekskretion", forklaring: "Udskillelsen af lægemidlet fra kroppen, især via nyrerne.", eksempel: "Lægemidlet udskilles med urinen.", related: ["Nyrer", "Elimination"] },
+  { id: "f-biotilgaengelighed", term: "Biotilgængelighed", forklaring: "Den andel af en dosis, der når ud i blodbanen uændret.", eksempel: "IV har fuld (100 %) biotilgængelighed; ved tablet kan first-pass reducere den.", related: ["Absorption", "First-pass metabolisme"] },
+  { id: "f-halveringstid", term: "Halveringstid (T½)", forklaring: "Tiden, før koncentrationen af lægemidlet er faldet til omtrent det halve.", eksempel: "Lang T½ betyder, at lægemidlet bliver længere i kroppen.", related: ["Steady state", "Elimination"] },
+  { id: "f-steadystate", term: "Steady state", forklaring: "Når tilførsel og udskillelse ved gentagen dosering når et nogenlunde stabilt niveau.", eksempel: "Nås typisk efter ca. 4-5 halveringstider.", related: ["Halveringstid"] },
+  { id: "f-receptor", term: "Receptor", forklaring: "Et sted på/i en celle, hvor et lægemiddel kan binde og påvirke cellen.", eksempel: "Et lægemiddel binder til sin receptor og ændrer cellens aktivitet.", related: ["Agonist", "Antagonist"] },
+  { id: "f-agonist", term: "Agonist", forklaring: "Et stof, der binder til en receptor og udløser en virkning.", eksempel: "Aktiverer receptoren.", related: ["Receptor", "Antagonist"] },
+  { id: "f-antagonist", term: "Antagonist", forklaring: "Et stof, der binder til en receptor og blokerer virkningen.", eksempel: "Hindrer, at receptoren aktiveres.", related: ["Receptor", "Agonist"] },
+  { id: "f-indikation", term: "Indikation", forklaring: "Den situation/sygdom, et lægemiddel er godkendt til at bruges ved.", eksempel: "Konkret indikation slås op i godkendt kilde.", related: ["Kontraindikation"] },
+  { id: "f-kontraindikation", term: "Kontraindikation", forklaring: "En tilstand, hvor et lægemiddel ikke bør gives.", eksempel: "Slås altid op i godkendt kilde.", related: ["Indikation"] },
+  { id: "f-interaktion", term: "Interaktion", forklaring: "Når lægemidler (eller mad) påvirker hinandens virkning.", eksempel: "Ét lægemiddel kan forstærke eller svække et andet — slå altid op i godkendt kilde.", related: ["Polyfarmaci"] },
+  { id: "f-bivirkning", term: "Bivirkning", forklaring: "En uønsket virkning ud over den ønskede.", eksempel: "Konkrete bivirkninger for et præparat slås op i godkendt kilde.", related: ["Terapeutisk effekt"] },
+  { id: "f-terapeutisk", term: "Terapeutisk effekt", forklaring: "Den ønskede, gavnlige virkning af et lægemiddel.", eksempel: "Målet med behandlingen.", related: ["Terapeutisk interval"] },
+  { id: "f-tinterval", term: "Terapeutisk interval", forklaring: "Området mellem for lav (uden effekt) og for høj (giftig) koncentration.", eksempel: "Nogle lægemidler har et smalt interval.", related: ["Toksicitet"] },
+  { id: "f-toksicitet", term: "Toksicitet", forklaring: "Skadelig/giftig virkning ved for høj koncentration.", eksempel: "Kan ses ved overdosering.", related: ["Terapeutisk interval"] },
+  { id: "f-polyfarmaci", term: "Polyfarmaci", forklaring: "Brug af mange lægemidler samtidig.", eksempel: "Almindeligt hos ældre og øger risiko for interaktioner.", related: ["Interaktion", "Medicin hos ældre"] },
+  { id: "f-compliance", term: "Compliance / adherence", forklaring: "I hvilken grad borgeren tager medicinen som aftalt.", eksempel: "Manglende adherence kan give dårligere effekt.", related: [] },
+  { id: "f-firstpass", term: "First-pass metabolisme", forklaring: "At et oralt lægemiddel passerer leveren og delvist omdannes, før det når blodbanen.", eksempel: "Reducerer den mængde, der når det store kredsløb.", related: ["Metabolisme", "Biotilgængelighed"] },
+  { id: "f-aktivtstof", term: "Aktivt stof", forklaring: "Det stof i lægemidlet, der giver virkningen.", eksempel: "Fx det virksomme stof i en tablet.", related: ["Hjælpestof"] },
+  { id: "f-hjaelpestof", term: "Hjælpestof", forklaring: "Stof i lægemidlet uden egen behandlingsvirkning (fx bindemiddel).", eksempel: "Hjælper med at forme og stabilisere lægemidlet.", related: ["Aktivt stof"] },
+  { id: "f-generisk", term: "Generisk lægemiddel", forklaring: "Lægemiddel med samme aktive stof som et originalpræparat.", eksempel: "Kan hedde noget andet, men indeholde samme aktive stof.", related: ["Aktivt stof"] },
+  { id: "f-adme", term: "ADME", forklaring: "Forkortelse for Absorption, Distribution, Metabolisme og Ekskretion.", eksempel: "Beskriver lægemidlets vej gennem kroppen.", related: ["Farmakokinetik"] },
+];
+
+/* Furosemid — læringseksempel (generel, verificerbar mekanisme; ingen doser) */
+const FARMA_FUROSEMID = {
+  navn: "Furosemid (fx Furix)",
+  gruppe: "Loop-diuretikum (vanddrivende)",
+  chain: ["Furosemid", "Lægemiddelgruppe: loop-diuretikum", "Administration (fx oralt eller IV)", "Absorption / blodbane", "Virker i nyren", "Den opadstigende del af Henles slynge i nefronet", "Ændret håndtering af salte", "Øget udskillelse af natrium og vand", "Øget diurese"],
+  hvorfor: "Loop-diuretika bruges bl.a. ved væskeophobning (ødem) og hjertesvigt. Den KONKRETE indikation, dosis og varighed afhænger af ordination — slå op i godkendt kilde.",
+  fysiologi: "Furosemid virker i nyrens nefron (den opadstigende del af Henles slynge) og hæmmer genoptagelsen af salte. Når mindre salt genoptages, følger mere vand med ud i urinen — det giver øget diurese.",
+  obs: ["Diurese (mængde vandladning)", "Væskebalance (indtag/udskillelse)", "Ødem", "Blodtryk", "Svimmelhed (særligt ved rejsning)", "Tegn på dehydrering", "Relevante elektrolytforstyrrelser jf. plan"],
+};
+
+/* ---- helpers ---- */
+const farmaTermById = (id) => FARMA_TERMS.find((t) => t.id === id);
+const farmaTermText = (t) => (t.term + " " + t.forklaring + " " + t.eksempel + " " + (t.related || []).join(" ")).toLowerCase();
+function farmaTermSearch(q) { const s = (q || "").trim().toLowerCase(); if (!s) return []; return FARMA_TERMS.filter((t) => farmaTermText(t).indexOf(s) >= 0); }
+// Bred søgning på tværs af farmakologi-indhold (til global søgning): returnerer {kind, id, title, sub}
+function farmaSearch(q) {
+  const s = (q || "").trim().toLowerCase(); if (!s) return [];
+  const hits = [];
+  FARMA_TERMS.forEach((t) => { if (farmaTermText(t).indexOf(s) >= 0) hits.push({ kind: "term", id: t.id, title: t.term, sub: t.forklaring }); });
+  FARMA_SECTIONS.forEach((sec) => { if ((sec.title + " " + sec.sub).toLowerCase().indexOf(s) >= 0) hits.push({ kind: "sec", id: sec.id, title: sec.title, sub: sec.sub }); });
+  return hits;
+}
+
+/* Two-level card: kort forklaring + "Forstå det bedre" */
+function FarmaTwo({ quick, more }) {
+  return (
+    <div>
+      <p style={{ margin: "0 0 8px", fontSize: 14.5, color: C.ink, lineHeight: 1.55 }}>{quick}</p>
+      {more ? <Acc title="Forstå det bedre"><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{more}</div></Acc> : null}
+    </div>
+  );
+}
+
+/* Lodret flow med pile (bruges til 'medicinens vej' og Furosemid) */
+function FarmaFlow({ steps, accent }) {
+  const col = accent || "#7A5AF5";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 0 }}>
+      {steps.map((st, i) => (
+        <div key={i}>
+          <div style={{ border: `1px solid ${tint(col, "33")}`, background: tint(col, "0A"), borderRadius: 12, padding: "11px 13px", fontSize: 14, fontWeight: 700, color: C.ink }}>{typeof st === "string" ? st : st.t}</div>
+          {i < steps.length - 1 ? <div style={{ textAlign: "center", color: col, fontSize: 16, lineHeight: "18px", padding: "3px 0" }}>↓</div> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ===== FARMAKOLOGI — Medicinens halveringstid (T½) =====================
+ *  Læringsområde + interaktiv beregner. IKKE til patientspecifikke
+ *  kliniske beslutninger. Beregneren bruger en forenklet
+ *  førsteordens-model (remaining = 0.5^(tid/T½)). Lægemiddelspecifikke
+ *  T½-værdier opfindes ALDRIG — de slås op i pro.medicin.dk og vises kun
+ *  her hvis de er verificeret med kilde og dato (HALFLIFE_DB).
+ * ===================================================================== */
+const hlParse = (v) => { if (v == null) return NaN; const s = String(v).trim().replace(/\s/g, "").replace(",", "."); if (s === "") return NaN; const n = Number(s); return isFinite(n) ? n : NaN; };
+const hlFmt = (n, dec) => { if (!isFinite(n)) return "–"; const d = dec == null ? 2 : dec; let s = n.toFixed(d); if (s.indexOf(".") >= 0) s = s.replace(/0+$/, "").replace(/\.$/, ""); return s.replace(".", ","); };
+
+/* Verificeret T½-database — TOM indtil værdier er bekræftet med kilde + dato.
+ * Struktur klar til fremtidige verificerede opslag:
+ * { substans:"", aktivt:"", tHalf:"", range:"", kilde:"", kildeUrl:"", lastVerified:"", verified:true } */
+const MED_SEED = {"meta":{"schemaVersion":"1.0","datasetVersion":"2026.10.08-3","publishedAt":"2026-10-08","recordCount":10,"verifiedHalfLifeCount":10,"substanceCount":152,"indexCount":319,"halfLifeSources":["StatPearls (NCBI Bookshelf) — Furosemide","Produktresumé (HPRA, Irland) — Paracetamol","FDA-produktinformation — Metoprolol","FDA-produktinformation — Amlodipin","FDA-produktinformation — Lanoxin (digoxin)","FDA-produktinformation — Metformin","FDA-produktinformation — Altace (ramipril)","FDA-produktinformation — Protonix (pantoprazol)","Produktinformation (Pfizer) — Morphine","FDA-produktinformation — Eliquis (apixaban)"],"nameIndexSource":"Klario kurateret. Officielt dansk indeks fra Lægemiddelstyrelsen kan importeres med kildeangivelse (se tools/import_dkma_index.py).","attribution":"Halveringstider: se pr. post. Navne-indeks: Klario kurateret; ved officielt import angives Lægemiddelstyrelsen som kilde."},"records":[{"atcCode":null,"brands":["Furix","Diural"],"verificationStatus":"verified","reviewRequired":false,"id":"furosemid","substanceName":"Furosemid","halfLife":{"value":2,"minimum":null,"maximum":null,"unit":"hours","measurementType":"terminal","route":null,"formulation":null,"population":"adults","clinicalQualifications":["Forlænges ved kronisk nyresygdom","Øget ophobningsrisiko ved svært nedsat nyrefunktion"]},"source":{"name":"StatPearls (NCBI Bookshelf) — Furosemide","url":"https://www.ncbi.nlm.nih.gov/books/NBK499921/","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"ca. 2 timer","calcOptions":[{"label":"","h":2}],"range":"Terminal halveringstid ca. 2 timer ved normal nyrefunktion; forlænges ved kronisk nyresygdom.","effekt":"Vanddrivende effekt varer typisk 6–8 timer.","faktorer":"Nedsat nyrefunktion forlænger halveringstiden.","klinisk":"Øget risiko for ophobning ved svært nedsat nyrefunktion."}},{"atcCode":null,"brands":["Panodil","Pinex","Pamol"],"verificationStatus":"verified","reviewRequired":false,"id":"paracetamol","substanceName":"Paracetamol","halfLife":{"value":null,"minimum":1,"maximum":4,"unit":"hours","measurementType":"plasma elimination","route":null,"formulation":null,"population":"adults","clinicalQualifications":["Ved overdosering eller betydelig leverpåvirkning kan forholdene afvige"]},"source":{"name":"Produktresumé (HPRA, Irland) — Paracetamol","url":"https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"1–4 timer","calcOptions":[{"label":"Lav (1 t)","h":1},{"label":"Høj (4 t)","h":4}],"range":"Plasmahalveringstid 1–4 timer ved terapeutiske doser.","effekt":"","faktorer":"Omsættes i leveren.","klinisk":"Ved overdosering eller betydelig leverpåvirkning kan forholdene afvige — slå op i godkendt kilde."}},{"atcCode":null,"brands":["Selo-Zok","Metoprolol"],"verificationStatus":"verified","reviewRequired":false,"id":"metoprolol","substanceName":"Metoprolol","halfLife":{"value":null,"minimum":3,"maximum":7,"unit":"hours","measurementType":"plasma elimination","route":null,"formulation":null,"population":"adults","clinicalQualifications":["Ikke klinisk betydende ændret ved nyresvigt","Depotform (metoprololsuccinat) giver længere virkningsvarighed end plasmahalveringstiden"]},"source":{"name":"FDA-produktinformation — Metoprolol","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"3–7 timer","calcOptions":[{"label":"Lav (3 t)","h":3},{"label":"Høj (7 t)","h":7}],"range":"Plasmahalveringstid ca. 3–7 timer.","effekt":"Depotform (metoprololsuccinat) giver længere virkningsvarighed end plasmahalveringstiden.","faktorer":"Omsættes hovedsagelig i leveren (CYP2D6). Ikke klinisk betydende ændret ved nyresvigt.","klinisk":""}},{"atcCode":null,"brands":["Norvasc"],"verificationStatus":"verified","reviewRequired":false,"id":"amlodipin","substanceName":"Amlodipin","halfLife":{"value":null,"minimum":30,"maximum":50,"unit":"hours","measurementType":"terminal","route":null,"formulation":null,"population":"adults","clinicalQualifications":["Ca. 56 timer ved nedsat leverfunktion","Nedsat clearance (øget eksponering) hos ældre og ved nedsat leverfunktion"]},"source":{"name":"FDA-produktinformation — Amlodipin","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"30–50 timer","calcOptions":[{"label":"Lav (30 t)","h":30},{"label":"Høj (50 t)","h":50}],"range":"Terminal plasmahalveringstid ca. 30–50 timer; ca. 56 timer ved nedsat leverfunktion.","effekt":"","faktorer":"Nedsat clearance (øget eksponering) hos ældre og ved nedsat leverfunktion.","klinisk":"Lang halveringstid — steady state nås over flere dage."}},{"atcCode":null,"brands":["Lanoxin"],"verificationStatus":"verified","reviewRequired":false,"id":"digoxin","substanceName":"Digoxin","halfLife":{"value":null,"minimum":1.5,"maximum":2,"unit":"days","measurementType":"elimination","route":null,"formulation":null,"population":"adults (normal renal function)","clinicalQualifications":["Forlænget til 3,5–5 døgn ved anuri","Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden","Smalt terapeutisk interval"]},"source":{"name":"FDA-produktinformation — Lanoxin (digoxin)","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"1,5–2 døgn","calcOptions":[{"label":"Lav (36 t)","h":36},{"label":"Høj (48 t)","h":48}],"range":"Halveringstid 1,5–2 døgn ved normal nyrefunktion; forlænget til 3,5–5 døgn ved anuri.","effekt":"","faktorer":"Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden.","klinisk":"Smalt terapeutisk interval — vær opmærksom på ophobning ved nedsat nyrefunktion."}},{"atcCode":null,"brands":["Glucophage"],"verificationStatus":"verified","reviewRequired":false,"id":"metformin","substanceName":"Metformin","halfLife":{"value":6.2,"minimum":null,"maximum":null,"unit":"hours","measurementType":"plasma elimination","route":null,"formulation":null,"population":"adults","clinicalQualifications":["I blod ca. 17,6 timer","Forlænget ved nedsat nyrefunktion; nedsat renal clearance"]},"source":{"name":"FDA-produktinformation — Metformin","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"plasma ca. 6 timer","calcOptions":[{"label":"Plasma (6,2 t)","h":6.2},{"label":"Blod (17,6 t)","h":17.6}],"range":"Plasma-halveringstid ca. 6,2 timer; i blod ca. 17,6 timer.","effekt":"","faktorer":"Udskilles renalt; nedsat nyrefunktion forlænger halveringstiden og nedsætter clearance.","klinisk":"Risiko for ophobning ved nedsat nyrefunktion."}},{"atcCode":null,"brands":["Triatec"],"verificationStatus":"verified","reviewRequired":false,"id":"ramipril","substanceName":"Ramipril","halfLife":{"value":null,"minimum":13,"maximum":17,"unit":"hours","measurementType":"ramiprilat, therapeutic range","route":null,"formulation":null,"population":"adults (multiple dosing)","clinicalQualifications":["Terminal fase har meget lang halveringstid (>50 timer), som ikke bidrager til ophobning","Eksponering 3–4× øget ved nedsat nyrefunktion","Ramipril er en prodrug, der omdannes til ramiprilat"]},"source":{"name":"FDA-produktinformation — Altace (ramipril)","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"13–17 timer","calcOptions":[{"label":"Lav (13 t)","h":13},{"label":"Høj (17 t)","h":17}],"range":"Ramiprilat: halveringstid 13–17 timer inden for terapeutisk område. En terminal fase har meget lang halveringstid (>50 timer), som ikke bidrager til ophobning.","effekt":"","faktorer":"Eksponering 3–4× øget ved nedsat nyrefunktion.","klinisk":"Ramipril er en prodrug, der omdannes til ramiprilat."}},{"atcCode":null,"brands":["Pantoloc"],"verificationStatus":"verified","reviewRequired":false,"id":"pantoprazol","substanceName":"Pantoprazol","halfLife":{"value":1,"minimum":null,"maximum":null,"unit":"hours","measurementType":"terminal","route":null,"formulation":null,"population":"adults","clinicalQualifications":["7–9 timer ved nedsat leverfunktion","3,5–10 timer hos CYP2C19 poor metabolizers","Syrehæmmende effekt varer >24 timer trods kort halveringstid"]},"source":{"name":"FDA-produktinformation — Protonix (pantoprazol)","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"ca. 1 time","calcOptions":[{"label":"","h":1}],"range":"Terminal plasmahalveringstid ca. 1 time; 7–9 timer ved nedsat leverfunktion; 3,5–10 timer hos CYP2C19 poor metabolizers.","effekt":"Syrehæmmende effekt varer >24 timer trods kort halveringstid (irreversibel binding til protonpumpen).","faktorer":"Nedsat leverfunktion og CYP2C19-status forlænger halveringstiden.","klinisk":"Godt eksempel på, at virkningsvarighed ikke følger halveringstiden."}},{"atcCode":null,"brands":["Contalgin","Oramorph"],"verificationStatus":"verified","reviewRequired":false,"id":"morfin","substanceName":"Morfin","halfLife":{"value":null,"minimum":1.5,"maximum":2,"unit":"hours","measurementType":"elimination","route":null,"formulation":null,"population":"adults (normal subjects)","clinicalQualifications":["Terminalt rapporteret 1,5–4,5 timer","Metabolitter (M3G, M6G) kan ophobes ved nyresvigt","Depotform har længere virkningsvarighed end plasmahalveringstiden"]},"source":{"name":"Produktinformation (Pfizer) — Morphine","url":"https://pfizermedicalinformation.com/morphine/clinical-pharmacology","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"1,5–2 timer","calcOptions":[{"label":"Lav (1,5 t)","h":1.5},{"label":"Høj (2 t)","h":2}],"range":"Eliminationshalveringstid 1,5–2 timer (terminalt rapporteret 1,5–4,5 timer).","effekt":"Depotform (fx Contalgin) har længere virkningsvarighed end plasmahalveringstiden.","faktorer":"Metabolitter (M3G, M6G) kan ophobes ved nyresvigt.","klinisk":"Vær opmærksom ved nedsat nyrefunktion."}},{"atcCode":null,"brands":["Eliquis"],"verificationStatus":"verified","reviewRequired":false,"id":"apixaban","substanceName":"Apixaban","halfLife":{"value":12,"minimum":null,"maximum":null,"unit":"hours","measurementType":"apparent","route":"oral","formulation":null,"population":"adults","clinicalQualifications":["Kan være påvirket ved nedsat nyre- eller leverfunktion"]},"source":{"name":"FDA-produktinformation — Eliquis (apixaban)","url":"https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf","documentVersion":null,"accessedAt":"2026-10-08","verifiedAt":"2026-10-08"},"ui":{"display":"ca. 12 timer","calcOptions":[{"label":"","h":12}],"range":"Tilsyneladende halveringstid ca. 12 timer efter oral indgift.","effekt":"","faktorer":"Kan være påvirket ved nedsat nyre- eller leverfunktion.","klinisk":"DOAK (direkte faktor Xa-hæmmer) — slå konkrete forhold op i godkendt kilde."}}],"index":[{"q":"furix","subId":"furosemid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"diural","subId":"furosemid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"furosemid","subId":"furosemid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lasix","subId":"furosemid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"panodil","subId":"paracetamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"pinex","subId":"paracetamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"pamol","subId":"paracetamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"paracetamol","subId":"paracetamol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lanoxin","subId":"digoxin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"digoxin","subId":"digoxin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"metformin","subId":"metformin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"glucophage","subId":"metformin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"metoprolol","subId":"metoprolol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"selo-zok","subId":"metoprolol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"selozok","subId":"metoprolol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"bisoprolol","subId":"bisoprolol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"emconcor","subId":"bisoprolol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"amlodipin","subId":"amlodipin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"norvasc","subId":"amlodipin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"simvastatin","subId":"simvastatin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zocor","subId":"simvastatin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"atorvastatin","subId":"atorvastatin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lipitor","subId":"atorvastatin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"warfarin","subId":"warfarin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"marevan","subId":"warfarin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"citalopram","subId":"citalopram","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cipramil","subId":"citalopram","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"sertralin","subId":"sertralin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zoloft","subId":"sertralin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"omeprazol","subId":"omeprazol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"losec","subId":"omeprazol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"pantoprazol","subId":"pantoprazol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"pantoloc","subId":"pantoprazol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"levothyroxin","subId":"levothyroxin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"eltroxin","subId":"levothyroxin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"euthyrox","subId":"levothyroxin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"morfin","subId":"morfin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"contalgin","subId":"morfin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"oramorph","subId":"morfin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"oxycodon","subId":"oxycodon","type":"substance","region":null,"source":"Klario kurateret"},{"q":"oxynorm","subId":"oxycodon","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"oxycontin","subId":"oxycodon","type":"brand","region":null,"source":"Klario kurateret"},{"q":"targin","subId":"oxycodon","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"tramadol","subId":"tramadol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"dolol","subId":"tramadol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"mandolgin","subId":"tramadol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"nobligan","subId":"tramadol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"ramipril","subId":"ramipril","type":"substance","region":null,"source":"Klario kurateret"},{"q":"triatec","subId":"ramipril","type":"brand","region":null,"source":"Klario kurateret"},{"q":"enalapril","subId":"enalapril","type":"substance","region":null,"source":"Klario kurateret"},{"q":"renitec","subId":"enalapril","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"losartan","subId":"losartan","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cozaar","subId":"losartan","type":"brand","region":null,"source":"Klario kurateret"},{"q":"apixaban","subId":"apixaban","type":"substance","region":null,"source":"Klario kurateret"},{"q":"eliquis","subId":"apixaban","type":"brand","region":null,"source":"Klario kurateret"},{"q":"rivaroxaban","subId":"rivaroxaban","type":"substance","region":null,"source":"Klario kurateret"},{"q":"xarelto","subId":"rivaroxaban","type":"brand","region":null,"source":"Klario kurateret"},{"q":"amoxicillin","subId":"amoxicillin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"imacillin","subId":"amoxicillin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"penicillin","subId":"penicillin","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"primcillin","subId":"penicillin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"prednisolon","subId":"prednisolon","type":"substance","region":null,"source":"Klario kurateret"},{"q":"diazepam","subId":"diazepam","type":"substance","region":null,"source":"Klario kurateret"},{"q":"stesolid","subId":"diazepam","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"valium","subId":"diazepam","type":"brand","region":null,"source":"Klario kurateret"},{"q":"oxazepam","subId":"oxazepam","type":"substance","region":null,"source":"Klario kurateret"},{"q":"alopam","subId":"oxazepam","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"insulin","subId":"insulin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"novorapid","subId":"insulin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"levemir","subId":"insulin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"lantus","subId":"insulin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"tresiba","subId":"insulin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"actrapid","subId":"insulin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"acetylsalicylsyre","subId":"acetylsalicylsyre","type":"substance","region":null,"source":"Klario kurateret"},{"q":"hjertemagnyl","subId":"acetylsalicylsyre","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"magnyl","subId":"acetylsalicylsyre","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"aspirin","subId":"acetylsalicylsyre","type":"brand","region":null,"source":"Klario kurateret"},{"q":"ibuprofen","subId":"ibuprofen","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ipren","subId":"ibuprofen","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"brufen","subId":"ibuprofen","type":"brand","region":null,"source":"Klario kurateret"},{"q":"kaliumklorid","subId":"kaliumklorid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"kaleorid","subId":"kaliumklorid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"isosorbidmononitrat","subId":"isosorbidmononitrat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"imdur","subId":"isosorbidmononitrat","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"isosorbid","subId":"isosorbidmononitrat","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"carvedilol","subId":"carvedilol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"atenolol","subId":"atenolol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"verapamil","subId":"verapamil","type":"substance","region":null,"source":"Klario kurateret"},{"q":"isoptin","subId":"verapamil","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"diltiazem","subId":"diltiazem","type":"substance","region":null,"source":"Klario kurateret"},{"q":"nifedipin","subId":"nifedipin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"adalat","subId":"nifedipin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"felodipin","subId":"felodipin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"plendil","subId":"felodipin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"candesartan","subId":"candesartan","type":"substance","region":null,"source":"Klario kurateret"},{"q":"atacand","subId":"candesartan","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"valsartan","subId":"valsartan","type":"substance","region":null,"source":"Klario kurateret"},{"q":"diovan","subId":"valsartan","type":"brand","region":null,"source":"Klario kurateret"},{"q":"telmisartan","subId":"telmisartan","type":"substance","region":null,"source":"Klario kurateret"},{"q":"micardis","subId":"telmisartan","type":"brand","region":null,"source":"Klario kurateret"},{"q":"lercanidipin","subId":"lercanidipin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zanidip","subId":"lercanidipin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"bendroflumethiazid","subId":"bendroflumethiazid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"centyl","subId":"bendroflumethiazid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"hydrochlorthiazid","subId":"hydrochlorthiazid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"hydrochlorothiazid","subId":"hydrochlorthiazid","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"clopidogrel","subId":"clopidogrel","type":"substance","region":null,"source":"Klario kurateret"},{"q":"plavix","subId":"clopidogrel","type":"brand","region":null,"source":"Klario kurateret"},{"q":"amiodaron","subId":"amiodaron","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cordarone","subId":"amiodaron","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"sotalol","subId":"sotalol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"dabigatran","subId":"dabigatran","type":"substance","region":null,"source":"Klario kurateret"},{"q":"pradaxa","subId":"dabigatran","type":"brand","region":null,"source":"Klario kurateret"},{"q":"edoxaban","subId":"edoxaban","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lixiana","subId":"edoxaban","type":"brand","region":null,"source":"Klario kurateret"},{"q":"rosuvastatin","subId":"rosuvastatin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"crestor","subId":"rosuvastatin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"pravastatin","subId":"pravastatin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ezetimibe","subId":"ezetimibe","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ezetrol","subId":"ezetimibe","type":"brand","region":null,"source":"Klario kurateret"},{"q":"spironolacton","subId":"spironolacton","type":"substance","region":null,"source":"Klario kurateret"},{"q":"spiron","subId":"spironolacton","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"bumetanid","subId":"bumetanid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"burinex","subId":"bumetanid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"nitroglycerin","subId":"nitroglycerin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"glyceryltrinitrat","subId":"nitroglycerin","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"nitrolingual","subId":"nitroglycerin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"dipyridamol","subId":"dipyridamol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"persantin","subId":"dipyridamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"asasantin","subId":"dipyridamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"empagliflozin","subId":"empagliflozin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"jardiance","subId":"empagliflozin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"dapagliflozin","subId":"dapagliflozin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"forxiga","subId":"dapagliflozin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"sitagliptin","subId":"sitagliptin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"januvia","subId":"sitagliptin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"gliclazid","subId":"gliclazid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"diamicron","subId":"gliclazid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"glimepirid","subId":"glimepirid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"amaryl","subId":"glimepirid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"liraglutid","subId":"liraglutid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"victoza","subId":"liraglutid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"saxenda","subId":"liraglutid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"semaglutid","subId":"semaglutid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ozempic","subId":"semaglutid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"rybelsus","subId":"semaglutid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"wegovy","subId":"semaglutid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"esomeprazol","subId":"esomeprazol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"nexium","subId":"esomeprazol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"lansoprazol","subId":"lansoprazol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"laktulose","subId":"laktulose","type":"substance","region":null,"source":"Klario kurateret"},{"q":"duphalac","subId":"laktulose","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"macrogol","subId":"macrogol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"movicol","subId":"macrogol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"loperamid","subId":"loperamid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"imodium","subId":"loperamid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"metoclopramid","subId":"metoclopramid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"primperan","subId":"metoclopramid","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"ondansetron","subId":"ondansetron","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zofran","subId":"ondansetron","type":"brand","region":null,"source":"Klario kurateret"},{"q":"domperidon","subId":"domperidon","type":"substance","region":null,"source":"Klario kurateret"},{"q":"motilium","subId":"domperidon","type":"brand","region":null,"source":"Klario kurateret"},{"q":"salbutamol","subId":"salbutamol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ventoline","subId":"salbutamol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"airomir","subId":"salbutamol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"terbutalin","subId":"terbutalin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"bricanyl","subId":"terbutalin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"ipratropium","subId":"ipratropium","type":"substance","region":null,"source":"Klario kurateret"},{"q":"atrovent","subId":"ipratropium","type":"brand","region":null,"source":"Klario kurateret"},{"q":"tiotropium","subId":"tiotropium","type":"substance","region":null,"source":"Klario kurateret"},{"q":"spiriva","subId":"tiotropium","type":"brand","region":null,"source":"Klario kurateret"},{"q":"budesonid","subId":"budesonid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"pulmicort","subId":"budesonid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"montelukast","subId":"montelukast","type":"substance","region":null,"source":"Klario kurateret"},{"q":"singulair","subId":"montelukast","type":"brand","region":null,"source":"Klario kurateret"},{"q":"formoterol","subId":"formoterol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"oxis","subId":"formoterol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"mirtazapin","subId":"mirtazapin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"remeron","subId":"mirtazapin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"venlafaxin","subId":"venlafaxin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"efexor","subId":"venlafaxin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"duloxetin","subId":"duloxetin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cymbalta","subId":"duloxetin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"escitalopram","subId":"escitalopram","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cipralex","subId":"escitalopram","type":"brand","region":null,"source":"Klario kurateret"},{"q":"quetiapin","subId":"quetiapin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"seroquel","subId":"quetiapin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"olanzapin","subId":"olanzapin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zyprexa","subId":"olanzapin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"risperidon","subId":"risperidon","type":"substance","region":null,"source":"Klario kurateret"},{"q":"risperdal","subId":"risperidon","type":"brand","region":null,"source":"Klario kurateret"},{"q":"haloperidol","subId":"haloperidol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"serenase","subId":"haloperidol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"lorazepam","subId":"lorazepam","type":"substance","region":null,"source":"Klario kurateret"},{"q":"temesta","subId":"lorazepam","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"zopiclon","subId":"zopiclon","type":"substance","region":null,"source":"Klario kurateret"},{"q":"imovane","subId":"zopiclon","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"zolpidem","subId":"zolpidem","type":"substance","region":null,"source":"Klario kurateret"},{"q":"stilnoct","subId":"zolpidem","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"melatonin","subId":"melatonin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"circadin","subId":"melatonin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"pregabalin","subId":"pregabalin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lyrica","subId":"pregabalin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"gabapentin","subId":"gabapentin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"neurontin","subId":"gabapentin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"donepezil","subId":"donepezil","type":"substance","region":null,"source":"Klario kurateret"},{"q":"aricept","subId":"donepezil","type":"brand","region":null,"source":"Klario kurateret"},{"q":"memantin","subId":"memantin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ebixa","subId":"memantin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"lamotrigin","subId":"lamotrigin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lamictal","subId":"lamotrigin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"diclofenac","subId":"diclofenac","type":"substance","region":null,"source":"Klario kurateret"},{"q":"voltaren","subId":"diclofenac","type":"brand","region":null,"source":"Klario kurateret"},{"q":"naproxen","subId":"naproxen","type":"substance","region":null,"source":"Klario kurateret"},{"q":"fentanyl","subId":"fentanyl","type":"substance","region":null,"source":"Klario kurateret"},{"q":"durogesic","subId":"fentanyl","type":"brand","region":null,"source":"Klario kurateret"},{"q":"matrifen","subId":"fentanyl","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"buprenorfin","subId":"buprenorfin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"norspan","subId":"buprenorfin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"codein","subId":"codein","type":"substance","region":null,"source":"Klario kurateret"},{"q":"kodimagnyl","subId":"codein","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"enoxaparin","subId":"enoxaparin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"klexane","subId":"enoxaparin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"dalteparin","subId":"dalteparin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"fragmin","subId":"dalteparin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"tinzaparin","subId":"tinzaparin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"innohep","subId":"tinzaparin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"dicloxacillin","subId":"dicloxacillin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"diclocil","subId":"dicloxacillin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"pivmecillinam","subId":"pivmecillinam","type":"substance","region":null,"source":"Klario kurateret"},{"q":"selexid","subId":"pivmecillinam","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"nitrofurantoin","subId":"nitrofurantoin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"sulfamethizol","subId":"sulfamethizol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"primazol","subId":"sulfamethizol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"metronidazol","subId":"metronidazol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"flagyl","subId":"metronidazol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"ciprofloxacin","subId":"ciprofloxacin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ciproxin","subId":"ciprofloxacin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"clarithromycin","subId":"clarithromycin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"klacid","subId":"clarithromycin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"alendronat","subId":"alendronat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"fosamax","subId":"alendronat","type":"brand","region":null,"source":"Klario kurateret"},{"q":"allopurinol","subId":"allopurinol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zyloric","subId":"allopurinol","type":"brand","region":null,"source":"Klario kurateret"},{"q":"calciumcarbonat","subId":"calciumcarbonat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"calcichew","subId":"calciumcarbonat","type":"brand","region":null,"source":"Klario kurateret"},{"q":"colecalciferol","subId":"colecalciferol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"d-vitamin","subId":"colecalciferol","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"hydrocortison","subId":"hydrocortison","type":"substance","region":null,"source":"Klario kurateret"},{"q":"solu-cortef","subId":"hydrocortison","type":"brand","region":null,"source":"Klario kurateret"},{"q":"levomepromazin","subId":"levomepromazin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"nozinan","subId":"levomepromazin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"chlorprothixen","subId":"chlorprothixen","type":"substance","region":null,"source":"Klario kurateret"},{"q":"truxal","subId":"chlorprothixen","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"zuclopenthixol","subId":"zuclopenthixol","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cisordinol","subId":"zuclopenthixol","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"clonazepam","subId":"clonazepam","type":"substance","region":null,"source":"Klario kurateret"},{"q":"rivotril","subId":"clonazepam","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"carbamazepin","subId":"carbamazepin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"tegretol","subId":"carbamazepin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"acetylcystein","subId":"acetylcystein","type":"substance","region":null,"source":"Klario kurateret"},{"q":"mucomyst","subId":"acetylcystein","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"nac","subId":"acetylcystein","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"tranexamsyre","subId":"tranexamsyre","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cyklokapron","subId":"tranexamsyre","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"cetirizin","subId":"cetirizin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zyrtec","subId":"cetirizin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"loratadin","subId":"loratadin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"clarityn","subId":"loratadin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"desloratadin","subId":"desloratadin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"aerius","subId":"desloratadin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"promethazin","subId":"promethazin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"phenergan","subId":"promethazin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"natriumpicosulfat","subId":"natriumpicosulfat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"laxoberal","subId":"natriumpicosulfat","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"magnesiumhydroxid","subId":"magnesiumhydroxid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"magnesia","subId":"magnesiumhydroxid","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"tamsulosin","subId":"tamsulosin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"omnic","subId":"tamsulosin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"finasterid","subId":"finasterid","type":"substance","region":null,"source":"Klario kurateret"},{"q":"proscar","subId":"finasterid","type":"brand","region":null,"source":"Klario kurateret"},{"q":"solifenacin","subId":"solifenacin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"vesicare","subId":"solifenacin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"tolterodin","subId":"tolterodin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"detrusitol","subId":"tolterodin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"mirabegron","subId":"mirabegron","type":"substance","region":null,"source":"Klario kurateret"},{"q":"betmiga","subId":"mirabegron","type":"brand","region":null,"source":"Klario kurateret"},{"q":"latanoprost","subId":"latanoprost","type":"substance","region":null,"source":"Klario kurateret"},{"q":"xalatan","subId":"latanoprost","type":"brand","region":null,"source":"Klario kurateret"},{"q":"baclofen","subId":"baclofen","type":"substance","region":null,"source":"Klario kurateret"},{"q":"lioresal","subId":"baclofen","type":"brand","region":null,"source":"Klario kurateret"},{"q":"tizanidin","subId":"tizanidin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"sirdalud","subId":"tizanidin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"sildenafil","subId":"sildenafil","type":"substance","region":null,"source":"Klario kurateret"},{"q":"viagra","subId":"sildenafil","type":"brand","region":null,"source":"Klario kurateret"},{"q":"revatio","subId":"sildenafil","type":"brand","region":null,"source":"Klario kurateret"},{"q":"mometason","subId":"mometason","type":"substance","region":null,"source":"Klario kurateret"},{"q":"nasonex","subId":"mometason","type":"brand","region":null,"source":"Klario kurateret"},{"q":"fluticason","subId":"fluticason","type":"substance","region":null,"source":"Klario kurateret"},{"q":"flutide","subId":"fluticason","type":"brand","region":null,"source":"Klario kurateret"},{"q":"methotrexat","subId":"methotrexat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"azathioprin","subId":"azathioprin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"imurel","subId":"azathioprin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"colchicin","subId":"colchicin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"clindamycin","subId":"clindamycin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"dalacin","subId":"clindamycin","type":"brand","region":null,"source":"Klario kurateret"},{"q":"erythromycin","subId":"erythromycin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"abboticin","subId":"erythromycin","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"flucloxacillin","subId":"flucloxacillin","type":"substance","region":null,"source":"Klario kurateret"},{"q":"cefuroxim","subId":"cefuroxim","type":"substance","region":null,"source":"Klario kurateret"},{"q":"zinnat","subId":"cefuroxim","type":"brand","region":null,"source":"Klario kurateret"},{"q":"trimethoprim","subId":"trimethoprim","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ferrosulfat","subId":"ferrosulfat","type":"substance","region":null,"source":"Klario kurateret"},{"q":"ferro duretter","subId":"ferrosulfat","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"ferroduretter","subId":"ferrosulfat","type":"brand","region":"DK","source":"Klario kurateret"},{"q":"folsyre","subId":"folsyre","type":"substance","region":null,"source":"Klario kurateret"},{"q":"folinsyre","subId":"folsyre","type":"synonym","region":null,"source":"Klario kurateret"},{"q":"dexamethason","subId":"dexamethason","type":"substance","region":null,"source":"Klario kurateret"},{"q":"digitoxin","subId":"digitoxin","type":"substance","region":null,"source":"Klario kurateret"}],"substances":{"furosemid":"Furosemid","paracetamol":"Paracetamol","digoxin":"Digoxin","metformin":"Metformin","metoprolol":"Metoprolol","bisoprolol":"Bisoprolol","amlodipin":"Amlodipin","simvastatin":"Simvastatin","atorvastatin":"Atorvastatin","warfarin":"Warfarin","citalopram":"Citalopram","sertralin":"Sertralin","omeprazol":"Omeprazol","pantoprazol":"Pantoprazol","levothyroxin":"Levothyroxin","morfin":"Morfin","oxycodon":"Oxycodon","tramadol":"Tramadol","ramipril":"Ramipril","enalapril":"Enalapril","losartan":"Losartan","apixaban":"Apixaban","rivaroxaban":"Rivaroxaban","amoxicillin":"Amoxicillin","penicillin":"Phenoxymethylpenicillin","prednisolon":"Prednisolon","diazepam":"Diazepam","oxazepam":"Oxazepam","insulin":"Insulin","acetylsalicylsyre":"Acetylsalicylsyre","ibuprofen":"Ibuprofen","kaliumklorid":"Kaliumklorid","isosorbidmononitrat":"Isosorbidmononitrat","carvedilol":"Carvedilol","atenolol":"Atenolol","verapamil":"Verapamil","diltiazem":"Diltiazem","nifedipin":"Nifedipin","felodipin":"Felodipin","candesartan":"Candesartan","valsartan":"Valsartan","telmisartan":"Telmisartan","lercanidipin":"Lercanidipin","bendroflumethiazid":"Bendroflumethiazid","hydrochlorthiazid":"Hydrochlorthiazid","clopidogrel":"Clopidogrel","amiodaron":"Amiodaron","sotalol":"Sotalol","dabigatran":"Dabigatran","edoxaban":"Edoxaban","rosuvastatin":"Rosuvastatin","pravastatin":"Pravastatin","ezetimibe":"Ezetimibe","spironolacton":"Spironolacton","bumetanid":"Bumetanid","nitroglycerin":"Nitroglycerin (glyceryltrinitrat)","dipyridamol":"Dipyridamol","empagliflozin":"Empagliflozin","dapagliflozin":"Dapagliflozin","sitagliptin":"Sitagliptin","gliclazid":"Gliclazid","glimepirid":"Glimepirid","liraglutid":"Liraglutid","semaglutid":"Semaglutid","esomeprazol":"Esomeprazol","lansoprazol":"Lansoprazol","laktulose":"Laktulose","macrogol":"Macrogol","loperamid":"Loperamid","metoclopramid":"Metoclopramid","ondansetron":"Ondansetron","domperidon":"Domperidon","salbutamol":"Salbutamol","terbutalin":"Terbutalin","ipratropium":"Ipratropium","tiotropium":"Tiotropium","budesonid":"Budesonid","montelukast":"Montelukast","formoterol":"Formoterol","mirtazapin":"Mirtazapin","venlafaxin":"Venlafaxin","duloxetin":"Duloxetin","escitalopram":"Escitalopram","quetiapin":"Quetiapin","olanzapin":"Olanzapin","risperidon":"Risperidon","haloperidol":"Haloperidol","lorazepam":"Lorazepam","zopiclon":"Zopiclon","zolpidem":"Zolpidem","melatonin":"Melatonin","pregabalin":"Pregabalin","gabapentin":"Gabapentin","donepezil":"Donepezil","memantin":"Memantin","lamotrigin":"Lamotrigin","diclofenac":"Diclofenac","naproxen":"Naproxen","fentanyl":"Fentanyl","buprenorfin":"Buprenorfin","codein":"Codein","enoxaparin":"Enoxaparin","dalteparin":"Dalteparin","tinzaparin":"Tinzaparin","dicloxacillin":"Dicloxacillin","pivmecillinam":"Pivmecillinam","nitrofurantoin":"Nitrofurantoin","sulfamethizol":"Sulfamethizol","metronidazol":"Metronidazol","ciprofloxacin":"Ciprofloxacin","clarithromycin":"Clarithromycin","alendronat":"Alendronat","allopurinol":"Allopurinol","calciumcarbonat":"Calciumcarbonat","colecalciferol":"Colecalciferol (D-vitamin)","hydrocortison":"Hydrocortison","levomepromazin":"Levomepromazin","chlorprothixen":"Chlorprothixen","zuclopenthixol":"Zuclopenthixol","clonazepam":"Clonazepam","carbamazepin":"Carbamazepin","acetylcystein":"Acetylcystein","tranexamsyre":"Tranexamsyre","cetirizin":"Cetirizin","loratadin":"Loratadin","desloratadin":"Desloratadin","promethazin":"Promethazin","natriumpicosulfat":"Natriumpicosulfat","magnesiumhydroxid":"Magnesiumhydroxid","tamsulosin":"Tamsulosin","finasterid":"Finasterid","solifenacin":"Solifenacin","tolterodin":"Tolterodin","mirabegron":"Mirabegron","latanoprost":"Latanoprost","baclofen":"Baclofen","tizanidin":"Tizanidin","sildenafil":"Sildenafil","mometason":"Mometason","fluticason":"Fluticason","methotrexat":"Methotrexat","azathioprin":"Azathioprin","colchicin":"Colchicin","clindamycin":"Clindamycin","erythromycin":"Erythromycin","flucloxacillin":"Flucloxacillin","cefuroxim":"Cefuroxim","trimethoprim":"Trimethoprim","ferrosulfat":"Ferrosulfat","folsyre":"Folsyre","dexamethason":"Dexamethason","digitoxin":"Digitoxin"}};
+/* ===== KLARIO medication data layer (Option A1, Phase 1) ================
+ * Scalable, versioned, source-verifiable. Data lives in a separate versioned
+ * JSON (data/klario-halflife.v1.json + data/klario-medication-index.v1.json),
+ * loaded at runtime and cached; an inlined MED_SEED (above) is the offline
+ * floor so the app always works even if the fetch/update fails. Nothing is
+ * invented. Option B (online source) is prepared but DISABLED. */
+const MED_SCHEMA_MAJOR = "1";
+const MED_ONLINE = false;                         // Option B — kept OFF
+const MED_ONLINE_URL = "";                        // set by a future approved phase
+const MED_FILE_HALFLIFE = "data/klario-halflife.v1.json";
+const MED_FILE_INDEX = "data/klario-medication-index.v1.json";       // PRODUCTION name index (curated, redistribution-safe)
+const MED_FILE_INDEX_DEV = "data/klario-medication-index.dev.json";  // DEV-ONLY Lægemiddelstyrelsen index — must NOT be deployed to public builds
+const MED_DS_CACHE_KEY = "klario_med_ds_v1";
+const MED_DS_CACHE_KEY_DEV = "klario_med_ds_dev_v1";                 // dev dataset cached under a separate key so it can never surface in production
+/* Dev gate (requirement 1): the full imported Danish dataset is kept out of
+ * public production builds by TWO independent gates — (a) this environment flag
+ * is false on the deployed host, and (b) the dev index file is not shipped, so
+ * even if the flag were forced on, the fetch 404s and we fall back to curated. */
+function medDevEnabled() {
+  try {
+    var h = (typeof location !== "undefined" && location.hostname) || "";
+    var isLocal = h === "localhost" || h === "127.0.0.1" || h === "0.0.0.0" || h === "";
+    var qp = (typeof location !== "undefined" && (location.search || "").indexOf("devmed=1") >= 0);
+    var ls = false; try { ls = localStorage.getItem("klario_dev_med") === "1"; } catch (e) {}
+    return !!(isLocal || qp || ls);
+  } catch (e) { return false; }
+}
+const hlNorm = (s) => (s || "").trim().toLowerCase().replace(/\s+/g, " ");
+const MED_MEAS = { "terminal": "Terminal halveringstid", "elimination": "Eliminationshalveringstid", "plasma elimination": "Plasmahalveringstid (elimination)", "apparent": "Tilsyneladende halveringstid", "biological": "Biologisk halveringstid" };
+const medMeasLabel = (m) => MED_MEAS[m] || (m ? m.charAt(0).toUpperCase() + m.slice(1) : "Halveringstid");
+
+/* schema version compatibility (major must match) */
+const medVerMajor = (v) => String(v || "").split(".")[0];
+const medSchemaCompatible = (ds) => !!(ds && ds.meta && medVerMajor(ds.meta.schemaVersion) === MED_SCHEMA_MAJOR);
+
+/* validator — rejects incomplete/corrupt datasets */
+function validateMedDataset(ds) {
+  const err = [];
+  if (!ds || typeof ds !== "object") return { ok: false, errors: ["dataset mangler"] };
+  if (!ds.meta || !ds.meta.schemaVersion) err.push("meta/schemaVersion mangler");
+  else if (!medSchemaCompatible(ds)) err.push("skema-version ikke kompatibel (" + ds.meta.schemaVersion + ")");
+  if (!Array.isArray(ds.records)) err.push("records er ikke en liste");
+  if (!Array.isArray(ds.index)) err.push("index er ikke en liste");
+  if (Array.isArray(ds.records)) ds.records.forEach((r, i) => { if (!r || !r.id || !r.substanceName || !r.halfLife || !r.source || !r.verificationStatus) err.push("record " + i + " mangler felter"); });
+  if (Array.isArray(ds.index) && ds.index.length) ds.index.forEach((x, i) => { if (!x || !x.q || !x.subId) err.push("index " + i + " mangler felter"); });
+  return { ok: err.length === 0, errors: err };
+}
+
+/* build fast runtime structures (alias index + autocomplete).
+ * _alias entries are {k, id, e}: k = normalised search key, id = substance id,
+ * e = the source index entry (carries combo/subs/review/atc) or null for aliases
+ * derived from verified records / substance names. */
+const MED_SUGGEST_CAP = 1800; // keep the autocomplete datalist light on mobile
+function medBuildRuntime(ds) {
+  const d = Object.assign({}, ds);
+  d.substances = d.substances || {};
+  const recById = {}; (d.records || []).forEach((r) => { recById[r.id] = r; });
+  d._recById = recById;
+  const ai = []; const seen = {};
+  const push = (k, id, e) => { if (!k || !id) return; if (seen[k]) { return; } seen[k] = 1; ai.push({ k: k, id: id, e: e || null }); };
+  // verified records: id, substance name, brands
+  (d.records || []).forEach((r) => { push(r.id, r.id, null); push(hlNorm(r.substanceName), r.id, null); (r.brands || []).forEach((b) => push(hlNorm(b), r.id, null)); });
+  // substance ids + display names
+  Object.keys(d.substances).forEach((k) => { push(k, k, null); push(hlNorm(d.substances[k]), k, null); });
+  // provided index (brand/substance names) + ATC codes (requirement 6: ATC search)
+  (d.index || []).forEach((x) => { push(hlNorm(x.q), x.subId, x); if (x.atc) push(hlNorm(x.atc), x.subId, x); });
+  d._alias = ai;
+  // map normalised name/atc -> best index entry (prefer brand entries carrying combo/review)
+  const eByQ = {}; (d.index || []).forEach((x) => { const k = hlNorm(x.q); const cur = eByQ[k]; if (!cur || (x.type === "brand" && cur.type !== "brand")) eByQ[k] = x; if (x.atc) { const ak = hlNorm(x.atc); if (!eByQ[ak]) eByQ[ak] = x; } });
+  d._entryByQ = eByQ;
+  // autocomplete suggestions (capped): substance display names first, then record brands, then index names
+  const sg = {}; const order = [];
+  const addSg = (name) => { if (name && !sg[name]) { sg[name] = 1; order.push(name); } };
+  Object.keys(d.substances).forEach((k) => addSg(d.substances[k]));
+  (d.records || []).forEach((r) => { addSg(r.substanceName); (r.brands || []).forEach((b) => addSg(b)); });
+  for (let i = 0; i < (d.index || []).length && order.length < MED_SUGGEST_CAP; i++) { const x = d.index[i]; addSg(x.q.charAt(0).toUpperCase() + x.q.slice(1)); }
+  d.suggest = order.sort().slice(0, MED_SUGGEST_CAP);
+  return d;
+}
+
+/* dataset cache (last known good) */
+function medCacheRead(key) { try { const o = JSON.parse(localStorage.getItem(key || MED_DS_CACHE_KEY) || "null"); return o && o.ds ? o : null; } catch (e) { return null; } }
+function medCacheWrite(ds, key) { try { localStorage.setItem(key || MED_DS_CACHE_KEY, JSON.stringify({ ds: ds, savedAt: Date.now() })); } catch (e) {} }
+
+/* loader: online(disabled) → verified half-life file + name index → cache → seed.
+ * The name index is the curated production file by default; the full
+ * Lægemiddelstyrelsen index loads ONLY when medDevEnabled() AND the dev file is
+ * actually present (both gates). Dev datasets cache under a separate key so they
+ * can never resurface in a production build. Half-life records always come from
+ * the verified half-life file — the name index never carries half-life values. */
+async function loadMedicationData() {
+  if (MED_ONLINE && MED_ONLINE_URL) { /* Option B — future approved phase */ }
+  const dev = medDevEnabled();
+  const cacheKey = dev ? MED_DS_CACHE_KEY_DEV : MED_DS_CACHE_KEY;
+  try {
+    const hRes = await fetch(MED_FILE_HALFLIFE, { cache: "no-cache" });
+    // choose index source: dev (only if gated + present) else curated production
+    let idx = null, idxDev = false;
+    if (dev) {
+      try { const dRes = await fetch(MED_FILE_INDEX_DEV, { cache: "no-cache" }); if (dRes.ok) { const dj = await dRes.json(); if (dj && Array.isArray(dj.index)) { idx = dj; idxDev = true; } } } catch (e) {}
+    }
+    if (!idx) { const iRes = await fetch(MED_FILE_INDEX, { cache: "no-cache" }); if (iRes.ok) idx = await iRes.json(); }
+    if (hRes.ok && idx) {
+      const h = await hRes.json();
+      const subs = Object.assign({}, h.substances || {}, idx.substances || {});
+      const meta = Object.assign({}, h.meta, {
+        nameIndexVersion: (idx.meta && idx.meta.datasetVersion) || null,
+        nameIndexSourceName: (idx.meta && idx.meta.nameSource) || "Klario kurateret",
+        nameIndexAttribution: (idx.meta && idx.meta.attribution) || null,
+        nameIndexRedistribution: (idx.meta && idx.meta.redistribution) || null,
+        nameIndexDev: idxDev,
+      });
+      const ds = { meta: meta, records: h.records, substances: subs, index: idx.index || [] };
+      if (validateMedDataset(ds).ok) {
+        medCacheWrite(ds, cacheKey);
+        return { ds: medBuildRuntime(ds), origin: idxDev ? "dev" : "network", meta: ds.meta };
+      }
+    }
+  } catch (e) { /* offline or missing — fall through */ }
+  const c = medCacheRead(cacheKey);
+  if (c && validateMedDataset(c.ds).ok) return { ds: medBuildRuntime(c.ds), origin: "cache", meta: c.ds.meta };
+  return { ds: medBuildRuntime(MED_SEED), origin: "seed", meta: MED_SEED.meta };
+}
+
+/* resolve / match / get */
+const medSubName = (ds, id) => { const r = ds._recById && ds._recById[id]; return (r && r.substanceName) || (ds.substances && ds.substances[id]) || id; };
+function medResolve(ds, q) { const s = hlNorm(q); if (!s) return null; const A = ds._alias || []; let a = A.find((x) => x.k === s); if (!a && s.length >= 3) a = A.find((x) => x.k.length >= 3 && (x.k.indexOf(s) === 0 || s.indexOf(x.k) === 0)); if (!a && s.length >= 4) a = A.find((x) => x.k.length >= 4 && (x.k.indexOf(s) >= 0 || s.indexOf(x.k) >= 0)); return a ? a.id : null; }
+/* returns one match per substance id, carrying the best index entry (combo/review).
+ * Min key length on prefix/substring matches stops short ids (e.g. a 1-char slug)
+ * from falsely matching unrelated queries. */
+function medMatches(ds, q) {
+  const s = hlNorm(q); if (!s) return [];
+  const best = {}; // subId -> {score, e}
+  const score = (k) => (k === s ? 3 : (s.length >= 3 && k.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0)) ? 2 : (s.length >= 4 && k.length >= 4 && (k.indexOf(s) >= 0 || s.indexOf(k) >= 0)) ? 1 : 0);
+  (ds._alias || []).forEach((x) => {
+    const sc = score(x.k); if (!sc) return;
+    const rich = x.e ? (x.e.combo ? 3 : (x.e.type === "brand" ? 2 : 1)) : 0;
+    const cur = best[x.id];
+    if (!cur || sc > cur.score || (sc === cur.score && rich > cur.rich)) best[x.id] = { score: sc, rich: rich, e: x.e || (cur && cur.e) || null };
+  });
+  return Object.keys(best).sort((a, b) => best[b].score - best[a].score).map((id) => { const r = ds._recById[id]; const e = best[id].e; return { subId: id, subName: medSubName(ds, id), verified: !!(r && r.verificationStatus === "verified"), entry: e || null, combo: !!(e && e.combo), subs: (e && e.subs) || null, atc: (e && e.atc) || (r && r.atcCode) || null, review: !!(e && e.review) }; });
+}
+/* best index entry for a free-text query (used to carry combo/review into the single-match view) */
+function medEntryForQuery(ds, q) { const s = hlNorm(q); if (!s) return null; const E = ds._entryByQ || {}; if (E[s]) return E[s]; let hit = null; const keys = Object.keys(E); for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (s.length >= 3 && (k.indexOf(s) === 0 || s.indexOf(k) === 0)) { hit = E[k]; break; } } return hit; }
+const MED_STALE_MONTHS = 12;
+function medStale(dateStr) { const t = Date.parse(dateStr); if (isNaN(t)) return false; return (Date.now() - t) / (1000 * 60 * 60 * 24 * 30.44) > MED_STALE_MONTHS; }
+/* status: verified | previously-verified | unverified | not-documented | unavailable */
+function medGet(ds, subId) {
+  const r = ds._recById && ds._recById[subId];
+  const subName = medSubName(ds, subId);
+  if (!r) return { status: "unavailable", subId: subId, subName: subName };
+  if (r.notDocumented || (r.halfLife && r.halfLife.notDocumented)) return { status: "not-documented", record: r, subId: subId, subName: subName };
+  if (r.verificationStatus === "verified") return { status: medStale(r.source && r.source.verifiedAt) ? "previously-verified" : "verified", record: r, subId: subId, subName: subName };
+  return { status: "unverified", record: r, subId: subId, subName: subName };
+}
+/* map a record → the card shape the UI renders */
+function medToCard(r) {
+  const u = r.ui || {};
+  const hl = r.halfLife || {};
+  return { substans: r.substanceName, aktivt: (u.aktivt || r.substanceName), brands: r.brands || [], display: u.display || "", measLabel: medMeasLabel(hl.measurementType), range: u.range || "", effekt: u.effekt || "", faktorer: u.faktorer || "", klinisk: u.klinisk || "", quals: hl.clinicalQualifications || [], calcOptions: u.calcOptions || [], kilde: (r.source && r.source.name) || "", kildeUrl: (r.source && r.source.url) || "", lastVerified: (r.source && r.source.verifiedAt) || "" };
+}
+/* Option B-ready interface (kept for future online phase) */
+async function getHalfLife(ds, subId) { return medGet(ds, subId); }
+async function resolveMedication(ds, query) { return medMatches(ds, query); }
+
+/* recents cache (per-viewer convenience) */
+const HL_CACHE_KEY = "klario_hl_cache_v1";
+function hlCacheRead() { try { return JSON.parse(localStorage.getItem(HL_CACHE_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function hlCacheWrite(o) { try { localStorage.setItem(HL_CACHE_KEY, JSON.stringify(o)); } catch (e) {} }
+/* manuelt indtastede (ikke-verificerede) halveringstider — pr. stof */
+const HL_MANUAL_KEY = "klario_hl_manual_v1";
+function hlManualRead() { try { return JSON.parse(localStorage.getItem(HL_MANUAL_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function hlManualWrite(o) { try { localStorage.setItem(HL_MANUAL_KEY, JSON.stringify(o)); } catch (e) {} }
+
+
+const HALFLIFE_EDU = [
+  { t: "Hvad er halveringstid (T½)?", q: "Halveringstiden er den tid, det tager, før koncentrationen af et lægemiddel i kroppen (plasma) er faldet til omtrent det halve.", m: "T½ er et kinetisk mål. Et lægemiddel med lang T½ bliver længere i kroppen end et med kort T½. Den konkrete T½ for et præparat slås op i en godkendt kilde." },
+  { t: "Hvordan falder koncentrationen over tid?", q: "For hver halveringstid falder mængden til ca. det halve: 100 % → 50 % → 25 % → 12,5 % → 6,25 % → 3,125 %.", m: "Dette er en forenklet førsteordens-model. Efter ca. 5 halveringstider er omtrent 96,875 % udskilt, og lægemidlet regnes typisk som næsten elimineret. Det er en tommelfingerregel til forståelse — ikke en universel klinisk regel for alle lægemidler." },
+  { t: "Halveringstid vs. virkningsvarighed vs. elimination", q: "De tre ting er ikke det samme.", m: "Halveringstid er, hvor hurtigt koncentrationen halveres. Virkningsvarighed er, hvor længe effekten mærkes — den afhænger også af dosis, bindingsstyrke m.m. Elimination er den samlede fjernelse af lægemidlet (metabolisme + udskillelse)." },
+  { t: "Lever, nyrer og T½", q: "Lever og nyrer bestemmer i høj grad, hvor hurtigt et lægemiddel forlader kroppen.", m: "Nedsat lever- eller nyrefunktion kan forlænge halveringstiden, så lægemidlet bliver længere i kroppen og lettere kan ophobes. Mange lægemidler kræver derfor ekstra opmærksomhed ved nedsat organfunktion." },
+  { t: "Ophobning ved gentagen dosering", q: "Gives en ny dosis, før den forrige er elimineret, kan lægemidlet ophobes i kroppen.", m: "Doseringsintervallet hænger sammen med halveringstiden. Er T½ forlænget (fx hos ældre eller ved nedsat organfunktion), stiger risikoen for ophobning og dermed for bivirkninger." },
+  { t: "Halveringstid og steady state", q: "Ved gentagen dosering når koncentrationen et nogenlunde stabilt niveau (steady state) — typisk efter ca. 4–5 halveringstider.", m: "Ved steady state er det, der tilføres, nogenlunde lig med det, der udskilles. Jo længere T½, jo længere tid tager det at nå steady state." },
+  { t: "Hvorfor kræver ældre ekstra opmærksomhed?", q: "Ældre har ofte nedsat nyre- og leverfunktion og ændret kropssammensætning.", m: "Det kan forlænge halveringstiden, så lægemidler virker længere og lettere ophobes. Sammen med polyfarmaci øger det risikoen for bivirkninger og interaktioner — observér og følg lokale instrukser." },
+];
+
+/* Halveringstider-tabel (fast, matematisk — ikke lægemiddelspecifik) */
+const HL_TABLE = [1, 2, 3, 4, 5, 6].map((n) => ({ n, remaining: Math.pow(0.5, n) * 100, eliminated: 100 - Math.pow(0.5, n) * 100 }));
+
+/* ===== KLARIO Medicinbibliotek (V1) =====================================
+ * Searchable medication library. IDENTITY (navn, aktivt stof, ATC, form,
+ * markedsføring) verified against Lægemiddelstyrelsens register. Verified
+ * half-lives reused from the source-verified dataset; others show "Ikke
+ * verificeret". Deeper clinical sections are pending faglig gennemgang with NO
+ * fabricated content. Favorites + recently-viewed persist in localStorage.
+ * All UI strings use real UTF-8 (JSX does not interpret \u escapes). */
+const MEDLIB = [{"id": "amlodipin", "brandName": "Amlodipin", "activeSubstance": "Amlodipin", "activeSubstanceRaw": "amlodipinbesilat", "alternativeNames": ["Amlodipinbesilat", "Norvasc"], "medicationGroup": "Calciumantagonist", "clinicalCategories": ["Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C08CA01", "forms": ["oral suspension", "tabletter"], "indicationShort": "Calciumantagonist (blodtryk)", "halfLife": {"status": "verified", "display": "30–50 timer", "measLabel": "Terminal halveringstid", "source": "FDA-produktinformation — Amlodipin", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Amlodipin", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2005/019787s037lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "citalopram", "brandName": "Citalopram", "activeSubstance": "Citalopram", "activeSubstanceRaw": "citalopramhydrobromid", "alternativeNames": ["Citalopramhydrobromid", "Cipramil"], "medicationGroup": "SSRI", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N06AB04", "forms": ["filmovertrukne tabletter"], "indicationShort": "Antidepressivum (SSRI)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "digoxin", "brandName": "Digoxin", "activeSubstance": "Digoxin", "activeSubstanceRaw": "digoxin", "alternativeNames": ["Lanoxin"], "medicationGroup": "Hjerteglykosid", "clinicalCategories": ["Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C01AA05", "forms": ["injektionsvæske, opløsning", "tabletter"], "indicationShort": "Hjerteglykosid (snævert terapeutisk indeks)", "halfLife": {"status": "verified", "display": "1,5–2 døgn", "measLabel": "Eliminationshalveringstid", "source": "FDA-produktinformation — Lanoxin (digoxin)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Lanoxin (digoxin)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2020/009330Orig1s036lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "eliquis", "brandName": "Eliquis", "activeSubstance": "Apixaban", "activeSubstanceRaw": "apixaban", "alternativeNames": ["Apixaban"], "medicationGroup": "Faktor Xa-hæmmer (DOAK)", "clinicalCategories": ["Blodfortyndende medicin"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "B01AF02", "forms": ["filmovertrukne tabletter", "granulat i brev", "granulat i kapsler til åbning"], "indicationShort": "Blodfortyndende (DOAK)", "halfLife": {"status": "verified", "display": "ca. 12 timer", "measLabel": "Halveringstid", "source": "FDA-produktinformation — Eliquis (apixaban)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Eliquis (apixaban)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2014/202155s000lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "eltroxin", "brandName": "Eltroxin", "activeSubstance": "Levothyroxin", "activeSubstanceRaw": "levothyroxinnatrium", "alternativeNames": ["Levothyroxinnatrium"], "medicationGroup": "Thyreoideahormon", "clinicalCategories": ["Hormoner"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "H03AA01", "forms": ["tabletter"], "indicationShort": "Stofskiftehormon (thyroidea)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "fucidin", "brandName": "Fucidin", "activeSubstance": "Fusidinsyre", "activeSubstanceRaw": "fusidinsyre", "alternativeNames": ["Natriumfusidat"], "medicationGroup": "Antibiotikum (fusidinsyre)", "clinicalCategories": ["Infektioner"], "careSettings": ["Hjemmepleje", "Hospital"], "atc": "D06AX01", "forms": ["creme", "oral suspension", "salve"], "indicationShort": "Antibiotikum", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "furix", "brandName": "Furix", "activeSubstance": "Furosemid", "activeSubstanceRaw": "furosemid", "alternativeNames": ["Furosemid", "Diural"], "medicationGroup": "Loop-diuretikum", "clinicalCategories": ["Vanddrivende medicin", "Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C03CA01", "forms": ["tabletter"], "indicationShort": "Vanddrivende (loop-diuretikum)", "halfLife": {"status": "verified", "display": "ca. 2 timer", "measLabel": "Terminal halveringstid", "source": "StatPearls (NCBI Bookshelf) — Furosemide", "url": "https://www.ncbi.nlm.nih.gov/books/NBK499921/", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "StatPearls (NCBI Bookshelf) — Furosemide", "url": "https://www.ncbi.nlm.nih.gov/books/NBK499921/", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "hjertemagnyl", "brandName": "Hjertemagnyl", "activeSubstance": "Acetylsalicylsyre", "activeSubstanceRaw": "acetylsalicylsyre", "alternativeNames": ["Acetylsalicylsyre", "Magnyl", "ASA"], "medicationGroup": "Trombocythæmmer", "clinicalCategories": ["Blodfortyndende medicin"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "B01AC06", "forms": ["filmovertrukne tabletter"], "indicationShort": "Trombocythæmmer (lavdosis ASA)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "ipren", "brandName": "Ipren", "activeSubstance": "Ibuprofen", "activeSubstanceRaw": "ibuprofen", "alternativeNames": ["Ibuprofen", "Brufen", "Ibumetin"], "medicationGroup": "NSAID", "clinicalCategories": ["Smertestillende"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "M01AE01", "forms": ["filmovertrukne tabletter"], "indicationShort": "Smertestillende (NSAID)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "jardiance", "brandName": "Jardiance", "activeSubstance": "Empagliflozin", "activeSubstanceRaw": "empagliflozin", "alternativeNames": ["Empagliflozin"], "medicationGroup": "SGLT2-hæmmer", "clinicalCategories": ["Diabetes", "Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "A10BK03", "forms": ["filmovertrukne tabletter"], "indicationShort": "Diabetesmiddel (SGLT2-hæmmer)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "lantus", "brandName": "Lantus", "activeSubstance": "Insulin glargin", "activeSubstanceRaw": "insulin glargin", "alternativeNames": ["Insulin glargin", "Abasaglar"], "medicationGroup": "Langtidsvirkende insulinanalog", "clinicalCategories": ["Diabetes"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "A10AE04", "forms": ["injektionsvæske, opløsning", "injektionsvæske, opløsning i cylinderampul"], "indicationShort": "Langtidsvirkende insulin", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "marevan", "brandName": "Marevan", "activeSubstance": "Warfarin", "activeSubstanceRaw": "warfarinnatrium", "alternativeNames": ["Warfarinnatrium"], "medicationGroup": "Vitamin K-antagonist", "clinicalCategories": ["Blodfortyndende medicin"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "B01AA03", "forms": ["tabletter"], "indicationShort": "Blodfortyndende (VKA, INR-styret)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "metformin", "brandName": "Metformin", "activeSubstance": "Metformin", "activeSubstanceRaw": "metforminhydrochlorid", "alternativeNames": ["Metforminhydrochlorid", "Glucophage"], "medicationGroup": "Biguanid", "clinicalCategories": ["Diabetes"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "A10BA02", "forms": ["depottabletter", "filmovertrukne tabletter"], "indicationShort": "Diabetesmiddel (biguanid)", "halfLife": {"status": "verified", "display": "plasma ca. 6 timer", "measLabel": "Halveringstid", "source": "FDA-produktinformation — Metformin", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Metformin", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/020357s031,021202s016lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "metoprolol", "brandName": "Metoprolol", "activeSubstance": "Metoprolol", "activeSubstanceRaw": "metoprololsuccinat", "alternativeNames": ["Metoprololsuccinat", "Metoprololtartrat", "Selo-Zok"], "medicationGroup": "Selektiv beta-blokker", "clinicalCategories": ["Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C07AB02", "forms": ["depottabletter"], "indicationShort": "Beta-blokker (hjerte/kredsløb)", "halfLife": {"status": "verified", "display": "3–7 timer", "measLabel": "Halveringstid", "source": "FDA-produktinformation — Metoprolol", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Metoprolol", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2008/019962s036lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "morfin", "brandName": "Morfin", "activeSubstance": "Morfin", "activeSubstanceRaw": "morphinhydrochloridtrihydrat", "alternativeNames": ["Morphin", "Contalgin"], "medicationGroup": "Opioid", "clinicalCategories": ["Smertestillende"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N02AA01", "forms": ["injektionsvæske", "injektionsvæske, opløsning", "suppositorier", "tabletter"], "indicationShort": "Stærkt smertestillende (opioid)", "halfLife": {"status": "verified", "display": "1,5–2 timer", "measLabel": "Eliminationshalveringstid", "source": "Produktinformation (Pfizer) — Morphine", "url": "https://pfizermedicalinformation.com/morphine/clinical-pharmacology", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "Produktinformation (Pfizer) — Morphine", "url": "https://pfizermedicalinformation.com/morphine/clinical-pharmacology", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "movicol", "brandName": "Movicol", "activeSubstance": "Macrogol (kombination)", "activeSubstanceRaw": "kaliumchlorid, macrogol 3350, natriumchlorid, natriumhydrogencarbonat", "alternativeNames": ["Macrogol 3350", "Macrogol"], "medicationGroup": "Osmotisk laksativ", "clinicalCategories": ["Mave og tarm"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "A06AD65", "forms": ["pulver til oral opløsning, enkeltdosisbeholder"], "indicationShort": "Afføringsmiddel (osmotisk laksativ)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "novorapid", "brandName": "NovoRapid", "activeSubstance": "Insulin aspart", "activeSubstanceRaw": "insulin aspart", "alternativeNames": ["Insulin aspart"], "medicationGroup": "Hurtigvirkende insulinanalog", "clinicalCategories": ["Diabetes"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "A10AB05", "forms": ["injektionsvæske, opløsning"], "indicationShort": "Hurtigvirkende insulin", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "olanzapin", "brandName": "Olanzapin", "activeSubstance": "Olanzapin", "activeSubstanceRaw": "olanzapin", "alternativeNames": ["Zyprexa"], "medicationGroup": "Atypisk antipsykotikum", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N05AH03", "forms": ["filmovertrukne tabletter", "smeltetabletter"], "indicationShort": "Antipsykotikum", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "oxazepam", "brandName": "Oxazepam", "activeSubstance": "Oxazepam", "activeSubstanceRaw": "oxazepam", "alternativeNames": ["Alopam"], "medicationGroup": "Benzodiazepin", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N05BA04", "forms": ["tabletter"], "indicationShort": "Angstdæmpende/beroligende (benzodiazepin)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "panodil", "brandName": "Panodil", "activeSubstance": "Paracetamol", "activeSubstanceRaw": "paracetamol", "alternativeNames": ["Paracetamol", "Pinex", "Pamol"], "medicationGroup": "Analgetikum / antipyretikum", "clinicalCategories": ["Smertestillende"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"], "atc": "N02BE01", "forms": ["filmovertrukne tabletter", "tabletter med modificeret udløsning"], "indicationShort": "Smertestillende/febernedsættende", "halfLife": {"status": "verified", "display": "1–4 timer", "measLabel": "Halveringstid", "source": "Produktresumé (HPRA, Irland) — Paracetamol", "url": "https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "Produktresumé (HPRA, Irland) — Paracetamol", "url": "https://assets.hpra.ie/products/Human/17261/LicenseSPC_PA0408-004-002_29032006142741.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "pantoprazol", "brandName": "Pantoprazol", "activeSubstance": "Pantoprazol", "activeSubstanceRaw": "pantoprazolnatriumsesquihydrat", "alternativeNames": ["Pantoprazolnatrium", "Pantoloc"], "medicationGroup": "Protonpumpehæmmer", "clinicalCategories": ["Mave og tarm"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"], "atc": "A02BC02", "forms": ["enterotabletter", "pulver til injektionsvæske, opløsning"], "indicationShort": "Syrehæmmende (PPI)", "halfLife": {"status": "verified", "display": "ca. 1 time", "measLabel": "Terminal halveringstid", "source": "FDA-produktinformation — Protonix (pantoprazol)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Protonix (pantoprazol)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2001/20988s003lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "quetiapin", "brandName": "Quetiapin", "activeSubstance": "Quetiapin", "activeSubstanceRaw": "quetiapin fumarat", "alternativeNames": ["Quetiapinfumarat", "Seroquel"], "medicationGroup": "Atypisk antipsykotikum", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N05AH04", "forms": ["depottabletter", "filmovertrukne tabletter"], "indicationShort": "Antipsykotikum", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "ramipril", "brandName": "Ramipril", "activeSubstance": "Ramipril", "activeSubstanceRaw": "ramipril", "alternativeNames": ["Triatec"], "medicationGroup": "ACE-hæmmer", "clinicalCategories": ["Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C09AA05", "forms": ["tabletter"], "indicationShort": "ACE-hæmmer (blodtryk/hjerte)", "halfLife": {"status": "verified", "display": "13–17 timer", "measLabel": "Halveringstid", "source": "FDA-produktinformation — Altace (ramipril)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf", "verifiedAt": "2026-10-08"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}, {"title": "FDA-produktinformation — Altace (ramipril)", "url": "https://www.accessdata.fda.gov/drugsatfda_docs/label/2011/022021s007lbl.pdf", "verifiedAt": "2026-10-08", "scope": "halveringstid"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "risperidon", "brandName": "Risperidon", "activeSubstance": "Risperidon", "activeSubstanceRaw": "risperidon", "alternativeNames": ["Risperdal"], "medicationGroup": "Atypisk antipsykotikum", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N05AX08", "forms": ["filmovertrukne tabletter", "smeltetabletter"], "indicationShort": "Antipsykotikum", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "sertralin", "brandName": "Sertralin", "activeSubstance": "Sertralin", "activeSubstanceRaw": "sertralinhydrochlorid", "alternativeNames": ["Sertralinhydrochlorid", "Zoloft"], "medicationGroup": "SSRI", "clinicalCategories": ["Psykofarmaka"], "careSettings": ["Psykiatri", "Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N06AB06", "forms": ["filmovertrukne tabletter"], "indicationShort": "Antidepressivum (SSRI)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "spiriva", "brandName": "Spiriva", "activeSubstance": "Tiotropium", "activeSubstanceRaw": "tiotropiumbromidmonohydrat", "alternativeNames": ["Tiotropiumbromid"], "medicationGroup": "Langtidsvirkende antikolinergikum (LAMA)", "clinicalCategories": ["Luftvejssygdomme"], "careSettings": ["Hjemmepleje", "Hospital"], "atc": "R03BB04", "forms": ["inhalationspulver, hård kapsel"], "indicationShort": "Luftvejsudvidende (LAMA)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "spironolacton", "brandName": "Spironolacton", "activeSubstance": "Spironolakton", "activeSubstanceRaw": "spironolacton", "alternativeNames": ["Spiron"], "medicationGroup": "Aldosteronantagonist (kaliumbesparende diuretikum)", "clinicalCategories": ["Vanddrivende medicin", "Hjerte og kredsløb"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "C03DA01", "forms": ["filmovertrukne tabletter"], "indicationShort": "Kaliumbesparende diuretikum", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "tramadol", "brandName": "Tramadol", "activeSubstance": "Tramadol", "activeSubstanceRaw": "tramadolhydrochlorid", "alternativeNames": ["Tramadolhydrochlorid", "Dolol", "Mandolgin"], "medicationGroup": "Opioid (svagt) / monoaminerg", "clinicalCategories": ["Smertestillende"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "N02AX02", "forms": ["depottabletter", "kapsler, hårde", "tabletter"], "indicationShort": "Smertestillende (svagt opioid)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "ventoline", "brandName": "Ventoline", "activeSubstance": "Salbutamol", "activeSubstanceRaw": "salbutamolsulfat", "alternativeNames": ["Salbutamolsulfat", "Airomir"], "medicationGroup": "Korttidsvirkende beta2-agonist (SABA)", "clinicalCategories": ["Luftvejssygdomme"], "careSettings": ["Hjemmepleje", "Hospital"], "atc": "R03AC02", "forms": ["inhalationspulver, afdelt", "inhalationsspray, suspension", "inhalationsvæske til nebulisator, opløsning", "injektionsvæske", "koncentrat til infusionsvæske, opløsning", "oral opløsning"], "indicationShort": "Luftvejsudvidende (SABA)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}, {"id": "xarelto", "brandName": "Xarelto", "activeSubstance": "Rivaroxaban", "activeSubstanceRaw": "rivaroxaban", "alternativeNames": ["Rivaroxaban"], "medicationGroup": "Faktor Xa-hæmmer (DOAK)", "clinicalCategories": ["Blodfortyndende medicin"], "careSettings": ["Ældrepleje", "Hjemmepleje", "Hospital"], "atc": "B01AF01", "forms": ["filmovertrukne tabletter", "granulat til oral suspension"], "indicationShort": "Blodfortyndende (DOAK)", "halfLife": {"status": "unverified"}, "sources": [{"title": "Lægemiddelstyrelsen — Liste over godkendte lægemidler", "url": "https://laegemiddelstyrelsen.dk/da/bivirkninger/find-medicin/lister-med-medicin/", "verifiedAt": "2026-10-10", "scope": "identitet (navn, aktivt stof, ATC, form, markedsføring)"}], "clinicalStatus": "pending_review", "lastReviewed": "2026-10-10"}];
+const MEDLIB_CATS = ["Alle", "Hjerte og kredsløb", "Vanddrivende medicin", "Blodfortyndende medicin", "Diabetes", "Smertestillende", "Psykofarmaka", "Luftvejssygdomme", "Mave og tarm", "Infektioner", "Hormoner", "Neurologi"];
+const MEDLIB_SETTINGS = ["Alle", "Ældrepleje", "Hjemmepleje", "Hospital", "Psykiatri"];
+const ML_FAV_KEY = "klario_medlib_fav_v1";
+const ML_RECENT_KEY = "klario_medlib_recent_v1";
+function mlRead(k) { try { return JSON.parse(localStorage.getItem(k) || "[]") || []; } catch (e) { return []; } }
+function mlWrite(k, a) { try { localStorage.setItem(k, JSON.stringify(a)); } catch (e) {} }
+const mlNorm = (s) => (s == null ? "" : String(s)).toLowerCase().trim();
+function mlMatch(m, q) {
+  const s = mlNorm(q); if (!s) return true;
+  const hay = [m.brandName, m.activeSubstance, m.activeSubstanceRaw, m.medicationGroup, m.indicationShort].concat(m.alternativeNames || []).concat(m.clinicalCategories || []);
+  return hay.some((x) => mlNorm(x).indexOf(s) >= 0);
+}
+
+/* collapsible section; compact "Ikke verificeret" tag in header (no repeated boxes) */
+function MedLibSec({ id, title, openSet, toggle, status, children }) {
+  const open = openSet.has(id);
+  return (
+    <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, overflow: "hidden" }}>
+      <button onClick={() => toggle(id)} aria-expanded={open} style={{ width: "100%", textAlign: "left", border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: "14px 15px", display: "flex", alignItems: "center", gap: 9 }}>
+        <span style={{ flex: 1, fontSize: 15.5, fontWeight: 800, color: C.ink, lineHeight: 1.3 }}>{title}</span>
+        {status === "verified" ? <span style={{ fontSize: 10, fontWeight: 800, color: "#0B7A6E", background: tint("#0FAE9E", "18"), padding: "2px 7px", borderRadius: 6, flexShrink: 0 }}>Verificeret</span>
+          : status === "unverified" ? <span style={{ fontSize: 10, fontWeight: 800, color: "#8A5A0B", background: tint("#B7791F", "16"), padding: "2px 7px", borderRadius: 6, flexShrink: 0 }}>Ikke verificeret</span> : null}
+        <ChevronDown size={18} color={C.inkFaint} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }} />
+      </button>
+      {open ? <div style={{ padding: "0 15px 15px", display: "flex", flexDirection: "column", gap: 10 }}>{children}</div> : null}
+    </div>
+  );
+}
+/* short muted "pending" line (not a big repeated warning box) */
+function MedLibPendingLine({ children }) {
+  return <div style={{ fontSize: 12.5, color: "#7A4E0A", background: tint("#B7791F", "0C"), borderRadius: 9, padding: "9px 11px", lineHeight: 1.5 }}>{children || "Ikke verificeret – afventer faglig gennemgang. Må ikke bruges som handlingsanvisning. Slå op i en godkendt kilde."}</div>;
+}
+
+function MedicinBibliotek({ sel, setSel, onTest }) {
+  const [q, setQ] = useState("");
+  const [fa, setFa] = useState("Alle");
+  const [fb, setFb] = useState("Alle");
+  const [favs, setFavs] = useState(mlRead(ML_FAV_KEY));
+  const [recents, setRecents] = useState(mlRead(ML_RECENT_KEY));
+  const [openSet, setOpenSet] = useState(() => new Set(["s1", "s2"]));
+  const toggle = (id) => setOpenSet((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const isFav = (id) => favs.indexOf(id) >= 0;
+  const toggleFav = (id) => { const n = isFav(id) ? favs.filter((x) => x !== id) : [id].concat(favs); setFavs(n); mlWrite(ML_FAV_KEY, n); };
+  const byId = (id) => MEDLIB.find((m) => m.id === id);
+  const open = (id) => { setSel(id); const n = [id].concat(recents.filter((x) => x !== id)).slice(0, 8); setRecents(n); mlWrite(ML_RECENT_KEY, n); setOpenSet(new Set(["s1", "s2"])); try { window.scrollTo(0, 0); } catch (e) {} };
+
+  // ---------- DETAIL ----------
+  if (sel) {
+    const m = byId(sel);
+    if (!m) { setSel(null); return null; }
+    const hl = m.halfLife || {};
+    const verHL = hl.status === "verified";
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 11, paddingBottom: 32 }} className="anim">
+        {/* identity header */}
+        <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, background: C.surface, padding: 15 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Pill size={21} color="#5B37C7" strokeWidth={2.1} /></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: C.ink, lineHeight: 1.15 }}>{m.brandName}</div>
+              <div style={{ fontSize: 13.5, color: C.inkSoft, marginTop: 3 }}>Aktivt stof: <b>{m.activeSubstance}</b></div>
+              <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 1 }}>{m.medicationGroup}</div>
+            </div>
+            <button onClick={() => toggleFav(m.id)} aria-label="Favorit" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 4, flexShrink: 0 }}><Star size={21} color={isFav(m.id) ? "#E8A72E" : C.inkFaint} fill={isFav(m.id) ? "#E8A72E" : "none"} /></button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 11 }}>
+            {m.atc ? <span style={{ fontSize: 11, fontWeight: 700, color: C.inkSoft, background: tint(C.ink, "07"), padding: "3px 8px", borderRadius: 7 }}>ATC {m.atc}</span> : null}
+            {(m.clinicalCategories || []).map((c) => <span key={c} style={{ fontSize: 11, fontWeight: 700, color: "#5B37C7", background: tint("#7A5AF5", "12"), padding: "3px 8px", borderRadius: 7 }}>{c}</span>)}
+          </div>
+          {/* ONE compact verification status */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, background: tint("#2E68E0", "0A"), border: `1px solid ${tint("#2E68E0", "24")}`, borderRadius: 10, padding: "9px 11px" }}>
+            <ShieldCheck size={15} color="#2257D8" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 11.5, color: C.ink, lineHeight: 1.45 }}>Identitet <b>verificeret</b> (Lægemiddelstyrelsen). {verHL ? "Halveringstid verificeret. " : ""}Øvrige kliniske afsnit <b>afventer faglig gennemgang</b> – ikke handlingsanvisende.</span>
+          </div>
+        </div>
+
+        {/* 1 */}
+        <MedLibSec id="s1" title="1. Hvad er medicinen?" openSet={openSet} toggle={toggle}>
+          <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{m.brandName} indeholder det aktive stof <b>{m.activeSubstance}</b> og hører til gruppen <b>{m.medicationGroup.toLowerCase()}</b>.</div>
+          <div style={{ fontSize: 12, color: C.inkFaint }}>Klassifikation: ATC {m.atc || "–"} (WHO/Lægemiddelstyrelsen).</div>
+        </MedLibSec>
+
+        {/* 2 */}
+        <MedLibSec id="s2" title="2. Hvad bruges den til?" openSet={openSet} toggle={toggle} status="unverified">
+          <div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.55 }}>Overordnet lægemiddelgruppe: <b>{m.indicationShort}</b>.</div>
+          <MedLibPendingLine>De konkrete indikationer (hvornår og hvorfor præparatet gives) er ikke verificeret i V1. Slå op i pro.medicin.dk eller produktresumé.</MedLibPendingLine>
+        </MedLibSec>
+
+        {/* 3 */}
+        <MedLibSec id="s3" title="3. Hvad skal jeg observere som SSA?" openSet={openSet} toggle={toggle} status="unverified">
+          <div style={{ fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>Rutineobservationer vs. akutte advarselstegn, relevante vitalværdier, væskebalance og dokumentation:</div>
+          <MedLibPendingLine />
+        </MedLibSec>
+
+        {/* 4 */}
+        <MedLibSec id="s4" title="4. Medicin der kan anvendes sammen" openSet={openSet} toggle={toggle} status="unverified">
+          <MedLibPendingLine>Vises kun når en verificeret klinisk indikation eller retningslinje understøtter det. KLARIO antyder aldrig, at endnu et præparat automatisk er nødvendigt. Ingen verificerede relationer i V1.</MedLibPendingLine>
+        </MedLibSec>
+
+        {/* 5 */}
+        <MedLibSec id="s5" title="5. Bivirkninger og interaktioner" openSet={openSet} toggle={toggle} status="unverified">
+          <div style={{ fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>Almindelige og alvorlige bivirkninger, symptomer der kræver hurtig handling, samt klinisk vigtige interaktioner:</div>
+          <MedLibPendingLine>Ikke verificeret i V1. Brug en godkendt kilde for bivirkninger og interaktioner.</MedLibPendingLine>
+          <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ fontSize: 13, fontWeight: 700, color: "#5B37C7", display: "flex", alignItems: "center", gap: 6 }}><Pill size={15} color="#7A5AF5" />Tjek interaktioner på Pro.medicin.dk <ChevronRight size={14} color="#5B37C7" /></div></a>
+        </MedLibSec>
+
+        {/* 6 */}
+        <MedLibSec id="s6" title="6. Farmakologi" openSet={openSet} toggle={toggle} status={verHL ? "verified" : "unverified"}>
+          {verHL ? (
+            <div style={{ border: `1px solid ${tint("#0FAE9E", "40")}`, background: tint("#0FAE9E", "08"), borderRadius: 10, padding: "10px 12px" }}>
+              <div style={{ fontSize: 13.5, color: C.ink }}>{hl.measLabel || "Halveringstid"} (T½): <b style={{ color: "#0B7A6E" }}>{hl.display}</b></div>
+              <div style={{ fontSize: 11, color: C.inkSoft, marginTop: 4 }}>Kilde: {hl.source} · kontrolleret {hl.verifiedAt}</div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 13.5, color: C.ink }}>Halveringstid (T½): <b style={{ color: "#8A5A0B" }}>Ikke verificeret</b></div>
+          )}
+          <div style={{ fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}><b>Formuleringer i DK:</b> {(m.forms && m.forms.length) ? m.forms.join(", ") : "–"}. Depot/IR/plaster/injektion kan have forskellig kinetik og sidestilles ikke.</div>
+          <MedLibPendingLine>Farmakodynamik, absorption, fordeling, metabolisme, udskillelse, virkningsstart og -varighed er ikke verificeret. KLARIO opfinder ikke farmakologiske værdier.</MedLibPendingLine>
+        </MedLibSec>
+
+        {/* 7 */}
+        <MedLibSec id="s7" title="7. Test din viden" openSet={openSet} toggle={toggle}>
+          <div style={{ fontSize: 12.5, color: C.inkSoft, lineHeight: 1.5 }}>Medicin-specifikke spørgsmål bygges kun på verificeret indhold. Indtil da kan du teste din generelle viden.</div>
+          <button onClick={() => onTest && onTest()} style={{ width: "100%", border: "none", borderRadius: 11, padding: "13px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 14.5, fontWeight: 800, cursor: "pointer", minHeight: 48 }}>Test din viden om denne medicin</button>
+        </MedLibSec>
+
+        {/* 8 */}
+        <MedLibSec id="s8" title="8. Officielle kilder" openSet={openSet} toggle={toggle}>
+          <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ border: `1px solid ${tint("#7A5AF5", "33")}`, background: tint("#7A5AF5", "0A"), borderRadius: 11, padding: "12px 13px", display: "flex", alignItems: "center", gap: 10 }}><Pill size={17} color="#7A5AF5" /><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 800, color: "#5B37C7" }}>Åbn på Pro.medicin.dk</div><div style={{ fontSize: 11, color: C.inkSoft }}>Åbner forsiden – søg selv præparatet</div></div><ChevronRight size={17} color="#7A5AF5" /></div></a>
+          <a href="https://min.medicin.dk/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ border: `1px solid ${tint("#0FAE9E", "33")}`, background: tint("#0FAE9E", "0A"), borderRadius: 11, padding: "12px 13px", display: "flex", alignItems: "center", gap: 10 }}><Info size={17} color="#0B9488" /><div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14, fontWeight: 800, color: "#0B7A6E" }}>Åbn på Min.medicin.dk</div><div style={{ fontSize: 11, color: C.inkSoft }}>Åbner forsiden – borgervenlig information</div></div><ChevronRight size={17} color="#0B9488" /></div></a>
+          <div style={{ fontSize: 11, color: C.inkFaint, lineHeight: 1.5, marginTop: 2 }}>Forsider åbnes, da verificerede dyb-links ikke er bekræftet. Kilder:</div>
+          {(m.sources || []).map((s, i) => (<div key={i} style={{ fontSize: 11, color: C.inkSoft, lineHeight: 1.5 }}>• {s.title}{s.scope ? " (" + s.scope + ")" : ""}{s.verifiedAt ? " · " + s.verifiedAt : ""}</div>))}
+          <div style={{ fontSize: 11, color: C.inkFaint, marginTop: 4 }}>Sidst gennemgået: {m.lastReviewed}. Status: pending_review (klinisk indhold).</div>
+        </MedLibSec>
+      </div>
+    );
+  }
+
+  // ---------- LIBRARY HOME ----------
+  const list = MEDLIB.filter((m) => mlMatch(m, q) && (fa === "Alle" || (m.careSettings || []).indexOf(fa) >= 0) && (fb === "Alle" || (m.clinicalCategories || []).indexOf(fb) >= 0)).sort((a, b) => a.brandName.toLowerCase() < b.brandName.toLowerCase() ? -1 : 1);
+  const favList = favs.map(byId).filter(Boolean);
+  const recentList = recents.map(byId).filter(Boolean);
+  const Card = ({ m }) => (
+    <div style={{ border: `1px solid ${C.line}`, background: C.surface, borderRadius: 13, padding: "11px 12px", display: "flex", alignItems: "center", gap: 10 }}>
+      <button onClick={() => open(m.id)} aria-label={m.brandName} style={{ flex: 1, minWidth: 0, textAlign: "left", border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.brandName}</div>
+        <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.activeSubstance} · {m.medicationGroup}</div>
+        <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{m.indicationShort}</div>
+      </button>
+      <button onClick={() => toggleFav(m.id)} aria-label="Favorit" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 4, flexShrink: 0 }}><Star size={18} color={isFav(m.id) ? "#E8A72E" : C.inkFaint} fill={isFav(m.id) ? "#E8A72E" : "none"} /></button>
+      <button onClick={() => open(m.id)} aria-label="Åbn" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 2, flexShrink: 0 }}><ChevronRight size={19} color={C.inkFaint} /></button>
+    </div>
+  );
+  const Pills = ({ opts, val, set }) => (
+    <div style={{ position: "relative" }}>
+      <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 3, paddingRight: 18, WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+        {opts.map((o) => <button key={o} onClick={() => set(o)} style={{ whiteSpace: "nowrap", border: `1px solid ${val === o ? "#5B37C7" : C.line}`, background: val === o ? tint("#7A5AF5", "14") : C.surface, color: val === o ? "#5B37C7" : C.inkSoft, borderRadius: 99, padding: "7px 13px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, minHeight: 36 }}>{o}</button>)}
+      </div>
+      <div style={{ position: "absolute", top: 0, right: 0, bottom: 3, width: 24, pointerEvents: "none", background: `linear-gradient(90deg, rgba(255,255,255,0), ${C.bg || "#fff"})` }} />
+    </div>
+  );
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 13, paddingBottom: 32 }} className="anim">
+      <div>
+        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: C.ink, letterSpacing: -0.3 }}>KLARIO Medicinbibliotek</h2>
+        <p style={{ margin: "5px 0 0", fontSize: 13.5, color: C.inkSoft, lineHeight: 1.5 }}>Find medicin, forstå virkningen og lær, hvad du skal observere i praksis.</p>
+      </div>
+      {/* ONE compact status line (no repeated boxes) */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, background: tint("#2E68E0", "0A"), border: `1px solid ${tint("#2E68E0", "22")}`, borderRadius: 10, padding: "8px 11px" }}>
+        <ShieldCheck size={14} color="#2257D8" style={{ flexShrink: 0 }} />
+        <span style={{ fontSize: 11.5, color: C.ink, lineHeight: 1.45 }}>Uddannelses- og opslagsværktøj. Identitet verificeret; kliniske afsnit markeret <b>Ikke verificeret</b> er ikke handlingsanvisende.</span>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, border: `1px solid ${C.line}`, borderRadius: 12, background: C.surface, padding: "12px 13px" }}>
+        <Search size={18} color={C.inkFaint} style={{ flexShrink: 0 }} />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Søg efter medicin, aktivt stof eller lægemiddelgruppe…" aria-label="Søg medicin" autoCapitalize="none" autoComplete="off" style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontSize: 16, color: C.ink, fontFamily: "inherit" }} />
+        {q ? <button onClick={() => setQ("")} aria-label="Ryd" style={{ border: "none", background: "transparent", cursor: "pointer", padding: 2, flexShrink: 0 }}><X size={17} color={C.inkFaint} /></button> : null}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: C.inkFaint, letterSpacing: 0.3 }}>ARBEJDSOMRÅDE</div>
+        <Pills opts={MEDLIB_SETTINGS} val={fa} set={setFa} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ fontSize: 11, fontWeight: 800, color: C.inkFaint, letterSpacing: 0.3 }}>MEDICINSK KATEGORI</div>
+        <Pills opts={MEDLIB_CATS} val={fb} set={setFb} />
+      </div>
+
+      {(q === "" && fa === "Alle" && fb === "Alle" && favList.length) ? (
+        <div><SectionHead title="Favoritter" /><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{favList.map((m) => <Card key={m.id} m={m} />)}</div></div>
+      ) : null}
+      {(q === "" && fa === "Alle" && fb === "Alle" && recentList.length) ? (
+        <div><SectionHead title="Senest set" /><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{recentList.map((m) => <Card key={m.id} m={m} />)}</div></div>
+      ) : null}
+
+      <div>
+        <SectionHead title={"Alle lægemidler (" + list.length + ")"} />
+        {list.length === 0 ? (
+          <p style={{ fontSize: 13.5, color: C.inkFaint, margin: "4px 0 0" }}>Ingen match. Prøv et andet søgeord eller nulstil filtrene.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{list.map((m) => <Card key={m.id} m={m} />)}</div>
+        )}
+      </div>
+
+      <div style={{ fontSize: 10.5, color: C.inkFaint, textAlign: "center", lineHeight: 1.6 }}>
+        {MEDLIB.length} lægemidler · identitet verificeret mod Lægemiddelstyrelsen · {MEDLIB.filter((m) => m.halfLife && m.halfLife.status === "verified").length} med verificeret T½.<br/>careSettings er redaktionelle navigations-tags, ikke klinisk vejledning.
+      </div>
+    </div>
+  );
+}
+
+function HalfLifeView({ onTest }) {
+  const [medDS, setMedDS] = useState(() => medBuildRuntime(MED_SEED));
+  const [medMeta, setMedMeta] = useState(MED_SEED.meta);
+  const [medOrigin, setMedOrigin] = useState("seed");
+  useEffect(() => { let on = true; loadMedicationData().then((r) => { if (on && r && r.ds) { setMedDS(r.ds); setMedMeta(r.meta); setMedOrigin(r.origin); } }).catch(() => {}); return () => { on = false; }; }, []);
+  const [half, setHalf] = useState("");
+  const [elapsed, setElapsed] = useState("");
+  const [amount, setAmount] = useState("");
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+  const [look, setLook] = useState("");
+  const [looked, setLooked] = useState(false);
+  const [picks, setPicks] = useState([]);
+  const [pickId, setPickId] = useState(null);
+  const [pickEntry, setPickEntry] = useState(null); // index entry for the chosen match (combo/review/atc)
+  const [comboSub, setComboSub] = useState(null);    // substance chosen inside a combination product
+  const [hlCache, setHlCache] = useState(hlCacheRead);
+  const [calcSrc, setCalcSrc] = useState(null);
+  const [halfHi, setHalfHi] = useState("");
+  const [manual, setManual] = useState(hlManualRead);
+  const [manualInput, setManualInput] = useState("");
+  const calcRef = useRef(null);
+  const cacheHit = (res) => { if (!res || !res.subId) return; const c = Object.assign({}, hlCacheRead()); c[res.subId] = { subName: res.subName, verified: res.status === "verified", ts: Date.now(), rechecked: (c[res.subId] || {}).rechecked || null }; hlCacheWrite(c); setHlCache(c); };
+  const doLookup = () => {
+    setLooked(true); setComboSub(null);
+    const ms = medMatches(medDS, look);
+    if (ms.length === 0) { setPicks([]); setPickId(null); setPickEntry(null); return; }
+    if (ms.length === 1) { setPicks([]); const m = ms[0]; const entry = m.entry || medEntryForQuery(medDS, look); setPickId(m.subId); setPickEntry(entry); if (!(entry && entry.combo)) cacheHit(medGet(medDS, m.subId)); return; }
+    setPicks(ms); setPickId(null); setPickEntry(null);
+  };
+  const selectPick = (m) => { const subId = (m && m.subId) || m; const entry = (m && m.entry) || null; setPickId(subId); setPickEntry(entry); setPicks([]); setComboSub(null); if (!(entry && entry.combo)) cacheHit(medGet(medDS, subId)); };
+  const scrollCalc = () => { try { if (calcRef.current) calcRef.current.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (e) {} };
+  const applyToCalc = (entry, opt) => { setHalf(String(opt.h).replace(".", ",")); setHalfHi(""); setRes(null); setErr(""); setCalcSrc({ med: entry.substans, label: opt.label, kilde: entry.kilde }); scrollCalc(); };
+  const applyToCalcRange = (card) => { const hs = (card.calcOptions || []).map((o) => o.h).filter((x) => isFinite(x)); if (!hs.length) return; const lo = Math.min.apply(null, hs), hi = Math.max.apply(null, hs); setHalf(String(lo).replace(".", ",")); setHalfHi(String(hi).replace(".", ",")); setRes(null); setErr(""); setCalcSrc({ med: card.substans, label: "interval " + hlFmt(lo, 2) + "\u2013" + hlFmt(hi, 2) + " t", kilde: card.kilde }); scrollCalc(); };
+  const applyManual = (subId, subName) => { const v = hlParse(manualInput); if (!isFinite(v) || v <= 0) { setErr("Indtast en gyldig halveringstid (timer)."); return; } const m = Object.assign({}, hlManualRead()); m[subId] = { h: v, ts: Date.now() }; hlManualWrite(m); setManual(m); setHalf(String(v).replace(".", ",")); setHalfHi(""); setRes(null); setErr(""); setManualInput(""); setCalcSrc({ med: subName, label: "manuelt indtastet", kilde: "Manuelt indtastet \u2013 ikke verificeret", manual: true }); scrollCalc(); };
+  const useManual = (subId, subName) => { const mm = hlManualRead()[subId]; if (!mm) return; setHalf(String(mm.h).replace(".", ",")); setHalfHi(""); setRes(null); setErr(""); setCalcSrc({ med: subName, label: "manuelt indtastet", kilde: "Manuelt indtastet \u2013 ikke verificeret", manual: true }); scrollCalc(); };
+  const clearManual = (subId) => { const m = Object.assign({}, hlManualRead()); delete m[subId]; hlManualWrite(m); setManual(m); };
+  const reverify = (subId, url) => {
+    const c = Object.assign({}, hlCacheRead());
+    c[subId] = Object.assign({}, c[subId] || {}, { rechecked: Date.now() });
+    hlCacheWrite(c); setHlCache(c);
+    try { window.open(url || "https://pro.medicin.dk/", "_blank", "noopener"); } catch (e) {}
+  };
+  const hlDate = (ts) => { try { return new Date(ts).toLocaleDateString("da-DK"); } catch (e) { return ""; } };
+  const recents = Object.keys(hlCache).map((k) => Object.assign({ subId: k }, hlCache[k])).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 4);
+
+  const calc = () => {
+    const h = hlParse(half), t = hlParse(elapsed), a = amount.trim() === "" ? null : hlParse(amount);
+    const hh = halfHi.trim() === "" ? null : hlParse(halfHi);
+    if (!isFinite(h) || h <= 0) { setErr("Indtast en gyldig halveringstid større end 0."); setRes(null); return; }
+    if (!isFinite(t) || t < 0) { setErr("Indtast en gyldig tid (0 eller mere)."); setRes(null); return; }
+    if (a != null && (!isFinite(a) || a < 0)) { setErr("Startmængden skal være et gyldigt tal."); setRes(null); return; }
+    if (hh != null && (!isFinite(hh) || hh <= 0)) { setErr("Den høje halveringstid skal være større end 0."); setRes(null); return; }
+    setErr("");
+    const frac = Math.pow(0.5, t / h);
+    let ex = {};
+    if (hh != null) { const fh = Math.pow(0.5, t / hh); ex = { pctHi: fh * 100, remainHi: a != null ? a * fh : null, nHalfHi: t / hh, hHi: hh }; }
+    setRes(Object.assign({ h, t, a, pct: frac * 100, remain: a != null ? a * frac : null, nHalf: t / h }, ex));
+  };
+  const clear = () => { setHalf(""); setHalfHi(""); setElapsed(""); setAmount(""); setRes(null); setErr(""); setCalcSrc(null); };
+
+  // decay curve 0..6 halvlives, marker at current elapsed (in half-lives)
+  const W = 300, H = 120, PL = 34, PB = 22, nMax = 6;
+  const xOf = (nh) => PL + (Math.min(nh, nMax) / nMax) * (W - PL - 6);
+  const yOf = (pct) => 8 + (1 - pct / 100) * (H - PB - 8);
+  let path = "M " + xOf(0) + " " + yOf(100);
+  for (let i = 1; i <= 60; i++) { const nh = (i / 60) * nMax; path += " L " + xOf(nh) + " " + yOf(Math.pow(0.5, nh) * 100); }
+  const markNh = res ? res.nHalf : null;
+  const markNhHi = res && res.nHalfHi != null ? res.nHalfHi : null;
+
+  const isCombo = !!(pickEntry && pickEntry.combo && (pickEntry.subs || []).length > 1);
+  const effSub = comboSub || pickId;
+  const lookRes = (looked && effSub) ? medGet(medDS, effSub) : null;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Clock size={21} color="#5B37C7" strokeWidth={2.1} /></div>
+        <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.5 }}>Forstå hvor længe et lægemiddel bliver i kroppen — og prøv beregneren.</p>
+      </div>
+
+      {/* Educational */}
+      {HALFLIFE_EDU.map((e, i) => (
+        <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "13px 14px" }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 6 }}>{e.t}</div>
+          <FarmaTwo quick={e.q} more={e.m} />
+        </div>
+      ))}
+
+      {/* Calculator */}
+      <div ref={calcRef} style={{ border: `1px solid ${tint("#7A5AF5", "2E")}`, borderRadius: 16, background: tint("#7A5AF5", "07"), padding: 15 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Calculator size={19} color="#5B37C7" />
+          <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>Halveringstid-beregner</div>
+        </div>
+        {calcSrc ? (calcSrc.manual ? (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 9, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "33")}`, borderRadius: 11, padding: "10px 12px", marginBottom: 12 }}>
+            <Info size={15} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ fontSize: 12, color: "#7A4E0A", lineHeight: 1.5 }}>Halveringstid <b>manuelt indtastet</b> for <b>{calcSrc.med}</b> – <b>ikke verificeret</b>. Kontrollér selv værdien mod en godkendt kilde.</span>
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 9, background: tint("#0FAE9E", "0E"), border: `1px solid ${tint("#0FAE9E", "33")}`, borderRadius: 11, padding: "10px 12px", marginBottom: 12 }}>
+            <ShieldCheck size={15} color="#0B7A6E" style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ fontSize: 12, color: C.ink, lineHeight: 1.5 }}>Halveringstid indsat fra <b>{calcSrc.med}</b>{calcSrc.label ? " (" + calcSrc.label + ")" : ""} · kilde: {calcSrc.kilde}. Tjek altid den konkrete værdi mod ordination og kilde.</span>
+          </div>
+        )) : null}
+        <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+          <label style={{ fontSize: 13, fontWeight: 700, color: C.inkSoft }}>Halveringstid (timer)
+            <input value={half} onChange={(e) => { setHalf(e.target.value); setCalcSrc(null); setHalfHi(""); }} inputMode="decimal" placeholder="fx 6" aria-label="Halveringstid i timer" style={{ width: "100%", marginTop: 5, boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 11, padding: "13px 13px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit" }} />
+          </label>
+          {halfHi ? <div style={{ fontSize: 12, color: C.inkSoft, display: "flex", alignItems: "center", gap: 8 }}>Interval: beregnes også for <b>{halfHi}</b> t <button onClick={() => setHalfHi("")} style={{ border: "none", background: "transparent", color: "#5B37C7", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: 12, padding: 0 }}>Fjern</button></div> : null}
+          <label style={{ fontSize: 13, fontWeight: 700, color: C.inkSoft }}>Tid gået (timer)
+            <input value={elapsed} onChange={(e) => setElapsed(e.target.value)} inputMode="decimal" placeholder="fx 12" aria-label="Tid gået i timer" style={{ width: "100%", marginTop: 5, boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 11, padding: "13px 13px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit" }} />
+          </label>
+          <label style={{ fontSize: 13, fontWeight: 700, color: C.inkSoft }}>Startmængde (valgfri — til eksempler)
+            <input value={amount} onChange={(e) => setAmount(e.target.value)} inputMode="decimal" placeholder="fx 100" aria-label="Startmængde, valgfri" style={{ width: "100%", marginTop: 5, boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 11, padding: "13px 13px", fontSize: 16, color: C.ink, background: C.surface, fontFamily: "inherit" }} />
+          </label>
+          {err ? <div style={{ fontSize: 13, color: RED, background: tint(RED, "0E"), border: `1px solid ${tint(RED, "2A")}`, borderRadius: 10, padding: "9px 12px" }}>{err}</div> : null}
+          <div style={{ display: "flex", gap: 9 }}>
+            <button onClick={calc} style={{ flex: 1, border: "none", borderRadius: 12, padding: "13px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 48 }}>Beregn</button>
+            <button onClick={clear} style={{ border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px 16px", background: C.surface, color: C.inkSoft, fontFamily: "inherit", fontSize: 15, fontWeight: 700, cursor: "pointer", minHeight: 48 }}>Ryd</button>
+          </div>
+        </div>
+
+        {res ? (
+          <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 13, padding: "13px 14px" }}>
+              <div style={{ fontSize: 12.5, color: C.inkSoft, fontWeight: 700 }}>Tilbage i kroppen{res.pctHi != null ? " (interval)" : ""}</div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#5B37C7", letterSpacing: -0.5, marginTop: 2 }}>{res.pctHi != null ? hlFmt(Math.min(res.pct, res.pctHi), 2) + "\u2013" + hlFmt(Math.max(res.pct, res.pctHi), 2) : hlFmt(res.pct, 2)} %</div>
+              {res.remain != null ? <div style={{ fontSize: 14, color: C.ink, marginTop: 2 }}>≈ {res.remainHi != null ? hlFmt(Math.min(res.remain, res.remainHi), 2) + "\u2013" + hlFmt(Math.max(res.remain, res.remainHi), 2) : hlFmt(res.remain, 2)} af startmængden</div> : null}
+              <div style={{ fontSize: 12, color: C.inkFaint, marginTop: 6 }}>Svarer til {res.nHalfHi != null ? hlFmt(Math.min(res.nHalf, res.nHalfHi), 2) + "\u2013" + hlFmt(Math.max(res.nHalf, res.nHalfHi), 2) : hlFmt(res.nHalf, 2)} halveringstid(er)</div>
+              <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 8, lineHeight: 1.5, background: tint(C.ink, "05"), borderRadius: 9, padding: "8px 10px" }}>Udregning: 0,5<sup>({hlFmt(res.t, 2)} ÷ {hlFmt(res.h, 2)})</sup> = {hlFmt(res.pct, 2)} %{res.pctHi != null ? " · ved T½ " + hlFmt(res.hHi, 2) + " t: " + hlFmt(res.pctHi, 2) + " %" : ""}</div>
+            </div>
+            <svg viewBox={"0 0 " + W + " " + H} style={{ width: "100%", height: "auto", background: C.surface, border: `1px solid ${C.line}`, borderRadius: 13 }} role="img" aria-label="Henfaldskurve">
+              {[0, 25, 50, 75, 100].map((p) => (<g key={p}><line x1={PL} y1={yOf(p)} x2={W - 6} y2={yOf(p)} stroke={C.line} strokeWidth="1" /><text x={PL - 5} y={yOf(p) + 3} fontSize="8" fill={C.inkFaint} textAnchor="end">{p}%</text></g>))}
+              {[0, 1, 2, 3, 4, 5, 6].map((n) => (<text key={n} x={xOf(n)} y={H - 8} fontSize="8" fill={C.inkFaint} textAnchor="middle">{n}</text>))}
+              <text x={(W + PL) / 2} y={H} fontSize="8" fill={C.inkSoft} textAnchor="middle">Halveringstider →</text>
+              <path d={path} fill="none" stroke="#7A5AF5" strokeWidth="2.5" />
+              {markNh != null && markNh <= nMax ? <g><line x1={xOf(markNh)} y1={8} x2={xOf(markNh)} y2={yOf(0)} stroke="#5B37C7" strokeWidth="1" strokeDasharray="3 3" /><circle cx={xOf(markNh)} cy={yOf(res.pct)} r="4" fill="#5B37C7" /></g> : null}
+              {markNhHi != null && markNhHi <= nMax ? <g><line x1={xOf(markNhHi)} y1={8} x2={xOf(markNhHi)} y2={yOf(0)} stroke="#9B7DF6" strokeWidth="1" strokeDasharray="3 3" /><circle cx={xOf(markNhHi)} cy={yOf(res.pctHi)} r="4" fill="#9B7DF6" /></g> : null}
+            </svg>
+          </div>
+        ) : null}
+
+        <div style={{ marginTop: 13 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginBottom: 7 }}>Tabel: 1–6 halveringstider</div>
+          <div style={{ border: `1px solid ${C.line}`, borderRadius: 11, overflow: "hidden", background: C.surface }}>
+            <div style={{ display: "flex", background: tint(C.ink, "06"), fontSize: 12, fontWeight: 700, color: C.inkSoft }}>
+              <div style={{ flex: 1, padding: "8px 11px" }}>Halveringstider</div>
+              <div style={{ width: 90, padding: "8px 11px", textAlign: "right" }}>Tilbage</div>
+              <div style={{ width: 92, padding: "8px 11px", textAlign: "right" }}>Udskilt</div>
+            </div>
+            {HL_TABLE.map((r) => (
+              <div key={r.n} style={{ display: "flex", fontSize: 13, color: C.ink, borderTop: `1px solid ${C.line}` }}>
+                <div style={{ flex: 1, padding: "8px 11px" }}>{r.n} × T½</div>
+                <div style={{ width: 90, padding: "8px 11px", textAlign: "right", fontWeight: 700 }}>{hlFmt(r.remaining, 3)} %</div>
+                <div style={{ width: 92, padding: "8px 11px", textAlign: "right", color: C.inkSoft }}>{hlFmt(r.eliminated, 3)} %</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 7, lineHeight: 1.5 }}>Efter ca. 5 halveringstider er omtrent 96,875 % udskilt i denne forenklede model. Det er en tommelfingerregel — ikke en universel klinisk regel.</div>
+        </div>
+
+        <div style={{ display: "flex", gap: 9, marginTop: 12, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "2A")}`, borderRadius: 11, padding: "10px 12px" }}>
+          <Info size={16} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 12, color: "#7A4E0A", lineHeight: 1.5 }}>Beregneren er et læringsværktøj. Den må ikke bruges til patientspecifikke kliniske beslutninger. Konkret dosering og intervaller følger ordination og lokale instrukser.</span>
+        </div>
+      </div>
+
+      {/* Per-substance lookup */}
+      <div style={{ border: `1px solid ${C.line}`, borderRadius: 16, background: C.surface, padding: 15 }}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: C.ink, marginBottom: 4 }}>Slå et lægemiddels T½ op</div>
+        <div style={{ fontSize: 12.5, color: C.inkSoft, marginBottom: 11, lineHeight: 1.5 }}>Søg på handelsnavn, aktivt stof eller ATC-kode (fx Furix, furosemid eller C03CA01). Søgningen <b>identificerer</b> lægemidlet; en <b>halveringstid</b> vises kun, når den er kontrolleret mod en navngiven kilde — ellers henviser vi til en medicinkilde.</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input value={look} list="hl-suggest" onChange={(e) => { setLook(e.target.value); setLooked(false); setPicks([]); setPickId(null); setPickEntry(null); setComboSub(null); }} onKeyDown={(e) => { if (e.key === "Enter") doLookup(); }} placeholder="Fx Furix, furosemid eller C03CA01…" aria-label="Søg lægemiddel, stof eller ATC-kode" autoComplete="off" autoCapitalize="none" style={{ flex: 1, boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 11, padding: "12px 13px", fontSize: 15, color: C.ink, background: C.surface, fontFamily: "inherit" }} />
+          <button onClick={doLookup} style={{ border: "none", borderRadius: 11, padding: "12px 16px", background: tint("#7A5AF5", "16"), color: "#5B37C7", fontFamily: "inherit", fontSize: 14, fontWeight: 800, cursor: "pointer" }}>Slå op</button>
+        </div>
+        <datalist id="hl-suggest">{medDS.suggest.map((x) => <option key={x} value={x} />)}</datalist>
+
+        {!looked && recents.length ? (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.inkFaint, marginBottom: 7 }}>Senest slået op</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {recents.map((r) => (
+                <button key={r.subId} onClick={() => { setLook(r.subName); setPicks([]); setPickId(r.subId); setPickEntry(null); setComboSub(null); setLooked(true); }} style={{ border: `1px solid ${C.line}`, background: C.surface, borderRadius: 99, padding: "6px 12px", fontSize: 12.5, fontWeight: 700, color: C.inkSoft, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>{r.subName}{r.verified ? <span style={{ width: 7, height: 7, borderRadius: 99, background: "#0B9488" }} /> : null}</button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {looked && picks.length > 1 && !pickId ? (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 8 }}>Flere lægemidler matcher „{look}“ — vælg ét:</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {picks.map((p, pi) => (
+                <button key={p.subId + "_" + pi} onClick={() => selectPick(p)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 12, padding: "11px 13px", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ flex: 1, minWidth: 120, fontSize: 14.5, fontWeight: 700, color: C.ink }}>{p.combo ? (p.subs || []).map((s) => medSubName(medDS, s)).join(" + ") : p.subName}{p.atc ? <span style={{ fontSize: 11, fontWeight: 700, color: C.inkFaint }}> · {String(p.atc).toUpperCase()}</span> : null}</span>
+                  {p.combo ? <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5B37C7", background: tint("#7A5AF5", "16"), padding: "2px 7px", borderRadius: 7 }}>Kombination</span> : null}
+                  {p.review ? <span style={{ fontSize: 10.5, fontWeight: 800, color: "#8A5A0B", background: tint("#B7791F", "16"), padding: "2px 7px", borderRadius: 7 }}>Usikker</span> : null}
+                  {p.verified ? <span style={{ fontSize: 10.5, fontWeight: 800, color: "#0B7A6E", background: tint("#0FAE9E", "18"), padding: "2px 7px", borderRadius: 7 }}>Verificeret T½</span> : <span style={{ fontSize: 10.5, fontWeight: 700, color: C.inkSoft, background: tint(C.ink, "0A"), padding: "2px 7px", borderRadius: 7 }}>T½ ej verificeret</span>}
+                  <ChevronRight size={16} color={C.inkFaint} />
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : looked && pickId ? (() => {
+          // Combination medicine (requirement 3): show ALL active substances, never
+          // auto-pick one ingredient's half-life. User chooses a substance to view.
+          if (isCombo && !comboSub) {
+            const subList = (pickEntry.subs || []);
+            return (
+              <div style={{ marginTop: 12, border: `1px solid ${tint("#7A5AF5", "33")}`, borderRadius: 13, background: tint("#7A5AF5", "07"), padding: "13px 14px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: tint("#7A5AF5", "16"), color: "#5B37C7", borderRadius: 8, padding: "3px 9px", fontSize: 11, fontWeight: 800, marginBottom: 8 }}><Pill size={13} color="#5B37C7" />Kombinationspræparat</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>{look}{pickEntry.atc ? <span style={{ fontSize: 12, fontWeight: 700, color: C.inkFaint }}> · {String(pickEntry.atc).toUpperCase()}</span> : null}</div>
+                <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4, lineHeight: 1.5 }}>Dette lægemiddel indeholder <b>{subList.length} aktive stoffer</b>. Klario beregner ikke én samlet halveringstid for et kombinationspræparat — hvert stof har sin egen. Vælg et stof for at se dets T½.</div>
+                {pickEntry.review ? <div style={{ display: "flex", gap: 8, marginTop: 9, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "33")}`, borderRadius: 10, padding: "9px 11px" }}><Info size={14} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 11.5, color: "#7A4E0A", lineHeight: 1.5 }}>Usikker tilknytning: navnet optræder i kilden med forskellige salt-/prodrugformer. Kontrollér i medicinkilden.</span></div> : null}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 11 }}>
+                  {subList.map((sid, si) => { const g = medGet(medDS, sid); const ver = g.status === "verified" || g.status === "previously-verified"; return (
+                    <button key={sid + "_" + si} onClick={() => { setComboSub(sid); cacheHit(medGet(medDS, sid)); }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 11, padding: "11px 13px", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ flex: 1, fontSize: 14.5, fontWeight: 700, color: C.ink }}>{medSubName(medDS, sid)}</span>
+                      {ver ? <span style={{ fontSize: 10.5, fontWeight: 800, color: "#0B7A6E", background: tint("#0FAE9E", "18"), padding: "2px 7px", borderRadius: 7 }}>Verificeret T½</span> : <span style={{ fontSize: 10.5, fontWeight: 700, color: C.inkSoft, background: tint(C.ink, "0A"), padding: "2px 7px", borderRadius: 7 }}>T½ ej verificeret</span>}
+                      <ChevronRight size={16} color={C.inkFaint} />
+                    </button>
+                  ); })}
+                </div>
+              </div>
+            );
+          }
+          const r = lookRes;
+          const backToCombo = isCombo ? (
+            <button onClick={() => setComboSub(null)} style={{ border: "none", background: "transparent", color: "#5B37C7", fontWeight: 800, cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, padding: 0, marginBottom: 9, display: "flex", alignItems: "center", gap: 5 }}><ChevronRight size={14} color="#5B37C7" style={{ transform: "rotate(180deg)" }} />Tilbage til kombinationspræparatet</button>
+          ) : null;
+          const reviewBanner = (pickEntry && pickEntry.review && !isCombo) ? (
+            <div style={{ display: "flex", gap: 8, marginTop: 12, marginBottom: -2, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "33")}`, borderRadius: 11, padding: "10px 12px" }}><Info size={15} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 11.5, color: "#7A4E0A", lineHeight: 1.5 }}>Usikker tilknytning: dette handelsnavn optræder i Lægemiddelstyrelsens liste med forskellige salt-/prodrug-/formuleringsformer. Klario behandler dem ikke som ens — kontrollér det aktive stof i medicinkilden.</span></div>
+          ) : null;
+          const manualBlock = (subId, subName) => (
+            <div style={{ marginTop: 11, borderTop: `1px solid ${C.line}`, paddingTop: 11 }}>
+              {manual[subId] ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 9 }}>
+                  <span style={{ fontSize: 12.5, color: C.ink }}>Manuelt indtastet: <b>{hlFmt(manual[subId].h, 2)} t</b> <span style={{ color: "#8A5A0B" }}>(ikke verificeret)</span></span>
+                  <button onClick={() => useManual(subId, subName)} style={{ border: "none", background: tint("#7A5AF5", "16"), color: "#5B37C7", borderRadius: 9, padding: "6px 12px", fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>Beregn</button>
+                  <button onClick={() => clearManual(subId)} style={{ border: `1px solid ${C.line}`, background: C.surface, color: C.inkSoft, borderRadius: 9, padding: "6px 12px", fontSize: 12.5, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>Ryd</button>
+                </div>
+              ) : null}
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: C.inkSoft, marginBottom: 6 }}>Indtast en halveringstid, du selv har kontrolleret (timer):</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input value={manualInput} onChange={(ev) => setManualInput(ev.target.value)} inputMode="decimal" placeholder="fx 8" aria-label="Manuel halveringstid i timer" style={{ flex: 1, boxSizing: "border-box", border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", fontSize: 15, color: C.ink, background: C.surface, fontFamily: "inherit" }} />
+                <button onClick={() => applyManual(subId, subName)} style={{ border: "none", borderRadius: 10, padding: "10px 14px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 13.5, fontWeight: 800, cursor: "pointer" }}>Gem &amp; beregn</button>
+              </div>
+              <div style={{ fontSize: 11, color: C.inkFaint, marginTop: 6, lineHeight: 1.5 }}>Markeres som manuelt indtastet og ikke-verificeret. Kontrollér altid mod en godkendt kilde.</div>
+              <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ marginTop: 9, fontSize: 12.5, fontWeight: 700, color: "#5B37C7", display: "flex", alignItems: "center", gap: 6 }}><Pill size={15} color="#7A5AF5" />Find halveringstid i medicinkilde <ChevronRight size={14} color="#5B37C7" /></div></a>
+            </div>
+          );
+          const card = (() => {
+          if (r.status === "verified" || r.status === "previously-verified") { const e = medToCard(r.record); const stale = r.status === "previously-verified"; const rc = (hlCache[r.subId] || {}).rechecked; const AC = stale ? "#B7791F" : "#0FAE9E"; const TX = stale ? "#8A5A0B" : "#0B7A6E"; return (
+            <div style={{ marginTop: 12, border: `1px solid ${tint(AC, "40")}`, borderRadius: 13, background: tint(AC, "08"), padding: "13px 14px" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: tint(AC, "18"), color: TX, borderRadius: 8, padding: "3px 9px", fontSize: 11, fontWeight: 800, marginBottom: 8 }}><ShieldCheck size={13} color={TX} />{stale ? "Tidligere verificeret – opdatering kræves" : "Verificeret"}</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>{e.substans}</div>
+              <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 1 }}>Aktivt stof: {e.aktivt}{e.brands && e.brands.length ? " · Handelsnavne: " + e.brands.join(", ") : ""}</div>
+              <div style={{ fontSize: 15, color: C.ink, marginTop: 9 }}>{e.measLabel} (T½): <b style={{ color: TX }}>{e.display}</b></div>
+              {e.range ? <div style={{ fontSize: 13, color: C.ink, marginTop: 4, lineHeight: 1.5 }}>{e.range}</div> : null}
+              {e.effekt ? <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 6, lineHeight: 1.5 }}><b>Virkningsvarighed:</b> {e.effekt}</div> : null}
+              {e.faktorer ? <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4, lineHeight: 1.5 }}><b>Elimination påvirkes af:</b> {e.faktorer}</div> : null}
+              {e.klinisk ? <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4, lineHeight: 1.5 }}><b>Klinisk:</b> {e.klinisk}</div> : null}
+              {e.calcOptions && e.calcOptions.length ? (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "#5B37C7", letterSpacing: 0.4, marginBottom: 7 }}>BEREGN HALVERINGSTID</div>
+                  {e.calcOptions.length === 1
+                    ? <button onClick={() => applyToCalc(e, e.calcOptions[0])} style={{ width: "100%", border: "none", borderRadius: 11, padding: "12px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 14.5, fontWeight: 800, cursor: "pointer", minHeight: 46 }}>Beregn halveringstid</button>
+                    : <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>{e.calcOptions.map((o, i) => <button key={i} onClick={() => applyToCalc(e, o)} style={{ border: `1px solid ${tint("#7A5AF5", "40")}`, background: tint("#7A5AF5", "0C"), borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 800, color: "#5B37C7", cursor: "pointer", fontFamily: "inherit" }}>{o.label || "Beregn"}</button>)}<button onClick={() => applyToCalcRange(e)} style={{ border: "none", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>Interval (lav–høj)</button></div>}
+                  <div style={{ fontSize: 11, color: C.inkFaint, marginTop: 6, lineHeight: 1.5 }}>Overfører værdien til beregneren. Vælg selv tid; ved interval beregnes begge endepunkter.</div>
+                </div>
+              ) : null}
+              <div style={{ borderTop: `1px solid ${C.line}`, marginTop: 11, paddingTop: 10 }}>
+                {stale ? <div style={{ fontSize: 12, color: "#8A5A0B", lineHeight: 1.5, marginBottom: 4 }}>Denne post er over 12 måneder gammel. Bekræft værdien mod kilden, før du bruger den.</div> : null}
+                <div style={{ fontSize: 12, color: C.inkSoft, lineHeight: 1.5 }}>Kilde: {e.kilde}</div>
+                <div style={{ fontSize: 12, color: C.inkFaint, marginTop: 2 }}>Kontrolleret: {e.lastVerified}{rc ? " · Gentjekket i appen: " + hlDate(rc) : ""}. En kontroldato er ikke bevis for, at oplysningen stadig er aktuel.</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
+                  <a href={e.kildeUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><span style={{ display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${C.line}`, borderRadius: 10, padding: "8px 12px", fontSize: 12.5, fontWeight: 700, color: C.ink }}>Åbn kilde <ChevronRight size={14} color={C.inkFaint} /></span></a>
+                  <button onClick={() => reverify(r.subId, e.kildeUrl)} style={{ border: `1px solid ${C.line}`, background: C.surface, borderRadius: 10, padding: "8px 12px", fontSize: 12.5, fontWeight: 700, color: C.ink, cursor: "pointer", fontFamily: "inherit" }}>Gentjek kilde</button>
+                </div>
+              </div>
+            </div>
+          ); }
+          if (r.status === "not-documented") { const e = medToCard(r.record); return (
+            <div style={{ marginTop: 12, border: `1px solid ${C.line}`, borderRadius: 12, background: C.surface, padding: "12px 14px" }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>{e.substans}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: C.inkSoft, marginTop: 6 }}>Halveringstid ikke dokumenteret / ikke fastlagt</div>
+              <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 4, lineHeight: 1.5 }}>{e.range || "Kilden angiver ikke én meningsfuld halveringstid for dette lægemiddel."}</div>
+              {e.kildeUrl ? <a href={e.kildeUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ marginTop: 9, fontSize: 12.5, fontWeight: 700, color: "#5B37C7" }}>Åbn kilde →</div></a> : null}
+              {manualBlock(r.subId, e.substans)}
+            </div>
+          ); }
+          if (r.status === "unverified") { const e = medToCard(r.record); return (
+            <div style={{ marginTop: 12, border: `1px solid ${tint("#B7791F", "33")}`, background: tint("#B7791F", "0C"), borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ fontSize: 15, fontWeight: 800, color: C.ink }}>{e.substans}</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#8A5A0B", marginTop: 6 }}>Ikke verificeret</div>
+              <div style={{ fontSize: 12.5, color: "#7A4E0A", marginTop: 4, lineHeight: 1.5 }}>Der er en post for {e.substans}, men halveringstiden er ikke tilstrækkeligt verificeret. Slå op i en godkendt kilde.</div>
+              {manualBlock(r.subId, e.substans)}
+            </div>
+          ); }
+          return (
+            <div style={{ marginTop: 12, border: `1px solid ${tint("#B7791F", "33")}`, background: tint("#B7791F", "0C"), borderRadius: 12, padding: "12px 14px" }}>
+              <div style={{ fontSize: 13.5, color: C.ink }}>Aktivt stof: <b>{r.subName}</b></div>
+              {pickEntry && (pickEntry.atc || pickEntry.source) ? <div style={{ fontSize: 11.5, color: C.inkSoft, marginTop: 2 }}>{pickEntry.atc ? "ATC " + String(pickEntry.atc).toUpperCase() : ""}{pickEntry.atc && pickEntry.source ? " · " : ""}{pickEntry.source ? "Identifikation: " + pickEntry.source : ""}</div> : null}
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#8A5A0B", marginTop: 6 }}>Halveringstid ikke verificeret</div>
+              <div style={{ fontSize: 12.5, color: "#7A4E0A", marginTop: 4, lineHeight: 1.5 }}>Lægemidlet er <b>identificeret</b>, men Klario har endnu ikke en kildekontrolleret T½ for {r.subName}. Klario opfinder ikke en værdi — slå den op i en godkendt kilde eller indtast en, du selv har kontrolleret.</div>
+              {manualBlock(r.subId, r.subName)}
+            </div>
+          );
+          })();
+          return (<React.Fragment>{backToCombo}{reviewBanner}{card}</React.Fragment>);
+        })() : looked ? (
+          <div style={{ marginTop: 12, border: `1px solid ${tint("#B7791F", "33")}`, background: tint("#B7791F", "0C"), borderRadius: 12, padding: "12px 14px" }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "#8A5A0B" }}>Lægemidlet blev ikke genkendt</div>
+            <div style={{ fontSize: 12.5, color: "#7A4E0A", marginTop: 4, lineHeight: 1.5 }}>Klario opfinder ikke en værdi. Tjek stavningen, prøv det aktive stof, eller slå det op i en godkendt kilde.</div>
+          </div>
+        ) : null}
+
+        <a href="https://pro.medicin.dk/" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ marginTop: 11, border: `1px solid ${tint("#7A5AF5", "33")}`, background: tint("#7A5AF5", "0A"), borderRadius: 12, padding: "12px 14px", fontSize: 13.5, fontWeight: 700, color: "#5B37C7", display: "flex", alignItems: "center", gap: 8 }}><Pill size={17} color="#7A5AF5" /><span style={{ flex: 1 }}>Slå halveringstid op på pro.medicin.dk</span><ChevronRight size={16} color="#7A5AF5" /></div></a>
+        <div style={{ display: "flex", gap: 9, marginTop: 11, background: tint(C.ink, "05"), border: `1px solid ${C.line}`, borderRadius: 11, padding: "10px 12px" }}>
+          <Info size={15} color={C.inkSoft} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 11.5, color: C.inkSoft, lineHeight: 1.5 }}>Klario har ingen live-forbindelse til pro.medicin.dk. Verificerede værdier kommer fra en kurateret, kildekontrolleret database i appen. Bekræft altid klinisk i pro.medicin.dk og følg ordination.</span>
+        </div>
+        {(() => {
+          const liveSubs = Object.keys(medDS.substances || {}).length;
+          const liveVer = (medDS.records || []).length;
+          const liveNames = (medDS.index || []).length;
+          const isDev = medOrigin === "dev" || (medMeta && medMeta.nameIndexDev);
+          return (
+            <div style={{ fontSize: 10.5, color: C.inkFaint, marginTop: 8, textAlign: "center", lineHeight: 1.5 }}>
+              {isDev ? <span style={{ display: "inline-block", fontSize: 9.5, fontWeight: 800, color: "#8A5A0B", background: tint("#B7791F", "18"), border: `1px solid ${tint("#B7791F", "33")}`, borderRadius: 6, padding: "1px 6px", marginBottom: 4 }}>UDVIKLING · officielt indeks (Lægemiddelstyrelsen) · ikke i produktion</span> : null}<br/>
+              Datasæt T½ {medMeta && medMeta.datasetVersion ? medMeta.datasetVersion : "—"} · {liveSubs} stoffer søgbare, {liveNames} navne, {liveVer} med verificeret T½ · {medOrigin === "network" ? "opdateret fra data-fil" : medOrigin === "cache" ? "fra lokal cache" : medOrigin === "dev" ? "udviklings-indeks" : "medbragt i appen"}<br/>
+              Navne-indeks: {isDev ? "Lægemiddelstyrelsen — gengivet med kildeangivelse (ikke-kommerciel, afventer bekræftelse)" : "Klario kurateret · officielt indeks fra Lægemiddelstyrelsen kan tilføjes med kildeangivelse"}.
+            </div>
+          );
+        })()}
+      </div>
+
+      <button onClick={() => onTest("halveringstid")} style={{ width: "100%", border: "none", borderRadius: 14, padding: "14px", background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50 }}>Test din viden om halveringstid</button>
+    </div>
+  );
+}
+
 const FAGLIGT_CAT = { id: "fagligtsprog", title: "Fagligt sprog", subtitle: "Fra hverdagssprog til SSA-sprog.", color: "#0FAE9E", g1: "#2BC7B4", g2: "#0B9488", Icon: MessageCircle };
 const PLEJE_CAT = { id: "plejeprocedurer", title: "Plejeprocedurer", subtitle: "Trin-for-trin til pleje, observation og dokumentation.", color: "#2E68E0", g1: "#4F86F4", g2: "#2257D8", Icon: ClipboardList };
+const ANATOMI_CAT = { id: "anatomi", title: "Anatomi & fysiologi", subtitle: "Kropsdele, organer, systemer og latin.", color: "#0E9F6E", g1: "#34D399", g2: "#047857", Icon: Activity };
+const FARMA_CAT = { id: "farmakologi", title: "Farmakologi", subtitle: "Forstå hvordan lægemidler virker i kroppen.", color: "#7A5AF5", g1: "#9B7DF6", g2: "#5B37C7", Icon: Pill };
 const TESTVIDEN_CAT = { id: "testviden", title: "Test Viden", subtitle: "Quiz og case-træning til studie.", color: "#6741D9", g1: "#8B6DF0", g2: "#5B37C7", Icon: GraduationCap };
 
 function GridTile({ cat, count, onClick }) {
@@ -2247,7 +3805,8 @@ const EXTRA_QUIZZES = [
 const ALL_QUIZ = QUIZ_LIST.concat(EXTRA_QUIZZES);
 const QUIZ_CATMAP = { "q-respiration": "observationer", "q-udskillelse": "observationer", "q-hjerte": "diagnoser", "q-diabetes": "diagnoser", "q-hud": "saarpleje", "q-tryksaar": "saarpleje", "q-hygiejne": "hygiejne", "q-personligpleje": "hygiejne", "q-dokumentation": "dokumentation", "q-kommunikation": "kommunikation", "q-akut": "akut", "q-ernaering": "ernaering", "q-vaeske": "ernaering", "q-obstipation": "ernaering", "q-demens": "demens", "q-medicin": "medicin", "q-farmakologi": "medicin", "q-mikrobiologi": "mikrobiologi", "q-normalvaerdier": "normalvaerdier", "q-love": "love", "q-psykiatri": "psykiatri", "q-vaerktoejer": "vaerktoejer" };
 const CAT_CASE = { observationer: "case-respiration", diagnoser: "case-hjerte-medicin", ernaering: "case-obstipation", medicin: "case-medicinsikkerhed", akut: "case-respiration" };
-const catTitleById = (id) => (DATA.find((c) => c.id === id) || {}).title || id;
+const CAT_TITLE_EXTRA = { anatomi: "Anatomi & fysiologi", farmakologi: "Farmakologi", halveringstid: "Halveringstid (T½)", injektion: "Injektioner" };
+const catTitleById = (id) => (DATA.find((c) => c.id === id) || {}).title || CAT_TITLE_EXTRA[id] || id;
 const makeTopicQuiz = (topicId) => ALL_QUIZ.find((x) => x.topic === topicId) || null;
 const quizForTopic2 = (topicId) => ALL_QUIZ.find((x) => x.topic === topicId) || null;
 function makeCategoryQuiz(catId) {
@@ -2334,6 +3893,115 @@ const NEW_QS = [
   // diagnoser
   { qid: "n-diag-1", catId: "diagnoser", q: "Hvad er vigtigt ved diabetes?", type: "mc", opts: ["Observation af blodsukker og tegn på højt/lavt blodsukker", "Kun at måle vægt", "At undgå observation"], correct: [0], why: "Observation af blodsukker og symptomer er centralt ved diabetes.", tag: "Observation" },
   { qid: "n-diag-2", catId: "diagnoser", q: "Ved lavt blodsukker kan hurtige kulhydrater være relevant.", type: "tf", opts: [T, F], correct: [0], why: "Ved lavt blodsukker gives typisk hurtige kulhydrater — følg lokale instrukser.", tag: "Handling" },
+  { qid: "n-anat-1", catId: "anatomi", q: "Hvad hedder nyre på latin?", type: "mc", opts: ["Ren", "Cor", "Hepar", "Pulmo"], correct: [0], why: "Nyre = Ren (flertal Renes).", tag: "Latin" },
+  { qid: "n-anat-2", catId: "anatomi", q: "Hvad hedder hjerte på latin?", type: "mc", opts: ["Cor", "Ren", "Hepar"], correct: [0], why: "Hjerte = Cor.", tag: "Latin" },
+  { qid: "n-anat-3", catId: "anatomi", q: "Hvad hedder lever på latin?", type: "mc", opts: ["Hepar", "Lien", "Ren"], correct: [0], why: "Lever = Hepar.", tag: "Latin" },
+  { qid: "n-anat-4", catId: "anatomi", q: "Hvilket organsystem hører nyrerne til?", type: "mc", opts: ["Urinvejssystemet", "Kredsløbssystemet", "Nervesystemet"], correct: [0], why: "Nyrerne er en del af urinvejssystemet.", tag: "Systemer" },
+  { qid: "n-anat-5", catId: "anatomi", q: "Hvad betyder retningsbegrebet 'distal'?", type: "mc", opts: ["Længere væk fra kroppens centrum", "Tættere på midtlinjen", "Foran på kroppen"], correct: [0], why: "Distal = længere væk fra kroppens centrum (fx håndled distalt for albue).", tag: "Retning" },
+  { qid: "n-anat-6", catId: "anatomi", q: "Hvad betyder 'proksimal'?", type: "mc", opts: ["Nærmere kroppens centrum", "Længere væk fra kroppen", "Bagpå kroppen"], correct: [0], why: "Proksimal = nærmere kroppens centrum.", tag: "Retning" },
+  { qid: "n-anat-7", catId: "anatomi", q: "Hvad er den faglige betegnelse for 'balle'?", type: "mc", opts: ["Glutealregion", "Thorax", "Cubitus"], correct: [0], why: "Balle = glutealregion (Regio glutealis).", tag: "Region" },
+  { qid: "n-anat-8", catId: "anatomi", q: "Hvad hedder selve lårBENET (knoglen)?", type: "mc", opts: ["Femur (os femoris)", "Regio femoris", "Patella"], correct: [0], why: "Lårbenet er femur. Regio femoris er lårREGIONEN — ikke knoglen.", tag: "Knogle" },
+  { qid: "n-anat-9", catId: "anatomi", q: "Hvad hedder lungerne på latin?", type: "mc", opts: ["Pulmones", "Renes", "Costae"], correct: [0], why: "Lunger = Pulmones (ental Pulmo).", tag: "Latin" },
+  { qid: "n-anat-10", catId: "anatomi", q: "Hvor ligger hjertet?", type: "mc", opts: ["I brysthulen (thorax)", "I bughulen", "I bækkenet"], correct: [0], why: "Hjertet ligger i thorax, lidt til venstre.", tag: "Placering" },
+  { qid: "n-anat-11", catId: "anatomi", q: "Hvilket organ danner insulin?", type: "mc", opts: ["Bugspytkirtlen (pancreas)", "Leveren", "Milten"], correct: [0], why: "Insulin dannes i bugspytkirtlen (pancreas).", tag: "Fysiologi" },
+  { qid: "n-anat-12", catId: "anatomi", q: "Hvad betyder 'anterior'?", type: "mc", opts: ["Foran på kroppen", "Bagpå kroppen", "Nedad"], correct: [0], why: "Anterior = foran.", tag: "Retning" },
+  { qid: "n-anat-13", catId: "anatomi", q: "Hvad hedder knæskallen?", type: "mc", opts: ["Patella", "Femur", "Tibia"], correct: [0], why: "Knæskal = patella.", tag: "Knogle" },
+  { qid: "n-anat-14", catId: "anatomi", q: "Hvad er alveoler?", type: "mc", opts: ["Lungeblærer hvor gasudveksling sker", "Hjertets kamre", "Strukturer i nyren"], correct: [0], why: "Alveoler (Alveoli pulmonis) er lungeblærer, hvor ilt/CO₂ udveksles.", tag: "Indre anatomi" },
+  { qid: "n-anat-15", catId: "anatomi", q: "Skinnebenet hedder tibia.", type: "tf", opts: [T, F], correct: [0], why: "Skinneben = tibia; lægben = fibula.", tag: "Knogle" },
+  { qid: "n-anat-16", catId: "anatomi", q: "Milten hører til lymfe- og immunsystemet.", type: "tf", opts: [T, F], correct: [0], why: "Milten (Lien) indgår i lymfe- og immunsystemet.", tag: "Systemer" },
+  { qid: "n-anat-17", catId: "anatomi", q: "Hvad er kredsløbssystemets hovedopgave?", type: "mc", opts: ["At transportere blod med ilt og næring", "At nedbryde mad", "At danne urin"], correct: [0], why: "Kredsløbet transporterer blod, ilt, næring og affaldsstoffer.", tag: "Systemer" },
+  { qid: "n-anat-18", catId: "anatomi", q: "Hvad hedder mavesækken på latin?", type: "mc", opts: ["Ventriculus (Gaster)", "Rectum", "Hepar"], correct: [0], why: "Mavesæk = Ventriculus (også Gaster).", tag: "Latin" },
+  { qid: "n-anat-19", catId: "anatomi", q: "Hvilke af disse er anatomiske retningsbegreber? (vælg alle korrekte)", type: "multi", opts: ["Medial", "Lateral", "Proksimal", "Thorax"], correct: [0, 1, 2], why: "Medial, lateral og proksimal er retningsbegreber; thorax er en region.", tag: "Retning" },
+  { qid: "n-anat-20", catId: "anatomi", q: "Hvad hedder nyrebarken på latin?", type: "mc", opts: ["Cortex renalis", "Medulla renalis", "Pelvis renalis"], correct: [0], why: "Nyrebark = Cortex renalis; nyremarv = Medulla renalis.", tag: "Indre anatomi" },
+  { qid: "n-farm-1", catId: "farmakologi", q: "Hvad betyder farmakokinetik?", type: "mc", opts: ["Hvad kroppen gør ved lægemidlet", "Hvad lægemidlet gør ved kroppen", "Læren om kirurgi"], correct: [0], why: "Farmakokinetik = hvad kroppen gør ved lægemidlet (ADME).", tag: "Begreb" },
+  { qid: "n-farm-2", catId: "farmakologi", q: "Hvad betyder farmakodynamik?", type: "mc", opts: ["Hvad lægemidlet gør ved kroppen", "Hvad kroppen gør ved lægemidlet", "Hvordan man beregner dosis"], correct: [0], why: "Farmakodynamik = hvad lægemidlet gør ved kroppen.", tag: "Begreb" },
+  { qid: "n-farm-3", catId: "farmakologi", q: "Hvad står A'et for i ADME?", type: "mc", opts: ["Absorption", "Analyse", "Administration"], correct: [0], why: "ADME = Absorption, Distribution, Metabolisme, Ekskretion.", tag: "ADME" },
+  { qid: "n-farm-4", catId: "farmakologi", q: "Hvilken rækkefølge beskriver ADME?", type: "mc", opts: ["Absorption → Distribution → Metabolisme → Ekskretion", "Metabolisme → Absorption → Ekskretion → Distribution", "Distribution → Ekskretion → Absorption → Metabolisme"], correct: [0], why: "ADME følger: Absorption, Distribution, Metabolisme, Ekskretion.", tag: "ADME" },
+  { qid: "n-farm-5", catId: "farmakologi", q: "I hvilket organ sker metabolismen af lægemidler især?", type: "mc", opts: ["Leveren", "Milten", "Lungerne"], correct: [0], why: "Metabolisme sker især i leveren.", tag: "Organer" },
+  { qid: "n-farm-6", catId: "farmakologi", q: "Hvilket organ udskiller især lægemidler med urinen?", type: "mc", opts: ["Nyrerne", "Leveren", "Hjertet"], correct: [0], why: "Nyrerne udskiller mange lægemidler via urinen.", tag: "Organer" },
+  { qid: "n-farm-7", catId: "farmakologi", q: "Hvad er en receptor?", type: "mc", opts: ["Et sted på/i en celle, hvor et lægemiddel kan binde og påvirke cellen", "En type tablet", "Et måleapparat"], correct: [0], why: "En receptor er et bindingssted på/i cellen.", tag: "Farmakodynamik" },
+  { qid: "n-farm-8", catId: "farmakologi", q: "Hvad gør en agonist?", type: "mc", opts: ["Binder til receptoren og udløser en virkning", "Blokerer receptoren", "Nedbryder lægemidlet"], correct: [0], why: "En agonist aktiverer receptoren.", tag: "Farmakodynamik" },
+  { qid: "n-farm-9", catId: "farmakologi", q: "Hvad gør en antagonist?", type: "mc", opts: ["Binder til receptoren og blokerer virkningen", "Aktiverer receptoren", "Øger dosis"], correct: [0], why: "En antagonist blokerer receptoren.", tag: "Farmakodynamik" },
+  { qid: "n-farm-10", catId: "farmakologi", q: "Hvad er halveringstid (T½)?", type: "mc", opts: ["Tiden, før koncentrationen er faldet til omtrent det halve", "Halvdelen af en tablet", "Tiden før virkningen starter"], correct: [0], why: "T½ = tid til koncentrationen er halveret.", tag: "Tid" },
+  { qid: "n-farm-11", catId: "farmakologi", q: "Hvad er biotilgængelighed?", type: "mc", opts: ["Den andel af en dosis, der når blodbanen uændret", "Antallet af tabletter", "Lægemidlets pris"], correct: [0], why: "Biotilgængelighed = andel af dosis der når systemisk kredsløb uændret.", tag: "Begreb" },
+  { qid: "n-farm-12", catId: "farmakologi", q: "Hvilken administrationsvej har fuld (100 %) biotilgængelighed?", type: "mc", opts: ["Intravenøs (IV)", "Oral", "Transdermal"], correct: [0], why: "IV gives direkte i blodet og skal ikke absorberes.", tag: "Administration" },
+  { qid: "n-farm-13", catId: "farmakologi", q: "Hvad er first-pass metabolisme?", type: "mc", opts: ["At et oralt lægemiddel delvist omdannes i leveren, før det når blodbanen", "At lægemidlet virker med det samme", "At man tager første dosis"], correct: [0], why: "Blodet fra tarmen passerer leveren først (first-pass).", tag: "Kinetik" },
+  { qid: "n-farm-14", catId: "farmakologi", q: "Alle tabletter må knuses.", type: "tf", opts: [T, F], correct: [1], why: "Nej. Fx depot- og enterotabletter må ofte ikke knuses. Kontrollér altid det konkrete præparat.", tag: "Sikkerhed" },
+  { qid: "n-farm-15", catId: "farmakologi", q: "En depottablet frigiver lægemidlet langsomt over tid.", type: "tf", opts: [T, F], correct: [0], why: "Depottabletter afgiver stoffet gradvist — derfor må de typisk ikke knuses.", tag: "Former" },
+  { qid: "n-farm-16", catId: "farmakologi", q: "En enterotablet er lavet til at gå i opløsning i mavesækken.", type: "tf", opts: [T, F], correct: [1], why: "Nej — enterotabletter går først i opløsning i tarmen.", tag: "Former" },
+  { qid: "n-farm-17", catId: "farmakologi", q: "Konkrete interaktioner mellem to lægemidler kan man trygt gætte sig til.", type: "tf", opts: [T, F], correct: [1], why: "Nej — interaktioner skal altid slås op i en godkendt kilde.", tag: "Sikkerhed" },
+  { qid: "n-farm-18", catId: "farmakologi", q: "Hvad er en kontraindikation?", type: "mc", opts: ["En tilstand, hvor et lægemiddel ikke bør gives", "En ønsket virkning", "En type dosis"], correct: [0], why: "Kontraindikation = hvor lægemidlet ikke bør bruges.", tag: "Begreb" },
+  { qid: "n-farm-19", catId: "farmakologi", q: "Hvad betyder polyfarmaci?", type: "mc", opts: ["Brug af mange lægemidler samtidig", "En stærk tablet", "En bestemt receptor"], correct: [0], why: "Polyfarmaci = mange lægemidler samtidig; øger interaktionsrisiko.", tag: "Ældre" },
+  { qid: "n-farm-20", catId: "farmakologi", q: "Hvorfor kan ældre reagere anderledes på medicin?", type: "multi", opts: ["Nedsat nyrefunktion", "Ændret kropssammensætning", "Polyfarmaci", "De har flere receptorer af natur"], correct: [0, 1, 2], why: "Nyrer/lever, kropssammensætning og polyfarmaci spiller ind.", tag: "Ældre" },
+  { qid: "n-farm-21", catId: "farmakologi", q: "Nedsat nyrefunktion kan give langsommere udskillelse af visse lægemidler.", type: "tf", opts: [T, F], correct: [0], why: "Ja — det kan give risiko for ophobning.", tag: "Nyrer" },
+  { qid: "n-farm-22", catId: "farmakologi", q: "Hvad gør du ved tvivl om en medicinadministration?", type: "mc", opts: ["Stopper op, spørger ansvarlig og følger lokale instrukser", "Giver bare medicinen", "Springer den over uden at sige det"], correct: [0], why: "Ved tvivl: giv ikke — spørg og følg instrukser/delegation.", tag: "Sikkerhed" },
+  { qid: "n-farm-23", catId: "farmakologi", q: "Hvilke hører til 'de rigtige' i medicinsikkerhed?", type: "multi", opts: ["Korrekt borger", "Korrekt dosis", "Korrekt administrationsvej", "Korrekt farve på æsken"], correct: [0, 1, 2], why: "Rigtig borger, lægemiddel, dosis, tidspunkt og administrationsvej.", tag: "Sikkerhed" },
+  { qid: "n-farm-24", catId: "farmakologi", q: "Hvad er steady state?", type: "mc", opts: ["Når tilførsel og udskillelse ved gentagen dosering er nogenlunde i balance", "Når tabletten er halveret", "Første gang man tager medicinen"], correct: [0], why: "Steady state nås typisk efter ca. 4-5 halveringstider.", tag: "Tid" },
+  { qid: "n-farm-25", catId: "farmakologi", q: "Hvad er en bivirkning?", type: "mc", opts: ["En uønsket virkning ud over den ønskede", "Den ønskede virkning", "En dosisberegning"], correct: [0], why: "Bivirkning = uønsket virkning.", tag: "Begreb" },
+  { qid: "n-farm-26", catId: "farmakologi", q: "Sublingual administration betyder, at lægemidlet lægges...", type: "mc", opts: ["Under tungen", "I øret", "På huden"], correct: [0], why: "Sublingual = under tungen.", tag: "Administration" },
+  { qid: "n-farm-27", catId: "farmakologi", q: "Hvor optages de fleste orale tabletter?", type: "mc", opts: ["I tarmen", "I munden", "I nyrerne"], correct: [0], why: "Tyndtarmens store overflade er hovedstedet for absorption.", tag: "Vej" },
+  { qid: "n-farm-28", catId: "farmakologi", q: "Furosemid er et loop-diuretikum, der øger udskillelsen af vand.", type: "tf", opts: [T, F], correct: [0], why: "Ja — loop-diuretika øger udskillelsen af salt og vand (øget diurese). Konkret brug følger ordination.", tag: "Eksempel" },
+  { qid: "n-hl-1", catId: "halveringstid", q: "Hvad er halveringstid (T½)?", type: "mc", opts: ["Tiden før koncentrationen er faldet til omtrent det halve", "Halvdelen af en tablet", "Tiden før virkningen starter"], correct: [0], why: "T½ = tiden, før lægemiddelkoncentrationen er halveret.", tag: "Begreb" },
+  { qid: "n-hl-2", catId: "halveringstid", q: "Et lægemiddel har T½ på 4 timer. Hvor meget er cirka tilbage efter 8 timer?", type: "mc", opts: ["25 %", "50 %", "75 %"], correct: [0], why: "8 timer = 2 halveringstider: 100 % → 50 % → 25 %.", tag: "Beregning" },
+  { qid: "n-hl-3", catId: "halveringstid", q: "Et lægemiddel har T½ på 6 timer. Hvor meget er cirka tilbage efter 6 timer?", type: "mc", opts: ["50 %", "25 %", "0 %"], correct: [0], why: "Efter én halveringstid er ca. 50 % tilbage.", tag: "Beregning" },
+  { qid: "n-hl-4", catId: "halveringstid", q: "Hvor meget er cirka udskilt efter ca. 5 halveringstider (forenklet model)?", type: "mc", opts: ["Ca. 97 %", "Ca. 50 %", "Ca. 25 %"], correct: [0], why: "Efter 5 halveringstider er ca. 96,875 % udskilt — en tommelfingerregel, ikke en universel klinisk regel.", tag: "Beregning" },
+  { qid: "n-hl-5", catId: "halveringstid", q: "Efter 3 halveringstider er der cirka 12,5 % tilbage.", type: "tf", opts: [T, F], correct: [0], why: "100 → 50 → 25 → 12,5 %.", tag: "Beregning" },
+  { qid: "n-hl-6", catId: "halveringstid", q: "Et lægemiddel med lang halveringstid bliver længere i kroppen end et med kort.", type: "tf", opts: [T, F], correct: [0], why: "Ja — lang T½ betyder langsommere fald i koncentration.", tag: "Begreb" },
+  { qid: "n-hl-7", catId: "halveringstid", q: "Nedsat nyre- eller leverfunktion kan forlænge halveringstiden.", type: "tf", opts: [T, F], correct: [0], why: "Ja — langsommere elimination forlænger T½ og øger risiko for ophobning.", tag: "Organer" },
+  { qid: "n-hl-8", catId: "halveringstid", q: "Hvad kan ske, hvis en ny dosis gives, før den forrige er elimineret?", type: "mc", opts: ["Lægemidlet kan ophobes i kroppen", "Lægemidlet forsvinder hurtigere", "Halveringstiden bliver kortere"], correct: [0], why: "Gentagen dosering før fuld elimination kan give ophobning.", tag: "Ophobning" },
+  { qid: "n-hl-9", catId: "halveringstid", q: "Hvornår nås steady state typisk ved gentagen dosering?", type: "mc", opts: ["Efter ca. 4–5 halveringstider", "Efter én dosis", "Efter 24 timer uanset lægemiddel"], correct: [0], why: "Steady state nås typisk efter ca. 4–5 halveringstider.", tag: "Steady state" },
+  { qid: "n-hl-10", catId: "halveringstid", q: "Halveringstid og virkningsvarighed er præcis det samme.", type: "tf", opts: [T, F], correct: [1], why: "Nej. Virkningsvarighed afhænger også af dosis, bindingsstyrke m.m. — ikke kun af T½.", tag: "Begreb" },
+  { qid: "n-hl-11", catId: "halveringstid", q: "Hvad beskriver 'elimination' bedst?", type: "mc", opts: ["Den samlede fjernelse af lægemidlet (metabolisme + udskillelse)", "Kun optagelsen i tarmen", "Kun bindingen til receptoren"], correct: [0], why: "Elimination = metabolisme + udskillelse.", tag: "Begreb" },
+  { qid: "n-hl-12", catId: "halveringstid", q: "Hvorfor kan ældre kræve ekstra opmærksomhed i forhold til halveringstid?", type: "multi", opts: ["Nedsat nyrefunktion", "Nedsat leverfunktion", "Polyfarmaci", "De har altid kortere T½"], correct: [0, 1, 2], why: "Nedsat organfunktion og polyfarmaci kan forlænge T½ og øge risiko for ophobning.", tag: "Ældre" },
+  { qid: "n-hl-13", catId: "halveringstid", q: "Et lægemiddel har T½ 2 timer. Hvor meget er cirka tilbage efter 6 timer?", type: "mc", opts: ["12,5 %", "25 %", "50 %"], correct: [0], why: "6 timer = 3 halveringstider: 50 → 25 → 12,5 %.", tag: "Beregning" },
+  { qid: "n-hl-14", catId: "halveringstid", q: "Formlen for resten af et lægemiddel er 0,5 opløftet i (tid ÷ halveringstid).", type: "tf", opts: [T, F], correct: [0], why: "Ja — remaining fraction = 0,5^(tid/T½) i den forenklede model.", tag: "Beregning" },
+  { qid: "n-hl-15", catId: "halveringstid", q: "Lang halveringstid betyder, at steady state nås hurtigere.", type: "tf", opts: [T, F], correct: [1], why: "Nej — jo længere T½, jo længere tid tager det at nå steady state.", tag: "Steady state" },
+  { qid: "n-hl-16", catId: "halveringstid", q: "Hvad er en relevant SSA-observation, når et lægemiddel kan ophobes?", type: "mc", opts: ["Tegn på øget virkning eller bivirkninger", "Tablettens farve", "Æskens udløbsdato alene"], correct: [0], why: "Ved ophobning kan virkning/bivirkninger tiltage — observér og videregiv efter lokale instrukser.", tag: "Observation" },
+  { qid: "n-hl-17", catId: "halveringstid", q: "Hvor finder du en verificeret halveringstid for et konkret lægemiddel?", type: "mc", opts: ["I en godkendt kilde som pro.medicin.dk", "Ved at gætte ud fra tabletstørrelsen", "Det er altid 24 timer"], correct: [0], why: "Lægemiddelspecifikke værdier slås op i en godkendt kilde.", tag: "Sikkerhed" },
+  { qid: "n-hl-18", catId: "halveringstid", q: "Halveringstid-beregneren i Klario kan bruges til at bestemme en borgers dosis.", type: "tf", opts: [T, F], correct: [1], why: "Nej — beregneren er et læringsværktøj og må ikke bruges til patientspecifikke beslutninger.", tag: "Sikkerhed" },
+  { qid: "n-hl-19", catId: "halveringstid", q: "Et lægemiddel har T½ 8 timer. Hvor mange timer går der cirka, før ca. 75 % er udskilt?", type: "mc", opts: ["16 timer", "8 timer", "4 timer"], correct: [0], why: "75 % udskilt = 25 % tilbage = 2 halveringstider = 16 timer.", tag: "Beregning" },
+  { qid: "n-hl-20", catId: "halveringstid", q: "Hvilke faktorer kan påvirke et lægemiddels halveringstid?", type: "multi", opts: ["Nyrefunktion", "Leverfunktion", "Alder", "Ugedagen"], correct: [0, 1, 2], why: "Nyre- og leverfunktion samt alder kan påvirke T½.", tag: "Organer" },
+  { qid: "n-hl-21", catId: "halveringstid", q: "Efter 4 halveringstider er der cirka 6,25 % tilbage.", type: "tf", opts: [T, F], correct: [0], why: "100 → 50 → 25 → 12,5 → 6,25 %.", tag: "Beregning" },
+  { qid: "n-hl-22", catId: "halveringstid", q: "Hvad er den sikreste handling, hvis du er i tvivl om et lægemiddels virkning eller ophobning hos en borger?", type: "mc", opts: ["Observér og videregiv efter lokale instrukser/delegation", "Giv en ekstra dosis", "Vent en uge og se"], correct: [0], why: "Ved tvivl: observér og følg lokale instrukser/delegation.", tag: "Observation" },
+  // injektioner
+  {"qid": "inj-an1", "catId": "injektion", "q": "I hvilket lag gives en subkutan injektion?", "type": "mc", "opts": ["Underhuden (fedtlaget)", "Musklen", "Venen", "Læderhuden (dermis)"], "correct": [0], "why": "Subkutant = i fedtlaget under huden, over musklen.", "tag": "Anatomi"},
+  {"qid": "inj-an2", "catId": "injektion", "q": "Hvilken injektion gives i selve huden (dermis) og danner en kvaddel?", "type": "mc", "opts": ["Intradermal (ID)", "Subkutan (SC)", "Intramuskulær (IM)", "Intravenøs (IV)"], "correct": [0], "why": "Intradermal gives i dermis og danner en synlig kvaddel/blære.", "tag": "Anatomi"},
+  {"qid": "inj-an3", "catId": "injektion", "q": "Hvilket injektionssted bruges til de fleste vacciner til voksne?", "type": "mc", "opts": ["Deltoideus (overarm)", "Maveskindet", "Volar underarm", "Håndryggen"], "correct": [0], "why": "Vacciner til voksne gives typisk intramuskulært i deltoideus.", "tag": "Anatomi"},
+  {"qid": "inj-an4", "catId": "injektion", "q": "Hvilket muskelsted anbefales til intramuskulær injektion hos spædbørn 0–12 mdr.?", "type": "mc", "opts": ["Vastus lateralis (låret)", "Deltoideus", "Ventrogluteus", "Ballen midt"], "correct": [0], "why": "Hos spædbørn bruges vastus lateralis pga. større muskelmasse der.", "tag": "Anatomi"},
+  {"qid": "inj-an5", "catId": "injektion", "q": "Hvor gives en intradermal test (fx Mantoux) typisk?", "type": "mc", "opts": ["Indersiden af underarmen (volart)", "Ballen", "Maven", "Låret"], "correct": [0], "why": "Volar underarm bruges, fordi huden er tynd og reaktionen let kan aflæses.", "tag": "Anatomi"},
+  {"qid": "inj-an6", "catId": "injektion", "q": "Rækkefølgen af lagene fra overfladen er:", "type": "mc", "opts": ["Hud → underhud (fedt) → muskel", "Muskel → hud → fedt", "Fedt → muskel → hud", "Vene → hud → muskel"], "correct": [0], "why": "Udefra: hud (epidermis+dermis) → subkutant fedt → muskel.", "tag": "Anatomi"},
+  {"qid": "inj-ad1", "catId": "injektion", "q": "Hvilken vinkel bruges typisk ved intramuskulær injektion?", "type": "mc", "opts": ["90°", "15°", "45°", "5°"], "correct": [0], "why": "IM gives i 90° for at nå ind i musklen.", "tag": "Administration"},
+  {"qid": "inj-ad2", "catId": "injektion", "q": "Hvilken vinkel passer til en intradermal injektion?", "type": "mc", "opts": ["10–15°", "45°", "90°", "60°"], "correct": [0], "why": "ID lægges næsten fladt (10–15°), så spidsen bliver i dermis.", "tag": "Administration"},
+  {"qid": "inj-ad3", "catId": "injektion", "q": "Hvilken vinkel kan bruges ved subkutan injektion?", "type": "mc", "opts": ["45° eller 90° afhængigt af kanyle og fedtlag", "Altid 10°", "Altid 15°", "Altid i venen"], "correct": [0], "why": "SC gives typisk i 45° (lang kanyle/tynd person) eller 90° (kort kanyle).", "tag": "Administration"},
+  {"qid": "inj-ad4", "catId": "injektion", "q": "Hvilken injektionsvej giver den hurtigste virkning?", "type": "mc", "opts": ["Intravenøs (IV)", "Subkutan (SC)", "Intradermal (ID)", "Intramuskulær (IM)"], "correct": [0], "why": "IV går direkte i blodbanen og virker hurtigst.", "tag": "Administration"},
+  {"qid": "inj-ad5", "catId": "injektion", "q": "Må man bruge samme vinkel, kanyle og aspirationsregel til alle injektionstyper?", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "Nej — vinkel, kanyle og aspiration er procedurespecifikke og afhænger også af lægemiddel og lokal instruks.", "tag": "Administration"},
+  {"qid": "inj-ad6", "catId": "injektion", "q": "Et lægemiddel skal optages langsomt og jævnt. Hvilken vej passer bedst?", "type": "mc", "opts": ["Subkutan", "Intravenøs", "Intradermal", "Altid intramuskulær"], "correct": [0], "why": "SC giver langsom, jævn optagelse — fx insulin og heparin.", "tag": "Administration"},
+  {"qid": "inj-ad7", "catId": "injektion", "q": "Hvilket lægemiddel gives typisk subkutant?", "type": "mc", "opts": ["Insulin", "I.v.-væske", "Kontraststof", "Tuberkulin"], "correct": [0], "why": "Insulin gives subkutant. Tuberkulin gives intradermalt.", "tag": "Administration"},
+  {"qid": "inj-hy1", "catId": "injektion", "q": "Hvad gør du med hænderne før og efter en injektion?", "type": "mc", "opts": ["Udfører håndhygiejne (hånddesinfektion)", "Kun efter", "Kun før", "Ingenting hvis du bruger handsker"], "correct": [0], "why": "Håndhygiejne udføres både før og efter.", "tag": "Hygiejne"},
+  {"qid": "inj-hy2", "catId": "injektion", "q": "Ifølge SSI skal huden altid sprittes af før en vaccination.", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "SSI anbefaler, at huden normalt ikke desinficeres ved vaccination, hvis den er synligt ren. Følg lokal instruks for øvrige lægemidler.", "tag": "Hygiejne"},
+  {"qid": "inj-hy3", "catId": "injektion", "q": "Hvornår bør du bruge handsker?", "type": "mc", "opts": ["Ved risiko for kontakt med blod eller sekret", "Aldrig", "Kun ved IV", "Kun ved SC"], "correct": [0], "why": "Handsker bruges ved risiko for blod/sekret — vurder efter opgaven og lokal instruks.", "tag": "Hygiejne"},
+  {"qid": "inj-hy4", "catId": "injektion", "q": "Hud-desinfektion før injektion er ens for alle lægemidler og situationer.", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "Nej — praksis afhænger af lægemiddel, situation og lokal instruks.", "tag": "Hygiejne"},
+  {"qid": "inj-hy5", "catId": "injektion", "q": "Hvad er vigtigst for at forebygge infektion ved injektion?", "type": "mc", "opts": ["God håndhygiejne og ren teknik", "At arbejde hurtigt", "At genbruge kanylen", "At springe dokumentation over"], "correct": [0], "why": "Håndhygiejne og ren/aseptisk teknik forebygger infektion.", "tag": "Hygiejne"},
+  {"qid": "inj-ko1", "catId": "injektion", "q": "Hvad er lipohypertrofi?", "type": "mc", "opts": ["Fortykket væv ved gentagne injektioner samme sted", "En allergisk reaktion", "En blodprop", "En nerveskade"], "correct": [0], "why": "Gentagne injektioner samme sted (fx insulin) kan give lipohypertrofi → rotér sted.", "tag": "Komplikationer"},
+  {"qid": "inj-ko2", "catId": "injektion", "q": "Hvad er ekstravasation ved en intravenøs injektion?", "type": "mc", "opts": ["Lægemidlet løber uden for venen ud i vævet", "En normal virkning", "En allergisk hudreaktion", "At venen skylles igennem"], "correct": [0], "why": "Ekstravasation = lægemiddel uden for venen, kan skade vævet.", "tag": "Komplikationer"},
+  {"qid": "inj-ko3", "catId": "injektion", "q": "Hvorfor er korrekte landemærker vigtige ved intramuskulær injektion?", "type": "mc", "opts": ["For at undgå at ramme nerver og store kar", "For at det går hurtigere", "For at spare kanyler", "Det er ikke vigtigt"], "correct": [0], "why": "Forkert sted kan ramme fx n. radialis eller n. ischiadicus.", "tag": "Komplikationer"},
+  {"qid": "inj-ko4", "catId": "injektion", "q": "Hvad kan det betyde, hvis der IKKE dannes en kvaddel ved en intradermal injektion?", "type": "mc", "opts": ["Injektionen er gået for dybt, og resultatet bliver usikkert", "Alt er som det skal være", "Der er givet for lidt luft", "Kanylen var for tynd"], "correct": [0], "why": "Ingen kvaddel tyder på for dyb (subkutan) injektion → usikkert testresultat.", "tag": "Komplikationer"},
+  {"qid": "inj-ko5", "catId": "injektion", "q": "Hvilke er mulige komplikationer ved injektion? (vælg alle korrekte)", "type": "multi", "opts": ["Blødning/hæmatom", "Infektion", "Nerveskade ved forkert IM-sted", "Bedre syn"], "correct": [0, 1, 2], "why": "Blødning, infektion og nerveskade er reelle komplikationer; bedre syn er ikke en komplikation.", "tag": "Komplikationer"},
+  {"qid": "inj-ko6", "catId": "injektion", "q": "Flebitis er et tegn, man kan se ved:", "type": "mc", "opts": ["Intravenøs injektion (rødme/varme langs venen)", "Intradermal test", "Subkutan insulin", "Peroral medicin"], "correct": [0], "why": "Flebitis (veneirritation) ses ved i.v.-adgang.", "tag": "Komplikationer"},
+  {"qid": "inj-pr1", "catId": "injektion", "q": "Intravenøs administration ligger normalt inden for grundlæggende SSA-kompetence.", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "IV er typisk forbeholdt sygeplejerske/læge og kræver særlig kompetence og delegation.", "tag": "Faglig ansvar"},
+  {"qid": "inj-pr2", "catId": "injektion", "q": "Du er i tvivl om en ordination før en injektion. Hvad gør du?", "type": "mc", "opts": ["Stopper og kontakter den ansvarlige fagperson", "Gætter en dosis", "Giver halvdelen", "Venter til i morgen"], "correct": [0], "why": "Ved tvivl: stop og afklar — gæt aldrig.", "tag": "Faglig ansvar"},
+  {"qid": "inj-pr3", "catId": "injektion", "q": "Hvad skal være på plads, før du må give en injektion?", "type": "mc", "opts": ["Din kompetence og en gyldig delegation/instruks", "Kun at du har tid", "Kun borgerens ønske", "Kun en kanyle"], "correct": [0], "why": "Du skal kende din kompetence og arbejde efter delegation/instruks.", "tag": "Faglig ansvar"},
+  {"qid": "inj-pr4", "catId": "injektion", "q": "Hvem har forrang, hvis Klario og den lokale instruks er uenige?", "type": "mc", "opts": ["Den lokale instruks og ordination", "Klario", "Din kollega", "Ingen af delene"], "correct": [0], "why": "Lokal instruks, ordination og produktresumé har altid forrang.", "tag": "Faglig ansvar"},
+  {"qid": "inj-pr5", "catId": "injektion", "q": "Hvad gør du ved et stikuheld med en brugt kanyle?", "type": "mc", "opts": ["Følger arbejdsstedets stikuheldsinstruks straks", "Venter og ser tiden an", "Skjuler det", "Sætter hætten på og fortsætter"], "correct": [0], "why": "Stikuheld håndteres straks efter lokal stikuheldsinstruks.", "tag": "Faglig ansvar"},
+  {"qid": "inj-ps1", "catId": "injektion", "q": "Hvad hører med til de rigtige kontroller før medicin/injektion? (vælg alle korrekte)", "type": "multi", "opts": ["Rigtig borger", "Rigtigt lægemiddel", "Rigtig dosis", "Rigtig farve på kanylen"], "correct": [0, 1, 2], "why": "Rigtig borger, lægemiddel, dosis, vej, tidspunkt og dokumentation — ikke kanylens farve.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps2", "catId": "injektion", "q": "Hvordan bekræfter du borgerens identitet før en injektion?", "type": "mc", "opts": ["Med to identifikatorer efter lokal instruks", "Ved at spørge sidemanden", "Ved at gætte", "Det behøver du ikke"], "correct": [0], "why": "Brug to identifikatorer (fx navn og CPR) efter lokal instruks.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps3", "catId": "injektion", "q": "Hvad gør du med kanylen efter brug?", "type": "mc", "opts": ["Lægger den direkte i en godkendt kanylebøtte", "Sætter hætten på igen", "Smider den i skraldespanden", "Lægger den på bordet"], "correct": [0], "why": "Kanylen i kanylebøtte straks — recap aldrig.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps4", "catId": "injektion", "q": "Må en kanylebøtte fyldes helt til kanten?", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "Nej — fyld ikke over max-stregen; luk bøtten, når den er fuld.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps5", "catId": "injektion", "q": "Hvad skal dokumenteres efter en injektion?", "type": "mc", "opts": ["Præparat, dosis, sted, tidspunkt og initialer", "Kun tidspunkt", "Kun dit navn", "Ingenting"], "correct": [0], "why": "Dokumentér præparat, dosis, sted, tidspunkt og initialer.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps6", "catId": "injektion", "q": "Hvorfor skal man rotere injektionssted ved gentagne subkutane injektioner?", "type": "mc", "opts": ["For at undgå lipohypertrofi og skåne vævet", "For at det ser pænt ud", "For at spare tid", "Det behøver man ikke"], "correct": [0], "why": "Rotation forebygger lipohypertrofi og uens optagelse.", "tag": "Patientsikkerhed"},
+  {"qid": "inj-ps7", "catId": "injektion", "q": "En ampul er beregnet til:", "type": "mc", "opts": ["Engangsbrug", "Flere borgere", "Genbrug næste dag", "At opbevares åben i ugevis"], "correct": [0], "why": "Glasampuller er engangsbrug.", "tag": "Udstyr"},
+  {"qid": "inj-va1", "catId": "injektion", "q": "Ifølge SSI aspireres der ved vaccination.", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "SSI anbefaler, at der ikke aspireres ved vacciner, da der ikke er store kar på de anbefalede steder.", "tag": "Vacciner"},
+  {"qid": "inj-va2", "catId": "injektion", "q": "Vaccinationsvejledning må frit overføres til alle andre injektionslægemidler.", "type": "tf", "opts": ["Sandt", "Falsk"], "correct": [1], "why": "Nej — hold vaccinationsvejledning adskilt; andre lægemidler følger produktresumé og lokal instruks.", "tag": "Vacciner"},
 ];
 
 /* Per-category bank with stable IDs (existing questions + new ones). */
@@ -2351,7 +4019,7 @@ const bankSize = (catId) => (CATEGORY_BANK[catId] || []).length;
 /* Number of test slots scales with the bank (target up to 8; never padded
    with duplicates just to reach 8). Add more questions → more/º richer tests. */
 const testCountFor = (catId) => { const n = bankSize(catId); return n < 6 ? (n > 0 ? 1 : 0) : Math.min(8, Math.max(2, Math.ceil(n / 5))); };
-const TESTVIDEN_CAT_IDS = DATA.map((c) => c.id).filter((id) => bankSize(id) > 0);
+const TESTVIDEN_CAT_IDS = DATA.map((c) => c.id).concat(["anatomi", "farmakologi", "halveringstid", "injektion"]).filter((id, i, a) => a.indexOf(id) === i && bankSize(id) > 0);
 
 function hashStr(str) { let h = 2166136261 >>> 0; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return h >>> 0; }
 function seededShuffle(arr, seed) { const a = arr.slice(); let s = (seed >>> 0) || 1; for (let i = a.length - 1; i > 0; i--) { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; const j = s % (i + 1); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
@@ -3007,6 +4675,7 @@ function DocxViewer({ dv, onClose, onShare }) {
 
 export default function Klario() {
   const [screen, setScreen] = useState("hjem");
+  const [medlibSel, setMedlibSel] = useState(null);
   const [activeCat, setActiveCat] = useState(null);
   const [query, setQuery] = useState("");
   const [favs, setFavs] = useState(() => new Set());
@@ -3017,9 +4686,16 @@ export default function Klario() {
   const [region, setRegion] = useState(null);        // KLARIO region — kept in React state (same in-memory model as favoritter/senest brugt)
   const [callPrompt, setCallPrompt] = useState(null); // { phone } — confirmation shown before any tel: link is used
   const [procView, setProcView] = useState(null); // Plejeprocedurer — open procedure id
+  const [injView, setInjView] = useState(null); // Injektioner — internal view (module id / tool / null)
   const [termView, setTermView] = useState(null); // Fagligt sprog — open term id
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
+  const [anatView, setAnatView] = useState(null); // Anatomi & fysiologi — open entry id
+  const [anatQuery, setAnatQuery] = useState("");  // Anatomi & fysiologi — search
+  const [anatCat, setAnatCat] = useState("alle");  // Anatomi & fysiologi — active subcategory
+  const [farmaSec, setFarmaSec] = useState(null);  // Farmakologi — open section id (null = hub)
+  const [farmaItem, setFarmaItem] = useState(null); // Farmakologi — open item within a section
+  const [farmaQuery, setFarmaQuery] = useState(""); // Farmakologi — begreber search
   const [calcView, setCalcView] = useState(null); // Lommeregnere — open tool (medicin/infusion/bmi)
   const [calcGroup, setCalcGroup] = useState(null); // which calculator group is being shown (medicin | bmi)
   const [calcBack, setCalcBack] = useState(null);   // where to return from a calculator (hjem | vaerktoejer | soeg)
@@ -3077,7 +4753,7 @@ export default function Klario() {
     recordRecent(id);
     pendingScroll.current = id;
   };
-  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setQuizCat(null); setQuizMsg(null); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setDocxView(null); setScreen(tab); scrollTop(); };
+  const goTab = (tab) => { setActiveCat(null); setMoreView(null); setAkutView(null); setProcView(null); setTermView(null); setCalcView(null); setCalcGroup(null); setCalcBack(null); setCaseView(null); setActiveQuiz(null); setQuizCat(null); setQuizMsg(null); setAnatView(null); setAnatQuery(""); setAnatCat("alle"); setFarmaSec(null); setFarmaItem(null); setFarmaQuery(""); setNoteModal(false); setDeleteNoteId(null); setDocMenu(null); setPendingFile(null); if (preview) { try { URL.revokeObjectURL(preview.url); } catch (e) {} setPreview(null); } setDocxView(null); setScreen(tab); scrollTop(); };
   useEffect(() => { saveNotes(notes); }, [notes]);
   const openNotes = notes.filter((n) => !n.completed);
   const doneNotes = notes.filter((n) => n.completed);
@@ -3205,6 +4881,7 @@ export default function Klario() {
   }, [query]);
 
   const favCards = ALL_CARDS.filter((c) => favs.has(c.card.id));
+  const favProcs = PLEJE_PROCS.filter((p) => favs.has(p.id));
   const recentCards = recents.map((id) => CARD_INDEX[id]).filter(Boolean);
   const activeCatObj = DATA.find((c) => c.id === activeCat);
   const akut = DATA.find((c) => c.id === "akut");
@@ -3215,21 +4892,38 @@ export default function Klario() {
   const procResults = procQ ? PLEJE_PROCS.filter((p) => procText(p).includes(procQ)) : [];
   const termQ = termQuery.trim().toLowerCase();
   const termResults = termQ ? TERMS.filter((t) => termText(t).includes(termQ)) : [];
-  const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); scrollTop(); };
+  const anatHits = termQ ? anatSearch(termQuery) : [];
+  const anatResults = anatQuery.trim() ? anatSearch(anatQuery) : [];
+  const openProc = (id) => { setScreen("plejeprocedurer"); setProcView(id); setTermView(null); setInjView(null); scrollTop(); };
   const openTerm = (id) => { setScreen("fagligtsprog"); setTermView(id); setProcView(null); scrollTop(); };
-  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat";
+  const openAnat = (id) => { setScreen("anatomi"); setAnatView(id); scrollTop(); };
+  const openAnatHome = () => { setScreen("anatomi"); setAnatView(null); scrollTop(); };
+  const openFarma = () => { setScreen("farmakologi"); setFarmaSec(null); setFarmaItem(null); setFarmaQuery(""); scrollTop(); };
+  const openFarmaSec = (id) => { if (id === "test") { openTestKat("farmakologi"); return; } setScreen("farmakologi"); setFarmaSec(id); setFarmaItem(null); scrollTop(); };
+  const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat" || screen === "anatomi" || screen === "farmakologi" || screen === "medicinbibliotek";
   const curCase = caseView ? caseById(caseView) : null;
-  const pfTitle = screen === "plejeprocedurer" ? (curProc ? curProc.title : "Plejeprocedurer")
+  const pfTitle = screen === "plejeprocedurer" ? (procView === "p-injektioner" ? (injView ? ((INJ.modules.find((m) => m.id === injView) || {}).title || "Injektioner") : "Injektioner") : (curProc ? curProc.title : "Plejeprocedurer"))
     : screen === "lommeregnere" ? (calcView ? (CALC_TOOLS.find((t) => t.id === calcView) || {}).title : (calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere"))
     : screen === "casetraening" ? (curCase ? curCase.title : "Case-træning")
     : screen === "quizoversigt" ? "Test din viden"
     : screen === "testkat" ? (quizCat ? catTitleById(quizCat) : "Test din viden")
     : screen === "testviden" ? "Test Viden"
     : screen === "dokumenter" ? "Mine dokumenter"
+    : screen === "anatomi" ? "Anatomi & fysiologi"
+    : screen === "farmakologi" ? (farmaSec ? ((FARMA_SECTIONS.find((x) => x.id === farmaSec) || {}).title || "Farmakologi") : "Farmakologi")
+    : screen === "medicinbibliotek" ? (medlibSel ? ((MEDLIB.find((x) => x.id === medlibSel) || {}).brandName || "Medicinbibliotek") : "Medicinbibliotek")
     : (curTerm ? curTerm.term : "Fagligt sprog");
   const pfBack = () => {
+    if (screen === "plejeprocedurer" && procView === "p-injektioner" && injView) { setInjView(null); scrollTop(); return; }
     if (screen === "plejeprocedurer" && procView) { setProcView(null); scrollTop(); return; }
     if (screen === "fagligtsprog" && termView) { setTermView(null); scrollTop(); return; }
+    if (screen === "anatomi" && anatView) { setAnatView(null); scrollTop(); return; }
+    if (screen === "anatomi") { setScreen("kategorier"); scrollTop(); return; }
+    if (screen === "farmakologi" && farmaItem) { setFarmaItem(null); scrollTop(); return; }
+    if (screen === "farmakologi" && farmaSec) { setFarmaSec(null); setFarmaQuery(""); scrollTop(); return; }
+    if (screen === "farmakologi") { setScreen("kategorier"); scrollTop(); return; }
+    if (screen === "medicinbibliotek" && medlibSel) { setMedlibSel(null); scrollTop(); return; }
+    if (screen === "medicinbibliotek") { setScreen("hjem"); scrollTop(); return; }
     if (screen === "lommeregnere") {
       if (calcView && calcGroup === "medicin") { setCalcView(null); scrollTop(); return; }
       const back = calcBack; setCalcView(null); setCalcGroup(null); setCalcBack(null);
@@ -3648,6 +5342,14 @@ export default function Klario() {
                 {/* MEDICINOPSLAG — external links to medicin.dk + Medicinberegner */}
                 <div style={{ marginBottom: 22 }}>
                   <SectionHead title="Medicinopslag" />
+                  <button onClick={() => { setMedlibSel(null); setScreen("medicinbibliotek"); scrollTop(); }} aria-label="Medicinbibliotek" style={{ width: "100%", textAlign: "left", border: `1px solid ${tint("#7A5AF5", "2E")}`, background: `linear-gradient(160deg, ${tint("#7A5AF5", "12")}, ${C.surface})`, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 66, marginBottom: 11 }}>
+                    <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "1E"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Pill size={23} color="#5B37C7" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: C.ink }}>Medicinbibliotek</div>
+                      <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Søg medicin, aktivt stof og lægemiddelgruppe.</div>
+                    </div>
+                    <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
                   <button onClick={() => { setCalcGroup("medicin"); setCalcView(null); setCalcBack("hjem"); setScreen("lommeregnere"); scrollTop(); }} aria-label="Medicinberegner" style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 15, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 66, marginBottom: 11 }}>
                     <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Calculator size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
                     <div style={{ flex: 1 }}>
@@ -3655,6 +5357,11 @@ export default function Klario() {
                       <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 2 }}>Dosis, styrke og infusion.</div>
                     </div>
                     <ChevronRight size={20} color={C.inkFaint} />
+                  </button>
+                  <button onClick={() => { setScreen("farmakologi"); setFarmaSec("halveringstid"); setFarmaItem(null); scrollTop(); }} aria-label="Medicinens halveringstid" style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 16, padding: "13px 14px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, marginBottom: 11, minHeight: 60 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 12, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Clock size={21} color="#5B37C7" strokeWidth={2.1} /></div>
+                    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>Medicinens halveringstid (T½)</div><div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>Forstå T½ og prøv beregneren</div></div>
+                    <ChevronRight size={19} color={C.inkFaint} />
                   </button>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
                     {EXTERNAL_RESOURCES.medicine.map((r) => <ExtLinkCard key={r.url} r={r} />)}
@@ -3877,7 +5584,10 @@ export default function Klario() {
                   const quizHub = qs2.includes("quiz") || qs2.includes("test din viden") || qs2 === "test";
                   const quizCats = DATA.filter((c) => makeCategoryQuiz(c.id) && qs2.includes(c.title.toLowerCase()) && (qs2.includes("quiz") || qs2.includes("test") || true)).map((c) => c.id);
                   const showHub = quizHub && quizCats.length === 0;
-                  const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0);
+                  const procHitsQ = qs2 ? PLEJE_PROCS.filter((p) => procText(p).includes(qs2)) : [];
+                  const anatHitsQ = anatSearch(query);
+                  const farmaHitsQ = farmaSearch(query);
+                  const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0) + anatHitsQ.length + farmaHitsQ.length + procHitsQ.length;
                   return (
                   <>
                     <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 12 }}>{total} {total === 1 ? "resultat" : "resultater"}</div>
@@ -3908,6 +5618,27 @@ export default function Klario() {
                       ))}
                       {results.map(({ card, cat }) => (
                         <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav={favs.has(card.id)} onFav={() => toggleFav(card.id)} onQuiz={setActiveQuiz} onCase={openCase} />
+                      ))}
+                      {anatHitsQ.map((a) => (
+                        <button key={"an-" + a.id} onClick={() => openAnat(a.id)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#0FAE9E", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Activity size={20} color="#0B9488" strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "#0B9488", marginBottom: 1 }}>Anatomi &amp; fysiologi</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>{a.daglig}{a.latin && a.latin !== a.daglig ? " · " + a.latin : ""}</div></div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
+                      ))}
+                      {farmaHitsQ.map((h) => (
+                        <button key={"fa-" + h.kind + "-" + h.id} onClick={() => { if (h.kind === "term") { setScreen("farmakologi"); setFarmaSec("begreber"); setFarmaItem(null); setFarmaQuery(h.title); scrollTop(); } else { openFarmaSec(h.id); } }} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Pill size={20} color="#7A5AF5" strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "#7A5AF5", marginBottom: 1 }}>Farmakologi</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>{h.title}</div></div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
+                      ))}
+                      {procHitsQ.map((p) => (
+                        <button key={"pr-" + p.id} onClick={() => openProc(p.id)} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#2E68E0", "12"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><p.Icon size={20} color="#2257D8" strokeWidth={2.1} /></div>
+                          <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "#2257D8", marginBottom: 1 }}>Plejeprocedurer</div><div style={{ fontSize: 15, fontWeight: 600, color: C.ink }}>{p.title}</div></div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
                       ))}
                       {total === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "30px 0" }}>Ingen emner matcher \u201E{query}\u201C.</p>}
                     </div>
@@ -4015,7 +5746,7 @@ export default function Klario() {
               <div className="anim">
                 <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Hurtige beregnere til hverdagen. Kontrollér altid resultatet mod ordination og lokale instrukser.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                  {CALC_TOOLS.filter((t) => (calcGroup === "bmi" ? t.id === "bmi" : (t.id === "medicin" || t.id === "infusion"))).map((t) => (
+                  {CALC_TOOLS.filter((t) => (calcGroup === "bmi" ? t.id === "bmi" : (t.id === "medicin" || t.id === "infusion" || t.id === "blodtryk"))).map((t) => (
                     <button key={t.id} onClick={() => { setCalcView(t.id); scrollTop(); }} aria-label={t.title} style={{ textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 18, padding: 16, cursor: "pointer", display: "flex", alignItems: "center", gap: 14, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 72 }}>
                       <div style={{ width: 46, height: 46, borderRadius: 14, background: tint("#7A5AF5", "14"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><t.Icon size={23} color="#7A5AF5" strokeWidth={2.1} /></div>
                       <div style={{ flex: 1 }}>
@@ -4040,6 +5771,9 @@ export default function Klario() {
             {!activeCat && screen === "lommeregnere" && calcView === "bmi" && (
               <div key="c-bmi" className="anim"><BmiBeregner /></div>
             )}
+            {!activeCat && screen === "lommeregnere" && calcView === "blodtryk" && (
+              <div key="c-blodtryk" className="anim"><BlodtryksBeregner /></div>
+            )}
 
             {/* PLEJEPROCEDURER — overview */}
             {!activeCat && screen === "plejeprocedurer" && !procView && (
@@ -4060,7 +5794,9 @@ export default function Klario() {
             {/* PLEJEPROCEDURER — detail */}
             {!activeCat && screen === "plejeprocedurer" && procView && curProc && (
               <div key={procView} className="anim">
-                <ProcDetail p={curProc} onTerm={openTerm} onQuiz={setActiveQuiz} onCase={openCase} />
+                {procView === "p-injektioner"
+                  ? <Injektioner view={injView} setView={setInjView} onQuiz={() => openTestKat("injektion")} isFav={favs.has("p-injektioner")} onFav={() => toggleFav("p-injektioner")} />
+                  : <ProcDetail p={curProc} onTerm={openTerm} onQuiz={setActiveQuiz} onCase={openCase} />}
               </div>
             )}
 
@@ -4076,11 +5812,19 @@ export default function Klario() {
 
                 {termQ ? (
                   <>
-                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 11 }}>{termResults.length} {termResults.length === 1 ? "resultat" : "resultater"}</div>
+                    <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 11 }}>{termResults.length + anatHits.length} {termResults.length + anatHits.length === 1 ? "resultat" : "resultater"}</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                       {termResults.map((t) => <TermCard key={t.id} t={t} onOpen={openTerm} />)}
-                      {termResults.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen ord matcher \u201E{termQuery}\u201C.</p>}
+                      {termResults.length === 0 && anatHits.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen ord matcher \u201E{termQuery}\u201C.</p>}
                     </div>
+                    {anatHits.length > 0 && (
+                      <div style={{ marginTop: 18 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, marginBottom: 9 }}>ANATOMI &amp; FYSIOLOGI</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                          {anatHits.map((a) => <AnatCard key={a.id} a={a} onOpen={openAnat} />)}
+                        </div>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
@@ -4143,6 +5887,278 @@ export default function Klario() {
               </div>
             )}
 
+            {/* ANATOMI & FYSIOLOGI */}
+            {!activeCat && screen === "anatomi" && (
+              anatView && anatById(anatView) ? (
+                <div key={anatView} className="anim">
+                  <AnatDetail a={anatById(anatView)} onCat={openCategory} onTest={openTestKat} />
+                </div>
+              ) : (
+                <div className="anim">
+                  <p style={{ margin: "0 0 14px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Slå kropsdele, organer og faglige/latinske betegnelser op.</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: tint(C.ink, "06"), border: `1px solid ${C.line}`, borderRadius: 14, marginBottom: 14 }}>
+                    <Search size={19} color={C.inkSoft} />
+                    <input value={anatQuery} onChange={(e) => setAnatQuery(e.target.value)} placeholder="Søg kropsdel, organ eller fagligt ord…" aria-label="Søg i anatomi" style={{ flex: 1, border: "none", outline: "none", fontSize: 15, color: C.ink, background: "transparent", fontFamily: "inherit" }} />
+                    {anatQuery && <button onClick={() => setAnatQuery("")} aria-label="Ryd søgning" style={{ border: "none", background: tint(C.ink, "12"), borderRadius: 99, padding: 4, display: "flex", cursor: "pointer" }}><X size={15} color={C.inkSoft} /></button>}
+                  </div>
+
+                  {anatQuery.trim() ? (
+                    <>
+                      <div style={{ fontSize: 13, color: C.inkSoft, marginBottom: 11 }}>{anatResults.length} {anatResults.length === 1 ? "resultat" : "resultater"}</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                        {anatResults.map((a) => <AnatCard key={a.id} a={a} onOpen={openAnat} />)}
+                        {anatResults.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen match på \u201E{anatQuery}\u201C.</p>}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 14, WebkitOverflowScrolling: "touch" }}>
+                        {ANAT_SUBS.map((sc) => { const on = anatCat === sc.id; return (
+                          <button key={sc.id} onClick={() => setAnatCat(sc.id)} style={{ flexShrink: 0, border: `1px solid ${on ? "#0FAE9E" : C.line}`, background: on ? tint("#0FAE9E", "12") : C.surface, color: on ? "#0B9488" : C.inkSoft, borderRadius: 99, padding: "7px 13px", fontSize: 13, fontWeight: 700, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>{sc.label}</button>
+                        ); })}
+                      </div>
+                      {anatCat === "alle" ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {ANAT_SUBS.filter((sc) => sc.id !== "alle").map((sc) => { const n = anatBySub(sc.id).length; return (
+                            <button key={sc.id} onClick={() => setAnatCat(sc.id)} aria-label={sc.label} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 14, padding: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 12, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 58 }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 15, fontWeight: 700, color: C.ink }}>{sc.label}</div>
+                                <div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>{n} opslag</div>
+                              </div>
+                              <ChevronRight size={18} color={C.inkFaint} />
+                            </button>
+                          ); })}
+                          <button onClick={() => openTestKat("anatomi")} style={{ width: "100%", border: "none", borderRadius: 14, padding: "13px", background: "linear-gradient(135deg,#2BC7B4,#0B9488)", color: "#fff", fontFamily: "inherit", fontSize: 15, fontWeight: 800, cursor: "pointer", minHeight: 50, marginTop: 4 }}>Test din viden om anatomi</button>
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, marginBottom: 10 }}>{(ANAT_SUBS.find((x) => x.id === anatCat) || {}).label.toUpperCase()}</div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                            {anatBySub(anatCat).map((a) => <AnatCard key={a.id} a={a} onOpen={openAnat} />)}
+                          </div>
+                        </>
+                      )}
+                      <p style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 16, lineHeight: 1.5 }}>Latinske betegnelser følger gængs anatomisk nomenklatur. Er noget uklart, så kontrollér med din uddannelse eller lokale kilder.</p>
+                    </>
+                  )}
+                </div>
+              )
+            )}
+
+
+            {/* FARMAKOLOGI */}
+            {!activeCat && screen === "medicinbibliotek" && (
+              <MedicinBibliotek sel={medlibSel} setSel={setMedlibSel} onTest={() => { setScreen("quizoversigt"); scrollTop(); }} />
+            )}
+
+            {!activeCat && screen === "farmakologi" && (
+              <div className="anim">
+                {farmaSec === null ? (
+                  <>
+                    <p style={{ margin: "0 0 12px", fontSize: 13, color: C.inkSoft, lineHeight: 1.5 }}>Forstå hvordan lægemidler virker i kroppen. Læringsområde — ikke behandlings- eller doseringsråd.</p>
+                    <div style={{ display: "flex", gap: 9, background: tint("#7A5AF5", "0C"), border: `1px solid ${tint("#7A5AF5", "2A")}`, borderRadius: 13, padding: "11px 13px", marginBottom: 16 }}>
+                      <Info size={17} color="#5B37C7" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5 }}>Lægemiddelspecifikke oplysninger (doser, interaktioner, knusning) slås altid op i en godkendt kilde og følger ordination og lokale instrukser.</span>
+                    </div>
+                    <a href={FARMA_SRC} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ width: "100%", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 14, padding: "13px 14px", display: "flex", alignItems: "center", gap: 12, marginBottom: 16, minHeight: 58 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 12, background: tint("#7A5AF5", "16"), display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Pill size={20} color="#7A5AF5" strokeWidth={2.1} /></div>
+                      <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>Medicinopslag</div><div style={{ fontSize: 12.5, color: C.inkSoft, marginTop: 1 }}>Slå konkrete præparater op på pro.medicin.dk</div></div>
+                      <ChevronRight size={18} color={C.inkFaint} />
+                    </div></a>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {FARMA_SECTIONS.map((sec, i) => (
+                        <button key={sec.id} onClick={() => openFarmaSec(sec.id)} aria-label={sec.title} style={{ width: "100%", textAlign: "left", border: `1px solid ${C.line}`, background: C.surface, borderRadius: 14, padding: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 13, boxShadow: "0 1px 3px rgba(21,33,43,0.05)", minHeight: 60 }}>
+                          <div style={{ width: 30, height: 30, borderRadius: 9, background: tint("#7A5AF5", "12"), color: "#5B37C7", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13, fontWeight: 800 }}>{i + 1}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, lineHeight: 1.25 }}>{sec.title}</div>
+                            <div style={{ fontSize: 12, color: C.inkSoft, marginTop: 1 }}>{sec.sub}</div>
+                          </div>
+                          <ChevronRight size={18} color={C.inkFaint} />
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : farmaSec === "vej" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Følg en tablet trin for trin. Tryk på et trin for at læse mere.</p>
+                    <FarmaFlow steps={FARMA_JOURNEY.map((s) => s.t)} />
+                    <div style={{ fontSize: 13, fontWeight: 700, color: C.inkFaint, letterSpacing: 0.3, margin: "6px 0 2px" }}>TRIN FOR TRIN</div>
+                    {FARMA_JOURNEY.map((s, i) => (
+                      <Acc key={i} title={(i + 1) + ". " + s.t}><FarmaTwo quick={s.q} more={s.m} /></Acc>
+                    ))}
+                  </div>
+                ) : farmaSec === "adme" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>ADME beskriver, hvad kroppen gør ved lægemidlet.</p>
+                    {FARMA_ADME.map((a) => (
+                      <div key={a.k} style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "13px 14px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 8 }}>
+                          <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#9B7DF6,#5B37C7)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, flexShrink: 0 }}>{a.k}</div>
+                          <div style={{ fontSize: 15.5, fontWeight: 800, color: C.ink }}>{a.title}</div>
+                        </div>
+                        <FarmaTwo quick={a.q} more={a.m} />
+                      </div>
+                    ))}
+                  </div>
+                ) : farmaSec === "dynamik" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Farmakodynamik: hvad lægemidlet gør ved kroppen.</p>
+                    {FARMA_DYN.map((d, i) => (
+                      <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "13px 14px" }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 6 }}>{d.term}</div>
+                        <FarmaTwo quick={d.q} more={d.m} />
+                      </div>
+                    ))}
+                  </div>
+                ) : farmaSec === "admin" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Hvor og hvordan medicin gives. SC/IM/IV kræver kompetence, delegation og lokale instrukser.</p>
+                    {FARMA_ROUTES.map((r) => (
+                      <Acc key={r.id} title={r.name + " — " + r.full}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 9, fontSize: 13.5, color: C.ink, lineHeight: 1.5 }}>
+                          <div><b>Hvor:</b> {r.hvor}</div>
+                          <div><b>Hvordan:</b> {r.hvordan}</div>
+                          <div><b>Karakteristika:</b> {r.kar}</div>
+                          <div><b>SSA-observationer:</b><Bullets items={r.obs} color="#7A5AF5" /></div>
+                          <div><b>Sikkerhed:</b><Bullets items={r.sik} color={C.primary} /></div>
+                        </div>
+                      </Acc>
+                    ))}
+                  </div>
+                ) : farmaSec === "former" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div style={{ display: "flex", gap: 9, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "2A")}`, borderRadius: 12, padding: "11px 13px" }}>
+                      <Info size={17} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 12.5, color: "#7A4E0A", lineHeight: 1.5 }}>Kontrollér altid det konkrete præparat før deling, knusning eller åbning — brug en godkendt kilde og lokale instrukser.</span>
+                    </div>
+                    {FARMA_FORMS.map((f) => (
+                      <Acc key={f.id} title={f.name}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8, fontSize: 13.5, color: C.ink, lineHeight: 1.5 }}>
+                          <div><b>Hvad er det?</b> {f.hvad}</div>
+                          <div><b>Anvendelse:</b> {f.brug}</div>
+                          <div><b>Frigivelse/optagelse:</b> {f.frig}</div>
+                          <div style={{ color: "#7A4E0A" }}><b>Vigtigt:</b> {f.vig}</div>
+                        </div>
+                      </Acc>
+                    ))}
+                  </div>
+                ) : farmaSec === "tid" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Hvornår og hvor længe virker medicinen?</p>
+                    <div style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "12px 10px" }}>
+                      <svg viewBox="0 0 300 120" style={{ width: "100%", height: "auto" }} role="img" aria-label="Koncentration over tid">
+                        <line x1="30" y1="100" x2="290" y2="100" stroke="#C9D2D8" strokeWidth="1.5" />
+                        <line x1="30" y1="10" x2="30" y2="100" stroke="#C9D2D8" strokeWidth="1.5" />
+                        <path d="M30 100 Q 90 15 150 40 Q 210 60 290 92" fill="none" stroke="#7A5AF5" strokeWidth="2.5" />
+                        <circle cx="96" cy="34" r="3.5" fill="#5B37C7" />
+                        <text x="102" y="30" fontSize="10" fill="#5B6A73">Maks. effekt</text>
+                        <text x="150" y="115" fontSize="10" fill="#5B6A73" textAnchor="middle">Tid →</text>
+                        <text x="20" y="20" fontSize="10" fill="#5B6A73" textAnchor="end" transform="rotate(-90 20 20)">Koncentration</text>
+                      </svg>
+                      <div style={{ fontSize: 11.5, color: C.inkFaint, textAlign: "center", marginTop: 4 }}>Forenklet illustration — konkret forløb varierer fra lægemiddel til lægemiddel.</div>
+                    </div>
+                    {FARMA_TIMING.map((t, i) => (
+                      <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "13px 14px" }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 6 }}>{t.term}</div>
+                        <FarmaTwo quick={t.q} more={t.m} />
+                      </div>
+                    ))}
+                  </div>
+                ) : farmaSec === "halveringstid" ? (
+                  <HalfLifeView onTest={openTestKat} />
+                ) : farmaSec === "bivirk" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Når medicin gør andet end det ønskede. Konkrete bivirkninger, interaktioner og kontraindikationer slås op i godkendt kilde.</p>
+                    {FARMA_ADVERSE.map((d, i) => (
+                      <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 14, background: C.surface, padding: "13px 14px" }}>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: C.ink, marginBottom: 6 }}>{d.term}</div>
+                        <FarmaTwo quick={d.q} more={d.m} />
+                      </div>
+                    ))}
+                    <a href={FARMA_SRC} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ border: `1px solid ${tint("#7A5AF5", "33")}`, background: tint("#7A5AF5", "0A"), borderRadius: 12, padding: "12px 14px", fontSize: 13.5, fontWeight: 700, color: "#5B37C7", display: "flex", alignItems: "center", gap: 8 }}><Pill size={17} color="#7A5AF5" /><span style={{ flex: 1 }}>Slå op på pro.medicin.dk</span><ChevronRight size={16} color="#7A5AF5" /></div></a>
+                  </div>
+                ) : farmaSec === "lever" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <FarmaTwo quick={FARMA_LEVER.quick} />
+                    <Bullets items={FARMA_LEVER.points} color="#7A5AF5" />
+                    <button onClick={() => openAnat(FARMA_LEVER.anat)} style={{ width: "100%", textAlign: "left", border: `1px solid ${tint("#0FAE9E", "33")}`, background: tint("#0FAE9E", "0A"), borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: "#0B9488", display: "flex", alignItems: "center", gap: 8 }}><Activity size={17} color="#0B9488" /><span style={{ flex: 1 }}>Se også → Lever (anatomi &amp; fysiologi)</span><ChevronRight size={16} color="#0B9488" /></button>
+                  </div>
+                ) : farmaSec === "nyrer" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <FarmaTwo quick={FARMA_NYRER.quick} />
+                    <Bullets items={FARMA_NYRER.points} color="#7A5AF5" />
+                    <button onClick={() => openAnat(FARMA_NYRER.anat)} style={{ width: "100%", textAlign: "left", border: `1px solid ${tint("#0FAE9E", "33")}`, background: tint("#0FAE9E", "0A"), borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: "#0B9488", display: "flex", alignItems: "center", gap: 8 }}><Activity size={17} color="#0B9488" /><span style={{ flex: 1 }}>Se også → Nyrer (anatomi &amp; fysiologi)</span><ChevronRight size={16} color="#0B9488" /></button>
+                  </div>
+                ) : farmaSec === "aeldre" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <FarmaTwo quick={FARMA_AELDRE.quick} />
+                    <Acc title="Hvorfor reagerer ældre anderledes?" defaultOpen={true}><Bullets items={FARMA_AELDRE.hvorfor} color="#7A5AF5" /></Acc>
+                    <Acc title="Hvad skal jeg observere?"><Bullets items={FARMA_AELDRE.obs} color={C.primary} /></Acc>
+                  </div>
+                ) : farmaSec === "sikkerhed" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                    <p style={{ margin: 0, fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>Sikker medicinhåndtering. Handl inden for din delegation og arbejdsstedets instrukser.</p>
+                    {FARMA_SAFETY.map((s, i) => (
+                      <div key={i} style={{ border: `1px solid ${C.line}`, borderRadius: 12, background: C.surface, padding: "12px 14px" }}>
+                        <div style={{ fontSize: 14.5, fontWeight: 700, color: C.ink }}>{s.t}</div>
+                        <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 3, lineHeight: 1.5 }}>{s.d}</div>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", gap: 9, background: tint(C.primary, "0A"), border: `1px solid ${tint(C.primary, "22")}`, borderRadius: 12, padding: "11px 13px" }}><Info size={16} color={C.primary} style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5 }}>Meget afhænger af lokale instrukser og delegation — dem følger du altid.</span></div>
+                  </div>
+                ) : farmaSec === "obs" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    <p style={{ margin: "0 0 12px", fontSize: 14, color: C.inkSoft, lineHeight: 1.55 }}>En praktisk huskerække, når du håndterer medicin.</p>
+                    {FARMA_OBS.map((o, i) => (
+                      <div key={i}>
+                        <div style={{ border: `1px solid ${tint("#7A5AF5", "2A")}`, background: tint("#7A5AF5", "0A"), borderRadius: 12, padding: "12px 14px" }}>
+                          <div style={{ fontSize: 14.5, fontWeight: 800, color: "#5B37C7" }}>{o.t}</div>
+                          <div style={{ fontSize: 13.5, color: C.ink, marginTop: 3, lineHeight: 1.5 }}>{o.d}</div>
+                        </div>
+                        {i < FARMA_OBS.length - 1 ? <div style={{ textAlign: "center", color: "#7A5AF5", fontSize: 16, padding: "3px 0" }}>↓</div> : null}
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", gap: 9, background: tint("#B7791F", "10"), border: `1px solid ${tint("#B7791F", "2A")}`, borderRadius: 12, padding: "11px 13px", marginTop: 12 }}><Info size={16} color="#8A5A0B" style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 12.5, color: "#7A4E0A", lineHeight: 1.5 }}>Observationer og handlinger må ikke tilsidesætte ordination, delegation eller lokale procedurer.</span></div>
+                  </div>
+                ) : farmaSec === "furosemid" ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    <div style={{ display: "flex", gap: 9, background: tint("#7A5AF5", "0C"), border: `1px solid ${tint("#7A5AF5", "2A")}`, borderRadius: 12, padding: "11px 13px" }}><Info size={16} color="#5B37C7" style={{ flexShrink: 0, marginTop: 1 }} /><span style={{ fontSize: 12.5, color: C.ink, lineHeight: 1.5 }}>Læringseksempel med generel, verificerbar virkningsmekanisme. Indikation, dosis og behandling afhænger af ordination — {FARMA_VERIFY}</span></div>
+                    <div style={{ fontSize: 17, fontWeight: 800, color: C.ink }}>{FARMA_FUROSEMID.navn}</div>
+                    <div style={{ fontSize: 13, color: C.inkSoft }}>{FARMA_FUROSEMID.gruppe}</div>
+                    <FarmaFlow steps={FARMA_FUROSEMID.chain} />
+                    <Acc title="Hvorfor gives det?"><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{FARMA_FUROSEMID.hvorfor}</div></Acc>
+                    <Acc title="Hvad sker der fysiologisk?"><div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{FARMA_FUROSEMID.fysiologi}</div></Acc>
+                    <Acc title="Hvad kan være relevant at observere?"><Bullets items={FARMA_FUROSEMID.obs} color="#7A5AF5" /></Acc>
+                    <button onClick={() => openAnat("a-nyrer")} style={{ width: "100%", textAlign: "left", border: `1px solid ${tint("#0FAE9E", "33")}`, background: tint("#0FAE9E", "0A"), borderRadius: 12, padding: "12px 14px", cursor: "pointer", fontFamily: "inherit", fontSize: 14, fontWeight: 700, color: "#0B9488", display: "flex", alignItems: "center", gap: 8 }}><Activity size={17} color="#0B9488" /><span style={{ flex: 1 }}>Se også → Nyrer (anatomi &amp; fysiologi)</span><ChevronRight size={16} color="#0B9488" /></button>
+                    <a href={FARMA_SRC} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}><div style={{ border: `1px solid ${tint("#7A5AF5", "33")}`, background: tint("#7A5AF5", "0A"), borderRadius: 12, padding: "12px 14px", fontSize: 13.5, fontWeight: 700, color: "#5B37C7", display: "flex", alignItems: "center", gap: 8 }}><Pill size={17} color="#7A5AF5" /><span style={{ flex: 1 }}>Slå Furix/furosemid op på pro.medicin.dk</span><ChevronRight size={16} color="#7A5AF5" /></div></a>
+                  </div>
+                ) : farmaSec === "begreber" ? (
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: tint(C.ink, "06"), border: `1px solid ${C.line}`, borderRadius: 14, marginBottom: 14 }}>
+                      <Search size={19} color={C.inkSoft} />
+                      <input value={farmaQuery} onChange={(e) => setFarmaQuery(e.target.value)} placeholder="Søg fagligt ord, fx halveringstid…" aria-label="Søg i farmakologiske begreber" style={{ flex: 1, border: "none", outline: "none", fontSize: 15, color: C.ink, background: "transparent", fontFamily: "inherit" }} />
+                      {farmaQuery && <button onClick={() => setFarmaQuery("")} aria-label="Ryd søgning" style={{ border: "none", background: tint(C.ink, "12"), borderRadius: 99, padding: 4, display: "flex", cursor: "pointer" }}><X size={15} color={C.inkSoft} /></button>}
+                    </div>
+                    {(() => { const list = farmaQuery.trim() ? farmaTermSearch(farmaQuery) : FARMA_TERMS; return (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                        {list.map((t) => (
+                          <Acc key={t.id} title={t.term}>
+                            <div style={{ fontSize: 14, color: C.ink, lineHeight: 1.55 }}>{t.forklaring}</div>
+                            {t.eksempel ? <div style={{ fontSize: 13, color: C.inkSoft, marginTop: 7, lineHeight: 1.5 }}><b>Eksempel:</b> {t.eksempel}</div> : null}
+                            {t.related && t.related.length ? <div style={{ fontSize: 12.5, color: "#5B37C7", marginTop: 7 }}>Relateret: {t.related.join(", ")}</div> : null}
+                          </Acc>
+                        ))}
+                        {list.length === 0 && <p style={{ textAlign: "center", color: C.inkFaint, fontSize: 14, padding: "24px 0" }}>Ingen begreber matcher \u201E{farmaQuery}\u201C.</p>}
+                      </div>
+                    ); })()}
+                  </div>
+                ) : null}
+                {farmaSec && farmaSec !== "begreber" && (
+                  <p style={{ fontSize: 11.5, color: C.inkFaint, marginTop: 18, lineHeight: 1.5 }}>Klario er et lærings- og opslagsværktøj. Lægemiddelspecifik information verificeres i godkendt kilde og følger ordination og lokale instrukser.</p>
+                )}
+              </div>
+            )}
+
             {!activeCat && screen === "kategorier" && (
               <div className="anim">
                 <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Kategorier</h2>
@@ -4160,6 +6176,8 @@ export default function Klario() {
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                   <GridTile cat={FAGLIGT_CAT} count={TERMS.length} onClick={() => { setTermView(null); setScreen("fagligtsprog"); scrollTop(); }} />
                   <GridTile cat={PLEJE_CAT} count={PLEJE_PROCS.length} onClick={() => { setProcView(null); setScreen("plejeprocedurer"); scrollTop(); }} />
+                  <GridTile cat={ANATOMI_CAT} count={ANAT.length} onClick={() => { setAnatView(null); setAnatQuery(""); setAnatCat("alle"); setScreen("anatomi"); scrollTop(); }} />
+                  <GridTile cat={FARMA_CAT} count={FARMA_SECTIONS.length - 1} onClick={openFarma} />
                   {DATA.map((cat) => (
                     <button key={cat.id} onClick={() => openCategory(cat.id)} style={{ textAlign: "left", border: "none", borderRadius: 20, padding: 15, cursor: "pointer", background: `linear-gradient(160deg, ${tint(cat.color, "1A")}, ${tint(cat.color, "08")})`, display: "flex", flexDirection: "column", gap: 12, minHeight: 138, justifyContent: "space-between" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -4181,7 +6199,7 @@ export default function Klario() {
             {!activeCat && screen === "favoritter" && (
               <div className="anim">
                 <h2 style={{ margin: "0 0 16px", fontSize: 24, fontWeight: 800, color: C.ink, letterSpacing: -0.5 }}>Favoritter</h2>
-                {favCards.length === 0 ? (
+                {favCards.length === 0 && favProcs.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "54px 24px", color: C.inkFaint }}>
                     <div style={{ width: 64, height: 64, borderRadius: 20, background: tint("#F5A623", "16"), display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
                       <Star size={30} color="#F5A623" />
@@ -4190,6 +6208,7 @@ export default function Klario() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                    {favProcs.map((p) => <ProcCard key={p.id} p={p} onOpen={() => openProc(p.id)} />)}
                     {favCards.map(({ card, cat }) => (
                       <ClinCard key={card.id} card={card} cat={cat} showCat expanded={expanded.has(card.id)} onToggle={() => toggleExpand(card.id)} isFav onFav={() => toggleFav(card.id)} onQuiz={setActiveQuiz} onCase={openCase} />
                     ))}

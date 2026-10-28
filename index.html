@@ -3259,6 +3259,13 @@ const pbText = e => {
 
 const PLEJE_GENERAL_NOTE = "Dette er generel faglig vejledning. Følg altid borgerens aktuelle plan, delegation, ordination og arbejdsstedets lokale instrukser.";
 const PLEJE_PROCS = [{
+  id: "p-injektioner",
+  title: "Injektioner",
+  desc: "Subkutan, intramuskulær, intravenøs og intradermal injektion — SC, IM, IV, ID. Faglig undervisning, illustrationer, tjekliste og quiz.",
+  Icon: Plus,
+  ord: ["t-observation", "t-dokumentation"],
+  localNote: "Følg altid lokal instruks, produktresumé og din delegation."
+}, {
   id: "p-kateter",
   title: "Kateterpleje",
   desc: "Hygiejne, observation og sikker håndtering af kateter.",
@@ -4874,6 +4881,1063 @@ function TermCard({
       flexShrink: 0
     }
   }));
+}
+
+/* ===== KLARIO Injektioner (undervisningssektion) ========================
+ * SC/IM/IV/ID moduler. Procedurespecifik (ingen fælles vinkel/kanyle/aspiration).
+ * Vaccinationsvejledning holdes adskilt fra øvrig medicin. Kilder: SSI,
+ * Sundhedsstyrelsen, Lægehåndbogen (se kilder). Afventer faglig gennemgang —
+ * markeret i UI. Al tekst er ægte UTF-8 (JSX fortolker ikke \u-escapes). */
+const INJ = {
+  "modules": [{
+    "id": "sc",
+    "code": "SC",
+    "title": "Subkutan injektion",
+    "color": "#0FAE9E",
+    "g1": "#2BC7B4",
+    "g2": "#0B9488",
+    "short": "I underhuden (fedtlaget). Langsom, jævn optagelse.",
+    "key": [["Vinkel", "45° eller 90° (efter kanyle/fedtlag)"], ["Lag", "Underhud (subcutis/fedt)"], ["Optagelse", "Langsom og jævn"], ["Aspiration", "Normalt ikke"]],
+    "hvad": "Subkutan injektion (SC) gives i underhuden — det løse fedt- og bindevævslag lige under huden og over musklen. Lægemidlet optages langsommere end i muskel, hvilket giver en jævn og forlænget virkning.",
+    "hvor": "Områder med subkutant fedt: maveskindet (ca. 5 cm fra navlen), forside/yderside af låret, bagsiden af overarmen og evt. øvre, ydre balde. Skift (rotér) systematisk mellem stederne for at skåne vævet.",
+    "hvornaar": "Når et lægemiddel skal optages langsomt og jævnt, eller ikke egner sig til muskel eller vene. Bruges ofte til selvadministration i hjemmet.",
+    "laegemidler": ["Insulin", "Lavmolekylært heparin (fx dalteparin, enoxaparin, tinzaparin)", "GLP-1-analoger (fx semaglutid)", "Visse vacciner (fx levende svækkede, MFR) — se vaccinationsafsnittet", "Morfin s.c. i palliativ pleje"],
+    "anatomi": "Rækkefølgen er: hud (epidermis + dermis) → subkutant fedtlag (subcutis) → muskel. SC skal ramme fedtlaget. Hos en tynd person kan man løfte en hudfold og bruge mindre vinkel, så man ikke rammer muskel.",
+    "udstyr": "Kort, tynd kanyle (fx insulinpen eller -sprøjte). Kanylelængden vælges efter personens fedtlag — følg produkt- og lokal instruks. Mange SC-lægemidler leveres i færdige penne eller sprøjter.",
+    "forberedelse": ["Tjek ordination og de rigtige kontroller (borger, præparat, dosis, vej, tidspunkt).", "Udfør håndhygiejne (hånddesinfektion).", "Find og vurdér injektionsstedet; skift sted i forhold til sidst.", "Huden desinficeres normalt ikke, hvis den er synligt ren — følg lokal instruks."],
+    "fremgang": ["Løft evt. en hudfold mellem to fingre.", "Stik kanylen i den vinkel, der passer til kanylelængde og fedtlag — typisk 45° (lang kanyle/tynd person) eller 90° (kort kanyle).", "Injicér langsomt.", "Aspiration er normalt ikke nødvendig ved subkutan injektion.", "Træk kanylen ud, og slip hudfolden.", "Læg kanylen direkte i kanylebøtten."],
+    "obsFoer": ["Injektionsstedet (hud intakt, ingen infektion eller lipohypertrofi)", "Allergier", "Rigtig borger og ordination"],
+    "obsEfter": ["Lokal reaktion (rødme, hævelse, blødning)", "Tegn på allergisk reaktion", "Virkning og bivirkning afhængigt af lægemidlet"],
+    "komplikationer": ["Blødning eller blåt mærke", "Lokal irritation eller infektion", "Lipohypertrofi ved gentagne injektioner samme sted (fx insulin) → rotér", "Utilsigtet intramuskulær injektion (for dyb)"],
+    "dok": ["Dokumentér præparat, dosis, injektionssted, tidspunkt og dine initialer", "Notér og rotér injektionssted, hvor det er relevant", "Patientsikkerhed: de rigtige kontroller og samtykke"]
+  }, {
+    "id": "im",
+    "code": "IM",
+    "title": "Intramuskulær injektion",
+    "color": "#2E68E0",
+    "g1": "#4F86F4",
+    "g2": "#2257D8",
+    "short": "Direkte i en muskel. Hurtigere optagelse end subkutant.",
+    "key": [["Vinkel", "90°"], ["Lag", "Muskel"], ["Optagelse", "Hurtigere"], ["Aspiration", "Vacciner: nej · andre: følg lokal instruks"]],
+    "hvad": "Intramuskulær injektion (IM) gives direkte i en muskel, som har god blodforsyning. Det giver hurtigere optagelse end subkutant og kan rumme lidt større volumen.",
+    "hvor": "Voksne: deltoideus (overarm — bruges til de fleste vacciner), vastus lateralis (lårets yderside) og ventrogluteus (hoften). Spædbørn 0–12 mdr.: vastus lateralis. Brug korrekte anatomiske landemærker, så du undgår nerver og store kar.",
+    "hvornaar": "Når hurtigere virkning ønskes, ved lægemidler der skal i muskel, og til de fleste vacciner til voksne og større børn.",
+    "laegemidler": ["De fleste vacciner (se vaccinationsafsnittet)", "Visse antibiotika", "Vitamin B12 (hydroxocobalamin)", "Depotpræparater (fx visse antipsykotika)", "Adrenalin i.m. ved anafylaksi (anterolateralt på låret)"],
+    "anatomi": "Kanylen passerer hud og subkutant fedt og skal nå ind i muskelvævet. Fedtlagets tykkelse og muskelmassen afgør, hvor lang kanylen skal være. Forkert sted kan ramme en nerve (fx n. radialis ved deltoideus, n. ischiadicus ved ballen) eller et kar.",
+    "udstyr": "Længere kanyle end ved SC, så musklen nås gennem fedtlaget. Kanylelængde og -tykkelse vælges efter alder, muskelmasse og lægemiddel — følg produkt- og lokal instruks.",
+    "forberedelse": ["Tjek ordination og de rigtige kontroller.", "Udfør håndhygiejne.", "Find de korrekte anatomiske landemærker.", "Ved vaccination desinficeres huden normalt ikke, hvis den er synligt ren (SSI). For øvrige lægemidler: følg lokal instruks."],
+    "fremgang": ["Stræk huden over injektionsstedet (evt. Z-track-teknik ved vævsirriterende lægemidler).", "Stik kanylen i 90° ind i musklen.", "Ved vacciner aspireres IKKE (SSI/WHO) — der er ikke store kar på de anbefalede steder.", "For visse andre i.m.-lægemidler kan lokal instruks kræve langsom aspiration — følg den konkrete instruks og produktresuméet.", "Injicér langsomt.", "Træk kanylen ud, og læg den direkte i kanylebøtten."],
+    "obsFoer": ["Korrekt landemærke og sted", "Allergier", "Ordination og borger"],
+    "obsEfter": ["Lokal reaktion (smerte, rødme, hævelse)", "Tegn på allergisk reaktion/anafylaksi — særligt ved vacciner, hvor der observeres efter", "Virkning og bivirkning"],
+    "komplikationer": ["Smerte og ømhed", "Nerveskade ved forkert sted", "Utilsigtet intravasal injektion", "Absces eller infektion", "Blødning/hæmatom"],
+    "dok": ["Dokumentér præparat, dosis, sted (fx h. deltoideus), tidspunkt og initialer", "Ved vacciner: batch-/lotnummer efter lokal instruks", "Observationsperiode efter vaccination efter lokal instruks"]
+  }, {
+    "id": "iv",
+    "code": "IV",
+    "title": "Intravenøs injektion",
+    "color": "#C2410C",
+    "g1": "#F97316",
+    "g2": "#C2410C",
+    "short": "Direkte i en vene. Hurtigst virkende — kræver særlig kompetence.",
+    "key": [["Vinkel", "I venen"], ["Lag", "Vene/blodbane"], ["Optagelse", "Hurtigst"], ["Kompetence", "Kræver særlig delegation"]],
+    "hvad": "Intravenøs injektion (IV) gives direkte i en vene. Virkningen indtræder hurtigst af alle injektionsveje, fordi lægemidlet går direkte i blodbanen.",
+    "hvor": "Perifere vener (fx håndryg eller underarm) via et venekateter (venflon), eller via et centralt venekateter (CVK). Kræver en etableret, kontrolleret adgang.",
+    "hvornaar": "Når hurtig og sikker effekt er nødvendig, ved lægemidler der kun kan gives intravenøst, eller ved væske- og infusionsbehandling.",
+    "laegemidler": ["Mange intravenøse antibiotika", "Intravenøse væsker og infusioner", "Visse smertestillende og akutmedicin", "Kontraststoffer"],
+    "anatomi": "Vene → direkte i blodbanen. Nærheden til arterier og nerver kræver præcis teknik. Hvis lægemidlet ender uden for venen (ekstravasation), kan vævet tage skade.",
+    "udstyr": "Venekateter/venflon, intravenøs adgang og evt. infusionssæt og pumpe. Steril håndtering.",
+    "forberedelse": ["Kræver særlig kompetence og delegation — intravenøs administration er typisk forbeholdt sygeplejerske eller læge og ligger normalt uden for grundlæggende SSA-kompetence.", "Tjek ordination, forligelighed og de rigtige kontroller.", "Håndhygiejne og aseptisk teknik.", "Kontrollér, at adgangen fungerer (tilbageløb/gennemskylning efter lokal instruks)."],
+    "fremgang": ["Følg lokal instruks for intravenøs administration og aseptisk teknik.", "Kontrollér den intravenøse adgang før indgift.", "Giv lægemidlet i den ordinerede hastighed.", "Observér borgeren tæt under og efter indgift.", "Håndtér kanyle og udstyr sikkert i kanylebøtten."],
+    "obsFoer": ["Fungerende intravenøs adgang", "Forligelighed og ordination", "Allergier"],
+    "obsEfter": ["Tegn på ekstravasation (hævelse, smerte, manglende indløb)", "Flebitis (rødme og varme langs venen)", "Hurtig bivirkning eller anafylaksi", "Virkning"],
+    "komplikationer": ["Ekstravasation/infiltration", "Flebitis", "Infektion og i værste fald sepsis", "Luftemboli", "Hurtig og kraftig bivirkning på grund af den hurtige effekt"],
+    "dok": ["Dokumentér præparat, dosis, hastighed, tidspunkt, adgang og initialer", "Observationer under og efter indgift", "Afvigelser og tiltag"]
+  }, {
+    "id": "id",
+    "code": "ID",
+    "title": "Intradermal injektion",
+    "color": "#7A5AF5",
+    "g1": "#9B7DF6",
+    "g2": "#5B37C7",
+    "short": "I selve huden (dermis). Danner en kvaddel. Bruges til tests.",
+    "key": [["Vinkel", "10–15°"], ["Lag", "Hud (dermis)"], ["Optagelse", "Meget langsom"], ["Aspiration", "Nej"]],
+    "hvad": "Intradermal injektion (ID) gives i selve huden (læderhuden/dermis), lige under det yderste hudlag. Der dannes en lille blære (kvaddel). Optagelsen er meget langsom — teknikken bruges til tests og lokal reaktion.",
+    "hvor": "Oftest indersiden af underarmen (volart). Huden skal være sund og uden ar og behåring.",
+    "hvornaar": "Til tuberkulintest (Mantoux), visse allergitests og anlæggelse af en bedøvelseskvaddel. Der gives meget små volumina (ca. 0,1 ml).",
+    "laegemidler": ["Tuberkulin (Mantoux-test)", "Allergener til intrakutantest", "Lokalbedøvelse som kvaddel", "BCG-vaccine (gives intradermalt — se vaccinationsafsnittet)"],
+    "anatomi": "Kanylen lægges næsten fladt i huden, så spidsen bliver i dermis. Rammer man for dybt (subkutant), dannes der ingen kvaddel, og fx en Mantoux-test bliver usikker.",
+    "udstyr": "Meget tynd, kort kanyle og en lille sprøjte med fin gradinddeling. Skråspidsen (bevel) vender opad.",
+    "forberedelse": ["Tjek ordination og indikation.", "Udfør håndhygiejne.", "Vælg et sundt hudområde på volar underarm.", "Følg lokal instruks for hud-desinfektion."],
+    "fremgang": ["Stræk huden let.", "Hold kanylen næsten fladt — ca. 10–15° — med skråspidsen opad.", "Før kanylespidsen ind i huden (dermis).", "Injicér langsomt, indtil der dannes en tydelig kvaddel/blære.", "Træk kanylen ud; undgå at massere stedet.", "Aflæs/markér efter instruks (fx aflæses Mantoux efter 48–72 timer)."],
+    "obsFoer": ["Sund hud uden ar eller infektion", "Allergistatus", "Indikation og ordination"],
+    "obsEfter": ["At der dannes en kvaddel (ellers er injektionen for dyb)", "Lokal reaktion", "Aflæsning på det korrekte tidspunkt (fx Mantoux)"],
+    "komplikationer": ["Ingen kvaddel (for dyb injektion) → usikkert resultat", "Blødning", "Lokal eller allergisk reaktion", "Infektion"],
+    "dok": ["Dokumentér præparat/test, dosis, sted, tidspunkt og initialer", "Aflæsningstidspunkt og -resultat (fx Mantoux i mm)", "Patientsikkerhed og samtykke"]
+  }],
+  "compare": {
+    "cols": ["SC", "IM", "IV", "ID"],
+    "rows": [["Vinkel", "45°/90°", "90°", "I venen", "10–15°"], ["Lag", "Underhud (fedt)", "Muskel", "Vene/blodbane", "Hud (dermis)"], ["Optagelse", "Langsom/jævn", "Hurtigere", "Hurtigst", "Meget langsom"], ["Typiske", "Insulin, heparin", "Vacciner, B12", "I.v.-antibiotika, væske", "Mantoux, allergitest"], ["Aspiration", "Normalt nej", "Vacciner: nej*", "Tilbageløb", "Nej"]],
+    "note": "*Ved ikke-vaccine-lægemidler kan lokal instruks kræve aspiration. Følg altid produktresumé og lokal instruks. Forenklet undervisningsoversigt."
+  },
+  "checklist": ["Rigtig borger — bekræft identitet med to identifikatorer", "Ordination/recept kontrolleret", "Rigtigt lægemiddel", "Rigtig dosis", "Rigtig administrationsvej", "Rigtigt tidspunkt", "Allergier tjekket", "Samtykke indhentet", "Håndhygiejne udført", "Faglig kompetence og delegation er på plads", "Plan for observation før og efter", "Dokumentation klar"],
+  "equipment": [{
+    "t": "Injektionspenne",
+    "b": ["Færdigfyldte penne med dosisindstilling (fx insulin, GLP-1, heparin).", "Sæt en ny kanyle på hver gang, og fjern den efter brug.", "Kontrollér for luft/flow efter produktinstruks (priming).", "Opbevar efter instruks (fx insulin), og rotér injektionssted."]
+  }, {
+    "t": "Ampuller (glas)",
+    "b": ["Engangsglas der knækkes ved mærket — brug en serviet om halsen.", "Træk op med optræks-/filterkanyle efter lokal instruks.", "Skift til injektionskanyle før injektion.", "Kassér glas i kanylebøtte/glasaffald efter instruks."]
+  }, {
+    "t": "Hætteglas (vials)",
+    "b": ["Desinficér gummimembranen før optræk.", "Træk evt. luft ind svarende til volumen, og træk dosis op.", "Fjern luftbobler før injektion.", "Mærk åbnet glas med dato/tid efter lokal instruks."]
+  }, {
+    "t": "Kanylesikkerhed",
+    "b": ["Brug sikkerhedskanyler, hvor det er muligt.", "Sæt ALDRIG hætten på kanylen igen (recap ikke).", "Aktivér sikkerhedsmekanismen straks efter brug."]
+  }, {
+    "t": "Kanyleaffald (skarpt affald)",
+    "b": ["Læg kanylen direkte i en godkendt kanylebøtte.", "Fyld ikke bøtten over max-stregen, og luk den, når den er fuld.", "Kanyler må aldrig i almindeligt affald (Arbejdstilsynet).", "Ved stikuheld: følg arbejdsstedets stikuheldsinstruks straks."]
+  }],
+  "sources": [{
+    "t": "Statens Serum Institut — Injektionsteknik (subkutan)",
+    "u": "https://www.ssi.dk/vaccinationer/administration-af-vacciner/injektionsteknik/subkutan-injektion",
+    "d": "2026-10-28"
+  }, {
+    "t": "Statens Serum Institut — Intramuskulær injektion (børn og voksne)",
+    "u": "https://www.ssi.dk/vaccinationer/administration-af-vacciner/injektionsteknik/intramuskulaer-injektion-beorn-og-voksne",
+    "d": "2026-10-28"
+  }, {
+    "t": "Statens Serum Institut — Håndtering af vacciner",
+    "u": "https://www.ssi.dk/vaccinationer/haandtering-af-vacciner",
+    "d": "2026-10-28"
+  }, {
+    "t": "Lægehåndbogen (sundhed.dk) — Tuberkulintest (Mantoux)",
+    "u": "https://www.sundhed.dk/sundhedsfaglig/laegehaandbogen/lunger/undersoegelser/tuberkulintest-mantoux-test/",
+    "d": "2026-10-28"
+  }, {
+    "t": "Sundhedsstyrelsen (sst.dk) — medicinhåndtering",
+    "u": "https://www.sst.dk",
+    "d": "2026-10-28"
+  }, {
+    "t": "Arbejdstilsynet (at.dk) — kanyler og stikuheld",
+    "u": "https://at.dk",
+    "d": "2026-10-28"
+  }],
+  "review": "Indholdet er udarbejdet til undervisning og bygger på generel dansk vejledning (SSI, Sundhedsstyrelsen, Lægehåndbogen). Det er endnu ikke gennemgået punkt for punkt af en fagperson. Kontrollér altid mod gældende lokal instruks, produktresumé og din delegation, før du handler. Afventer faglig gennemgang — især: kanylelængde/-type, hud-desinfektion og aspiration ved ikke-vaccine-lægemidler afhænger af præparat og lokal instruks.",
+  "vaccineNote": "Vaccinationsspecifik vejledning adskiller sig fra øvrig medicin. SSI anbefaler fx, at der IKKE aspireres ved vacciner, og at huden normalt ikke desinficeres, hvis den er synligt ren. Følg altid SSI's aktuelle vejledning for den konkrete vaccine — bland den ikke sammen med regler for andre injektionslægemidler."
+};
+
+/* Forenklet undervisningsdiagram: hudlag + injektionsdybder/vinkler */
+function InjLayersSVG() {
+  const W = 320,
+    H = 210,
+    L = 96;
+  const yEpi = 34,
+    yDerm = 50,
+    ySub = 86,
+    yMus = 150;
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 " + W + " " + H,
+    style: {
+      width: "100%",
+      height: "auto",
+      background: C.surface,
+      border: "1px solid " + C.line,
+      borderRadius: 14
+    },
+    role: "img",
+    "aria-label": "Forenklet diagram over hudlag og injektionsdybder"
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: L,
+    y: yEpi,
+    width: W - L - 8,
+    height: yDerm - yEpi,
+    fill: "#F4D9C6"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: L,
+    y: yDerm,
+    width: W - L - 8,
+    height: ySub - yDerm,
+    fill: "#E7B59A"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: L,
+    y: ySub,
+    width: W - L - 8,
+    height: yMus - ySub,
+    fill: "#F7E7A6"
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: L,
+    y: yMus,
+    width: W - L - 8,
+    height: H - yMus - 10,
+    fill: "#D98A8A"
+  }), [["Epidermis", yEpi + 11], ["Dermis (hud)", yDerm + 12], ["Underhud (fedt)", ySub + 22], ["Muskel", yMus + 22]].map((r, i) => /*#__PURE__*/React.createElement("text", {
+    key: i,
+    x: 10,
+    y: r[1],
+    fontSize: "10",
+    fill: C.inkSoft,
+    fontWeight: "600"
+  }, r[0])), /*#__PURE__*/React.createElement("line", {
+    x1: L + 8,
+    y1: yDerm - 6,
+    x2: L + 62,
+    y2: yDerm + 7,
+    stroke: "#5B37C7",
+    strokeWidth: "2.4"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: L + 20,
+    y: yDerm - 9,
+    fontSize: "9",
+    fill: "#5B37C7",
+    fontWeight: "800"
+  }, "ID 10\u201315\xB0"), /*#__PURE__*/React.createElement("line", {
+    x1: L + 150,
+    y1: yDerm - 10,
+    x2: L + 180,
+    y2: ySub + 8,
+    stroke: "#0B9488",
+    strokeWidth: "2.4"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: L + 120,
+    y: yDerm - 12,
+    fontSize: "9",
+    fill: "#0B9488",
+    fontWeight: "800"
+  }, "SC 45\xB0"), /*#__PURE__*/React.createElement("line", {
+    x1: W - 40,
+    y1: yEpi - 6,
+    x2: W - 40,
+    y2: yMus + 18,
+    stroke: "#2257D8",
+    strokeWidth: "2.4"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: W - 70,
+    y: yEpi - 9,
+    fontSize: "9",
+    fill: "#2257D8",
+    fontWeight: "800"
+  }, "IM 90\xB0"), /*#__PURE__*/React.createElement("ellipse", {
+    cx: L + 96,
+    cy: ySub + 22,
+    rx: "22",
+    ry: "7",
+    fill: "#9CC1F0",
+    stroke: "#2257D8",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: L + 70,
+    y: ySub + 44,
+    fontSize: "9",
+    fill: "#C2410C",
+    fontWeight: "800"
+  }, "IV (i vene)"));
+}
+/* Forenklet kropskort med injektionssteder */
+function InjSitesSVG() {
+  const W = 320,
+    H = 220;
+  const dot = (x, y, c) => /*#__PURE__*/React.createElement("circle", {
+    cx: x,
+    cy: y,
+    r: "5",
+    fill: c,
+    stroke: "#fff",
+    strokeWidth: "1.4"
+  });
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 " + W + " " + H,
+    style: {
+      width: "100%",
+      height: "auto",
+      background: C.surface,
+      border: "1px solid " + C.line,
+      borderRadius: 14
+    },
+    role: "img",
+    "aria-label": "Forenklet kropskort med injektionssteder"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "160",
+    cy: "30",
+    r: "16",
+    fill: tint(C.ink, "10")
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "138",
+    y: "48",
+    width: "44",
+    height: "70",
+    rx: "14",
+    fill: tint(C.ink, "10")
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "112",
+    y: "52",
+    width: "20",
+    height: "60",
+    rx: "9",
+    fill: tint(C.ink, "10")
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "188",
+    y: "52",
+    width: "20",
+    height: "60",
+    rx: "9",
+    fill: tint(C.ink, "10")
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "142",
+    y: "116",
+    width: "16",
+    height: "78",
+    rx: "8",
+    fill: tint(C.ink, "10")
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: "162",
+    y: "116",
+    width: "16",
+    height: "78",
+    rx: "8",
+    fill: tint(C.ink, "10")
+  }), dot(126, 60, "#2257D8"), /*#__PURE__*/React.createElement("text", {
+    x: "20",
+    y: "62",
+    fontSize: "9.5",
+    fill: C.inkSoft
+  }, "Deltoideus (IM)"), dot(150, 86, "#0B9488"), /*#__PURE__*/React.createElement("text", {
+    x: "212",
+    y: "88",
+    fontSize: "9.5",
+    fill: C.inkSoft
+  }, "Maveskind (SC)"), dot(146, 150, "#2257D8"), /*#__PURE__*/React.createElement("text", {
+    x: "20",
+    y: "152",
+    fontSize: "9.5",
+    fill: C.inkSoft
+  }, "Vastus lateralis (IM)"), dot(188, 100, "#7A5AF5"), /*#__PURE__*/React.createElement("text", {
+    x: "210",
+    y: "118",
+    fontSize: "9.5",
+    fill: C.inkSoft
+  }, "Volar underarm (ID)"), dot(176, 120, "#C2410C"), /*#__PURE__*/React.createElement("text", {
+    x: "210",
+    y: "150",
+    fontSize: "9.5",
+    fill: C.inkSoft
+  }, "Ventrogluteus (IM)"));
+}
+function InjExpand({
+  id,
+  title,
+  openSet,
+  toggle,
+  children
+}) {
+  const open = openSet.has(id);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid " + C.line,
+      borderRadius: 13,
+      background: C.surface,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => toggle(id),
+    "aria-expanded": open,
+    style: {
+      width: "100%",
+      textAlign: "left",
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      fontFamily: "inherit",
+      padding: "13px 14px",
+      display: "flex",
+      alignItems: "center",
+      gap: 9
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontSize: 15,
+      fontWeight: 800,
+      color: C.ink,
+      lineHeight: 1.3
+    }
+  }, title), /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 18,
+    color: C.inkFaint,
+    style: {
+      transform: open ? "rotate(180deg)" : "none",
+      transition: "transform .15s",
+      flexShrink: 0
+    }
+  })), open ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 14px 14px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, children) : null);
+}
+const InjP = ({
+  children
+}) => /*#__PURE__*/React.createElement("div", {
+  style: {
+    fontSize: 13.5,
+    color: C.ink,
+    lineHeight: 1.55
+  }
+}, children);
+const InjUL = ({
+  items
+}) => /*#__PURE__*/React.createElement("ul", {
+  style: {
+    margin: 0,
+    paddingLeft: 18,
+    display: "flex",
+    flexDirection: "column",
+    gap: 4
+  }
+}, items.map((x, i) => /*#__PURE__*/React.createElement("li", {
+  key: i,
+  style: {
+    fontSize: 13,
+    color: C.ink,
+    lineHeight: 1.5
+  }
+}, x)));
+function InjReviewBanner() {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#B7791F", "10"),
+      border: "1px solid " + tint("#B7791F", "33"),
+      borderRadius: 12,
+      padding: "11px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 16,
+    color: "#8A5A0B",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: "#7A4E0A",
+      lineHeight: 1.55
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Undervisning \u2014 afventer faglig gennemgang."), " ", INJ.review));
+}
+function Injektioner({
+  view,
+  setView,
+  onQuiz,
+  isFav,
+  onFav
+}) {
+  const [openSet, setOpenSet] = useState(() => new Set(["s1"]));
+  const toggle = id => setOpenSet(p => {
+    const n = new Set(p);
+    n.has(id) ? n.delete(id) : n.add(id);
+    return n;
+  });
+  const [checks, setChecks] = useState(() => new Set());
+  const mod = INJ.modules.find(m => m.id === view);
+
+  // ----- a single module -----
+  if (mod) {
+    const sec = (id, title, node) => /*#__PURE__*/React.createElement(InjExpand, {
+      id: id,
+      title: title,
+      openSet: openSet,
+      toggle: toggle
+    }, node);
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 11,
+        paddingBottom: 36
+      },
+      className: "anim"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        borderRadius: 16,
+        padding: 15,
+        background: "linear-gradient(160deg," + tint(mod.color, "16") + "," + tint(mod.color, "08") + ")",
+        border: "1px solid " + tint(mod.color, "2E")
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        background: tint(mod.color, "1E"),
+        color: mod.g2,
+        borderRadius: 8,
+        padding: "3px 9px",
+        fontSize: 12,
+        fontWeight: 800
+      }
+    }, mod.code), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 20,
+        fontWeight: 800,
+        color: C.ink,
+        marginTop: 7
+      }
+    }, mod.title), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: C.inkSoft,
+        marginTop: 3,
+        lineHeight: 1.5
+      }
+    }, mod.short), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 6,
+        marginTop: 10
+      }
+    }, mod.key.map((k, i) => /*#__PURE__*/React.createElement("span", {
+      key: i,
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: mod.g2,
+        background: tint(mod.color, "12"),
+        padding: "3px 8px",
+        borderRadius: 8
+      }
+    }, k[0], ": ", k[1])))), /*#__PURE__*/React.createElement(InjReviewBanner, null), sec("s1", "1. Hvad er det?", /*#__PURE__*/React.createElement(InjP, null, mod.hvad)), sec("s2", "2. Hvor i kroppen gives injektionen?", /*#__PURE__*/React.createElement(InjP, null, mod.hvor)), sec("s3", "3. Hvornår anvendes den?", /*#__PURE__*/React.createElement(InjP, null, mod.hvornaar)), sec("s4", "4. Eksempler på lægemidler", /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.laegemidler
+    })), sec("s5", "5. Relevant anatomi", /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(InjP, null, mod.anatomi), /*#__PURE__*/React.createElement(InjLayersSVG, null), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10.5,
+        color: C.inkFaint
+      }
+    }, "Forenklet undervisningsdiagram \u2014 ikke anatomisk m\xE5lfast."))), sec("s6", "6. Udstyr og kanyler", /*#__PURE__*/React.createElement(InjP, null, mod.udstyr)), sec("s7", "7. Forberedelse og hygiejne", /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.forberedelse
+    })), sec("s8", "8. Fremgangsmåde — faglig undervisning", /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.fremgang
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#7A4E0A",
+        background: tint("#B7791F", "0C"),
+        borderRadius: 9,
+        padding: "8px 10px",
+        lineHeight: 1.5
+      }
+    }, "Vinkel, kanyle og aspiration er specifikke for netop denne injektionstype og det konkrete l\xE6gemiddel. F\xF8lg altid lokal instruks."))), sec("s9", "9. Observation før og efter", /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 800,
+        color: C.inkSoft
+      }
+    }, "F\xF8r"), /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.obsFoer
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 800,
+        color: C.inkSoft,
+        marginTop: 4
+      }
+    }, "Efter"), /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.obsEfter
+    }))), sec("s10", "10. Mulige komplikationer", /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.komplikationer
+    })), sec("s11", "11. Dokumentation og patientsikkerhed", /*#__PURE__*/React.createElement(InjUL, {
+      items: mod.dok
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid " + C.line,
+        borderRadius: 13,
+        background: C.surface,
+        padding: "13px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 800,
+        color: C.ink,
+        marginBottom: 7
+      }
+    }, "12. Test din viden"), /*#__PURE__*/React.createElement("button", {
+      onClick: onQuiz,
+      style: {
+        width: "100%",
+        border: "none",
+        borderRadius: 11,
+        padding: "13px",
+        background: "linear-gradient(135deg," + mod.g1 + "," + mod.g2 + ")",
+        color: "#fff",
+        fontFamily: "inherit",
+        fontSize: 14.5,
+        fontWeight: 800,
+        cursor: "pointer",
+        minHeight: 48
+      }
+    }, "Test din viden om injektioner")));
+  }
+
+  // ----- checklist -----
+  if (view === "checklist") {
+    const done = checks.size,
+      total = INJ.checklist.length;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+        paddingBottom: 36
+      },
+      className: "anim"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 19,
+        fontWeight: 800,
+        color: C.ink
+      }
+    }, "Tjekliste f\xF8r injektion"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        marginTop: 3,
+        lineHeight: 1.5
+      }
+    }, "Interaktiv huskeliste. Intet gemmes, og listen erstatter ikke lokal instruks.")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        fontWeight: 700,
+        color: C.inkSoft
+      }
+    }, done, "/", total, " klaret"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 8
+      }
+    }, INJ.checklist.map((c, i) => {
+      const on = checks.has(i);
+      return /*#__PURE__*/React.createElement("button", {
+        key: i,
+        onClick: () => setChecks(p => {
+          const n = new Set(p);
+          n.has(i) ? n.delete(i) : n.add(i);
+          return n;
+        }),
+        style: {
+          textAlign: "left",
+          display: "flex",
+          alignItems: "center",
+          gap: 11,
+          border: "1px solid " + (on ? tint("#0FAE9E", "40") : C.line),
+          background: on ? tint("#0FAE9E", "0A") : C.surface,
+          borderRadius: 12,
+          padding: "12px 13px",
+          cursor: "pointer",
+          fontFamily: "inherit"
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          width: 22,
+          height: 22,
+          borderRadius: 7,
+          flexShrink: 0,
+          border: "2px solid " + (on ? "#0B9488" : C.inkFaint),
+          background: on ? "#0B9488" : "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#fff",
+          fontSize: 14,
+          fontWeight: 900
+        }
+      }, on ? "✓" : ""), /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontSize: 14,
+          color: C.ink,
+          lineHeight: 1.4
+        }
+      }, c));
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setChecks(new Set()),
+      style: {
+        border: "1px solid " + C.line,
+        borderRadius: 12,
+        padding: "12px",
+        background: C.surface,
+        color: C.inkSoft,
+        fontFamily: "inherit",
+        fontSize: 14,
+        fontWeight: 700,
+        cursor: "pointer"
+      }
+    }, "Nulstil"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        gap: 9,
+        background: tint(C.ink, "05"),
+        border: "1px solid " + C.line,
+        borderRadius: 12,
+        padding: "11px 13px"
+      }
+    }, /*#__PURE__*/React.createElement(Info, {
+      size: 15,
+      color: C.inkSoft,
+      style: {
+        flexShrink: 0,
+        marginTop: 1
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 11.5,
+        color: C.inkSoft,
+        lineHeight: 1.5
+      }
+    }, "F\xF8lg altid din delegation og arbejdsstedets instruks. Ved tvivl: stop og sp\xF8rg den ansvarlige.")));
+  }
+
+  // ----- equipment -----
+  if (view === "udstyr") {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 11,
+        paddingBottom: 36
+      },
+      className: "anim"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 19,
+        fontWeight: 800,
+        color: C.ink
+      }
+    }, "Udstyr og skarpt affald"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        marginTop: 3,
+        lineHeight: 1.5
+      }
+    }, "Penne, ampuller, h\xE6tteglas, kanylesikkerhed og bortskaffelse.")), INJ.equipment.map((e, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        border: "1px solid " + C.line,
+        borderRadius: 13,
+        background: C.surface,
+        padding: "13px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 800,
+        color: C.ink,
+        marginBottom: 7
+      }
+    }, e.t), /*#__PURE__*/React.createElement(InjUL, {
+      items: e.b
+    }))));
+  }
+
+  // ----- compare / illustration -----
+  if (view === "sammenlign") {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "flex",
+        flexDirection: "column",
+        gap: 13,
+        paddingBottom: 36
+      },
+      className: "anim"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 19,
+        fontWeight: 800,
+        color: C.ink
+      }
+    }, "Sammenlign SC \xB7 IM \xB7 IV \xB7 ID"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 12.5,
+        color: C.inkSoft,
+        marginTop: 3,
+        lineHeight: 1.5
+      }
+    }, "Overblik over lag, vinkel og optagelse.")), /*#__PURE__*/React.createElement(InjLayersSVG, null), /*#__PURE__*/React.createElement(InjSitesSVG, null), /*#__PURE__*/React.createElement("div", {
+      style: {
+        border: "1px solid " + C.line,
+        borderRadius: 13,
+        overflow: "hidden",
+        background: C.surface
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1.1fr 1fr 1fr 1fr 1fr",
+        background: tint(C.ink, "06"),
+        fontSize: 11,
+        fontWeight: 800,
+        color: C.inkSoft
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "8px 8px"
+      }
+    }), INJ.compare.cols.map(c => /*#__PURE__*/React.createElement("div", {
+      key: c,
+      style: {
+        padding: "8px 8px",
+        textAlign: "center"
+      }
+    }, c))), INJ.compare.rows.map((r, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        display: "grid",
+        gridTemplateColumns: "1.1fr 1fr 1fr 1fr 1fr",
+        borderTop: "1px solid " + C.line,
+        fontSize: 11
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: "8px 8px",
+        fontWeight: 700,
+        color: C.inkSoft
+      }
+    }, r[0]), r.slice(1).map((v, j) => /*#__PURE__*/React.createElement("div", {
+      key: j,
+      style: {
+        padding: "8px 8px",
+        textAlign: "center",
+        color: C.ink,
+        lineHeight: 1.35
+      }
+    }, v))))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 10.5,
+        color: C.inkFaint,
+        lineHeight: 1.5
+      }
+    }, INJ.compare.note));
+  }
+
+  // ----- overview -----
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 13,
+      paddingBottom: 36
+    },
+    className: "anim"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      margin: 0,
+      flex: 1,
+      fontSize: 13.5,
+      color: C.inkSoft,
+      lineHeight: 1.55
+    }
+  }, "Fire injektionstyper med faglig undervisning, illustrationer, tjekliste og quiz. Til SSA-elever og personale."), /*#__PURE__*/React.createElement("button", {
+    onClick: onFav,
+    "aria-label": "Gem som favorit",
+    style: {
+      border: "none",
+      background: "transparent",
+      cursor: "pointer",
+      padding: 4,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Star, {
+    size: 22,
+    color: isFav ? "#F5A623" : C.inkFaint,
+    fill: isFav ? "#F5A623" : "none"
+  }))), /*#__PURE__*/React.createElement(InjReviewBanner, null), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 9,
+      background: tint("#2E68E0", "0A"),
+      border: "1px solid " + tint("#2E68E0", "24"),
+      borderRadius: 12,
+      padding: "11px 13px"
+    }
+  }, /*#__PURE__*/React.createElement(ShieldCheck, {
+    size: 16,
+    color: "#2257D8",
+    style: {
+      flexShrink: 0,
+      marginTop: 1
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: C.ink,
+      lineHeight: 1.55
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Vacciner:"), " ", INJ.vaccineNote)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 10
+    }
+  }, INJ.modules.map(m => /*#__PURE__*/React.createElement("button", {
+    key: m.id,
+    onClick: () => setView(m.id),
+    "aria-label": m.title,
+    style: {
+      textAlign: "left",
+      border: "1px solid " + tint(m.color, "2E"),
+      borderRadius: 16,
+      padding: 13,
+      cursor: "pointer",
+      background: "linear-gradient(160deg," + tint(m.color, "14") + "," + tint(m.color, "06") + ")",
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+      minHeight: 108
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: tint(m.color, "1E"),
+      color: m.g2,
+      fontWeight: 900,
+      fontSize: 14
+    }
+  }, m.code), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 800,
+      color: C.ink,
+      lineHeight: 1.2
+    }
+  }, m.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.inkSoft,
+      marginTop: 3,
+      lineHeight: 1.35
+    }
+  }, m.short))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 9
+    }
+  }, [["sammenlign", "Sammenlign & illustrationer", "Hudlag, vinkler og kropskort"], ["checklist", "Tjekliste før injektion", "Interaktiv sikkerhedstjekliste"], ["udstyr", "Udstyr og skarpt affald", "Penne, ampuller, hætteglas, kanyler"]].map(t => /*#__PURE__*/React.createElement("button", {
+    key: t[0],
+    onClick: () => setView(t[0]),
+    style: {
+      textAlign: "left",
+      border: "1px solid " + C.line,
+      background: C.surface,
+      borderRadius: 14,
+      padding: "13px 14px",
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      gap: 11,
+      fontFamily: "inherit"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: tint(C.primary, "12"),
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(ClipboardList, {
+    size: 20,
+    color: C.primary
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14.5,
+      fontWeight: 800,
+      color: C.ink
+    }
+  }, t[1]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: C.inkSoft
+    }
+  }, t[2])), /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 18,
+    color: C.inkFaint
+  })))), /*#__PURE__*/React.createElement("button", {
+    onClick: onQuiz,
+    style: {
+      width: "100%",
+      border: "none",
+      borderRadius: 14,
+      padding: "14px",
+      background: "linear-gradient(135deg,#9B7DF6,#5B37C7)",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 800,
+      cursor: "pointer",
+      minHeight: 50
+    }
+  }, "Test din viden om injektioner"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      border: "1px solid " + C.line,
+      borderRadius: 13,
+      background: tint(C.ink, "04"),
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      fontWeight: 800,
+      color: C.ink,
+      marginBottom: 6
+    }
+  }, "Kilder & revision"), INJ.sources.map((s, i) => /*#__PURE__*/React.createElement("a", {
+    key: i,
+    href: s.u,
+    target: "_blank",
+    rel: "noopener noreferrer",
+    style: {
+      textDecoration: "none"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11.5,
+      color: "#2257D8",
+      lineHeight: 1.5,
+      marginBottom: 3
+    }
+  }, s.t, " \xB7 konsulteret ", s.d, " \u2192"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: C.inkFaint,
+      marginTop: 5,
+      lineHeight: 1.5
+    }
+  }, "F\xF8lg altid g\xE6ldende lokal instruks, produktresum\xE9 og din delegation. KLARIO opfinder ikke kliniske v\xE6rdier; uverificerede detaljer er markeret til gennemgang.")));
 }
 function ProcDetail({
   p,
@@ -16212,7 +17276,8 @@ const CAT_CASE = {
 const CAT_TITLE_EXTRA = {
   anatomi: "Anatomi & fysiologi",
   farmakologi: "Farmakologi",
-  halveringstid: "Halveringstid (T½)"
+  halveringstid: "Halveringstid (T½)",
+  injektion: "Injektioner"
 };
 const catTitleById = id => (DATA.find(c => c.id === id) || {}).title || CAT_TITLE_EXTRA[id] || id;
 const makeTopicQuiz = topicId => ALL_QUIZ.find(x => x.topic === topicId) || null;
@@ -17349,6 +18414,350 @@ const NEW_QS = [
   correct: [0],
   why: "Ved tvivl: observér og følg lokale instrukser/delegation.",
   tag: "Observation"
+},
+// injektioner
+{
+  "qid": "inj-an1",
+  "catId": "injektion",
+  "q": "I hvilket lag gives en subkutan injektion?",
+  "type": "mc",
+  "opts": ["Underhuden (fedtlaget)", "Musklen", "Venen", "Læderhuden (dermis)"],
+  "correct": [0],
+  "why": "Subkutant = i fedtlaget under huden, over musklen.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-an2",
+  "catId": "injektion",
+  "q": "Hvilken injektion gives i selve huden (dermis) og danner en kvaddel?",
+  "type": "mc",
+  "opts": ["Intradermal (ID)", "Subkutan (SC)", "Intramuskulær (IM)", "Intravenøs (IV)"],
+  "correct": [0],
+  "why": "Intradermal gives i dermis og danner en synlig kvaddel/blære.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-an3",
+  "catId": "injektion",
+  "q": "Hvilket injektionssted bruges til de fleste vacciner til voksne?",
+  "type": "mc",
+  "opts": ["Deltoideus (overarm)", "Maveskindet", "Volar underarm", "Håndryggen"],
+  "correct": [0],
+  "why": "Vacciner til voksne gives typisk intramuskulært i deltoideus.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-an4",
+  "catId": "injektion",
+  "q": "Hvilket muskelsted anbefales til intramuskulær injektion hos spædbørn 0–12 mdr.?",
+  "type": "mc",
+  "opts": ["Vastus lateralis (låret)", "Deltoideus", "Ventrogluteus", "Ballen midt"],
+  "correct": [0],
+  "why": "Hos spædbørn bruges vastus lateralis pga. større muskelmasse der.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-an5",
+  "catId": "injektion",
+  "q": "Hvor gives en intradermal test (fx Mantoux) typisk?",
+  "type": "mc",
+  "opts": ["Indersiden af underarmen (volart)", "Ballen", "Maven", "Låret"],
+  "correct": [0],
+  "why": "Volar underarm bruges, fordi huden er tynd og reaktionen let kan aflæses.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-an6",
+  "catId": "injektion",
+  "q": "Rækkefølgen af lagene fra overfladen er:",
+  "type": "mc",
+  "opts": ["Hud → underhud (fedt) → muskel", "Muskel → hud → fedt", "Fedt → muskel → hud", "Vene → hud → muskel"],
+  "correct": [0],
+  "why": "Udefra: hud (epidermis+dermis) → subkutant fedt → muskel.",
+  "tag": "Anatomi"
+}, {
+  "qid": "inj-ad1",
+  "catId": "injektion",
+  "q": "Hvilken vinkel bruges typisk ved intramuskulær injektion?",
+  "type": "mc",
+  "opts": ["90°", "15°", "45°", "5°"],
+  "correct": [0],
+  "why": "IM gives i 90° for at nå ind i musklen.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad2",
+  "catId": "injektion",
+  "q": "Hvilken vinkel passer til en intradermal injektion?",
+  "type": "mc",
+  "opts": ["10–15°", "45°", "90°", "60°"],
+  "correct": [0],
+  "why": "ID lægges næsten fladt (10–15°), så spidsen bliver i dermis.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad3",
+  "catId": "injektion",
+  "q": "Hvilken vinkel kan bruges ved subkutan injektion?",
+  "type": "mc",
+  "opts": ["45° eller 90° afhængigt af kanyle og fedtlag", "Altid 10°", "Altid 15°", "Altid i venen"],
+  "correct": [0],
+  "why": "SC gives typisk i 45° (lang kanyle/tynd person) eller 90° (kort kanyle).",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad4",
+  "catId": "injektion",
+  "q": "Hvilken injektionsvej giver den hurtigste virkning?",
+  "type": "mc",
+  "opts": ["Intravenøs (IV)", "Subkutan (SC)", "Intradermal (ID)", "Intramuskulær (IM)"],
+  "correct": [0],
+  "why": "IV går direkte i blodbanen og virker hurtigst.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad5",
+  "catId": "injektion",
+  "q": "Må man bruge samme vinkel, kanyle og aspirationsregel til alle injektionstyper?",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "Nej — vinkel, kanyle og aspiration er procedurespecifikke og afhænger også af lægemiddel og lokal instruks.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad6",
+  "catId": "injektion",
+  "q": "Et lægemiddel skal optages langsomt og jævnt. Hvilken vej passer bedst?",
+  "type": "mc",
+  "opts": ["Subkutan", "Intravenøs", "Intradermal", "Altid intramuskulær"],
+  "correct": [0],
+  "why": "SC giver langsom, jævn optagelse — fx insulin og heparin.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-ad7",
+  "catId": "injektion",
+  "q": "Hvilket lægemiddel gives typisk subkutant?",
+  "type": "mc",
+  "opts": ["Insulin", "I.v.-væske", "Kontraststof", "Tuberkulin"],
+  "correct": [0],
+  "why": "Insulin gives subkutant. Tuberkulin gives intradermalt.",
+  "tag": "Administration"
+}, {
+  "qid": "inj-hy1",
+  "catId": "injektion",
+  "q": "Hvad gør du med hænderne før og efter en injektion?",
+  "type": "mc",
+  "opts": ["Udfører håndhygiejne (hånddesinfektion)", "Kun efter", "Kun før", "Ingenting hvis du bruger handsker"],
+  "correct": [0],
+  "why": "Håndhygiejne udføres både før og efter.",
+  "tag": "Hygiejne"
+}, {
+  "qid": "inj-hy2",
+  "catId": "injektion",
+  "q": "Ifølge SSI skal huden altid sprittes af før en vaccination.",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "SSI anbefaler, at huden normalt ikke desinficeres ved vaccination, hvis den er synligt ren. Følg lokal instruks for øvrige lægemidler.",
+  "tag": "Hygiejne"
+}, {
+  "qid": "inj-hy3",
+  "catId": "injektion",
+  "q": "Hvornår bør du bruge handsker?",
+  "type": "mc",
+  "opts": ["Ved risiko for kontakt med blod eller sekret", "Aldrig", "Kun ved IV", "Kun ved SC"],
+  "correct": [0],
+  "why": "Handsker bruges ved risiko for blod/sekret — vurder efter opgaven og lokal instruks.",
+  "tag": "Hygiejne"
+}, {
+  "qid": "inj-hy4",
+  "catId": "injektion",
+  "q": "Hud-desinfektion før injektion er ens for alle lægemidler og situationer.",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "Nej — praksis afhænger af lægemiddel, situation og lokal instruks.",
+  "tag": "Hygiejne"
+}, {
+  "qid": "inj-hy5",
+  "catId": "injektion",
+  "q": "Hvad er vigtigst for at forebygge infektion ved injektion?",
+  "type": "mc",
+  "opts": ["God håndhygiejne og ren teknik", "At arbejde hurtigt", "At genbruge kanylen", "At springe dokumentation over"],
+  "correct": [0],
+  "why": "Håndhygiejne og ren/aseptisk teknik forebygger infektion.",
+  "tag": "Hygiejne"
+}, {
+  "qid": "inj-ko1",
+  "catId": "injektion",
+  "q": "Hvad er lipohypertrofi?",
+  "type": "mc",
+  "opts": ["Fortykket væv ved gentagne injektioner samme sted", "En allergisk reaktion", "En blodprop", "En nerveskade"],
+  "correct": [0],
+  "why": "Gentagne injektioner samme sted (fx insulin) kan give lipohypertrofi → rotér sted.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-ko2",
+  "catId": "injektion",
+  "q": "Hvad er ekstravasation ved en intravenøs injektion?",
+  "type": "mc",
+  "opts": ["Lægemidlet løber uden for venen ud i vævet", "En normal virkning", "En allergisk hudreaktion", "At venen skylles igennem"],
+  "correct": [0],
+  "why": "Ekstravasation = lægemiddel uden for venen, kan skade vævet.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-ko3",
+  "catId": "injektion",
+  "q": "Hvorfor er korrekte landemærker vigtige ved intramuskulær injektion?",
+  "type": "mc",
+  "opts": ["For at undgå at ramme nerver og store kar", "For at det går hurtigere", "For at spare kanyler", "Det er ikke vigtigt"],
+  "correct": [0],
+  "why": "Forkert sted kan ramme fx n. radialis eller n. ischiadicus.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-ko4",
+  "catId": "injektion",
+  "q": "Hvad kan det betyde, hvis der IKKE dannes en kvaddel ved en intradermal injektion?",
+  "type": "mc",
+  "opts": ["Injektionen er gået for dybt, og resultatet bliver usikkert", "Alt er som det skal være", "Der er givet for lidt luft", "Kanylen var for tynd"],
+  "correct": [0],
+  "why": "Ingen kvaddel tyder på for dyb (subkutan) injektion → usikkert testresultat.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-ko5",
+  "catId": "injektion",
+  "q": "Hvilke er mulige komplikationer ved injektion? (vælg alle korrekte)",
+  "type": "multi",
+  "opts": ["Blødning/hæmatom", "Infektion", "Nerveskade ved forkert IM-sted", "Bedre syn"],
+  "correct": [0, 1, 2],
+  "why": "Blødning, infektion og nerveskade er reelle komplikationer; bedre syn er ikke en komplikation.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-ko6",
+  "catId": "injektion",
+  "q": "Flebitis er et tegn, man kan se ved:",
+  "type": "mc",
+  "opts": ["Intravenøs injektion (rødme/varme langs venen)", "Intradermal test", "Subkutan insulin", "Peroral medicin"],
+  "correct": [0],
+  "why": "Flebitis (veneirritation) ses ved i.v.-adgang.",
+  "tag": "Komplikationer"
+}, {
+  "qid": "inj-pr1",
+  "catId": "injektion",
+  "q": "Intravenøs administration ligger normalt inden for grundlæggende SSA-kompetence.",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "IV er typisk forbeholdt sygeplejerske/læge og kræver særlig kompetence og delegation.",
+  "tag": "Faglig ansvar"
+}, {
+  "qid": "inj-pr2",
+  "catId": "injektion",
+  "q": "Du er i tvivl om en ordination før en injektion. Hvad gør du?",
+  "type": "mc",
+  "opts": ["Stopper og kontakter den ansvarlige fagperson", "Gætter en dosis", "Giver halvdelen", "Venter til i morgen"],
+  "correct": [0],
+  "why": "Ved tvivl: stop og afklar — gæt aldrig.",
+  "tag": "Faglig ansvar"
+}, {
+  "qid": "inj-pr3",
+  "catId": "injektion",
+  "q": "Hvad skal være på plads, før du må give en injektion?",
+  "type": "mc",
+  "opts": ["Din kompetence og en gyldig delegation/instruks", "Kun at du har tid", "Kun borgerens ønske", "Kun en kanyle"],
+  "correct": [0],
+  "why": "Du skal kende din kompetence og arbejde efter delegation/instruks.",
+  "tag": "Faglig ansvar"
+}, {
+  "qid": "inj-pr4",
+  "catId": "injektion",
+  "q": "Hvem har forrang, hvis Klario og den lokale instruks er uenige?",
+  "type": "mc",
+  "opts": ["Den lokale instruks og ordination", "Klario", "Din kollega", "Ingen af delene"],
+  "correct": [0],
+  "why": "Lokal instruks, ordination og produktresumé har altid forrang.",
+  "tag": "Faglig ansvar"
+}, {
+  "qid": "inj-pr5",
+  "catId": "injektion",
+  "q": "Hvad gør du ved et stikuheld med en brugt kanyle?",
+  "type": "mc",
+  "opts": ["Følger arbejdsstedets stikuheldsinstruks straks", "Venter og ser tiden an", "Skjuler det", "Sætter hætten på og fortsætter"],
+  "correct": [0],
+  "why": "Stikuheld håndteres straks efter lokal stikuheldsinstruks.",
+  "tag": "Faglig ansvar"
+}, {
+  "qid": "inj-ps1",
+  "catId": "injektion",
+  "q": "Hvad hører med til de rigtige kontroller før medicin/injektion? (vælg alle korrekte)",
+  "type": "multi",
+  "opts": ["Rigtig borger", "Rigtigt lægemiddel", "Rigtig dosis", "Rigtig farve på kanylen"],
+  "correct": [0, 1, 2],
+  "why": "Rigtig borger, lægemiddel, dosis, vej, tidspunkt og dokumentation — ikke kanylens farve.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps2",
+  "catId": "injektion",
+  "q": "Hvordan bekræfter du borgerens identitet før en injektion?",
+  "type": "mc",
+  "opts": ["Med to identifikatorer efter lokal instruks", "Ved at spørge sidemanden", "Ved at gætte", "Det behøver du ikke"],
+  "correct": [0],
+  "why": "Brug to identifikatorer (fx navn og CPR) efter lokal instruks.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps3",
+  "catId": "injektion",
+  "q": "Hvad gør du med kanylen efter brug?",
+  "type": "mc",
+  "opts": ["Lægger den direkte i en godkendt kanylebøtte", "Sætter hætten på igen", "Smider den i skraldespanden", "Lægger den på bordet"],
+  "correct": [0],
+  "why": "Kanylen i kanylebøtte straks — recap aldrig.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps4",
+  "catId": "injektion",
+  "q": "Må en kanylebøtte fyldes helt til kanten?",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "Nej — fyld ikke over max-stregen; luk bøtten, når den er fuld.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps5",
+  "catId": "injektion",
+  "q": "Hvad skal dokumenteres efter en injektion?",
+  "type": "mc",
+  "opts": ["Præparat, dosis, sted, tidspunkt og initialer", "Kun tidspunkt", "Kun dit navn", "Ingenting"],
+  "correct": [0],
+  "why": "Dokumentér præparat, dosis, sted, tidspunkt og initialer.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps6",
+  "catId": "injektion",
+  "q": "Hvorfor skal man rotere injektionssted ved gentagne subkutane injektioner?",
+  "type": "mc",
+  "opts": ["For at undgå lipohypertrofi og skåne vævet", "For at det ser pænt ud", "For at spare tid", "Det behøver man ikke"],
+  "correct": [0],
+  "why": "Rotation forebygger lipohypertrofi og uens optagelse.",
+  "tag": "Patientsikkerhed"
+}, {
+  "qid": "inj-ps7",
+  "catId": "injektion",
+  "q": "En ampul er beregnet til:",
+  "type": "mc",
+  "opts": ["Engangsbrug", "Flere borgere", "Genbrug næste dag", "At opbevares åben i ugevis"],
+  "correct": [0],
+  "why": "Glasampuller er engangsbrug.",
+  "tag": "Udstyr"
+}, {
+  "qid": "inj-va1",
+  "catId": "injektion",
+  "q": "Ifølge SSI aspireres der ved vaccination.",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "SSI anbefaler, at der ikke aspireres ved vacciner, da der ikke er store kar på de anbefalede steder.",
+  "tag": "Vacciner"
+}, {
+  "qid": "inj-va2",
+  "catId": "injektion",
+  "q": "Vaccinationsvejledning må frit overføres til alle andre injektionslægemidler.",
+  "type": "tf",
+  "opts": ["Sandt", "Falsk"],
+  "correct": [1],
+  "why": "Nej — hold vaccinationsvejledning adskilt; andre lægemidler følger produktresumé og lokal instruks.",
+  "tag": "Vacciner"
 }];
 
 /* Per-category bank with stable IDs (existing questions + new ones). */
@@ -17382,7 +18791,7 @@ const testCountFor = catId => {
   const n = bankSize(catId);
   return n < 6 ? n > 0 ? 1 : 0 : Math.min(8, Math.max(2, Math.ceil(n / 5)));
 };
-const TESTVIDEN_CAT_IDS = DATA.map(c => c.id).concat(["anatomi", "farmakologi", "halveringstid"]).filter((id, i, a) => a.indexOf(id) === i && bankSize(id) > 0);
+const TESTVIDEN_CAT_IDS = DATA.map(c => c.id).concat(["anatomi", "farmakologi", "halveringstid", "injektion"]).filter((id, i, a) => a.indexOf(id) === i && bankSize(id) > 0);
 function hashStr(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {
@@ -19515,6 +20924,7 @@ function Klario() {
   const [region, setRegion] = useState(null); // KLARIO region — kept in React state (same in-memory model as favoritter/senest brugt)
   const [callPrompt, setCallPrompt] = useState(null); // { phone } — confirmation shown before any tel: link is used
   const [procView, setProcView] = useState(null); // Plejeprocedurer — open procedure id
+  const [injView, setInjView] = useState(null); // Injektioner — internal view (module id / tool / null)
   const [termView, setTermView] = useState(null); // Fagligt sprog — open term id
   const [procQuery, setProcQuery] = useState("");
   const [termQuery, setTermQuery] = useState("");
@@ -19991,6 +21401,7 @@ function Klario() {
     return q ? ALL_CARDS.filter(c => c.search.includes(q)) : [];
   }, [query]);
   const favCards = ALL_CARDS.filter(c => favs.has(c.card.id));
+  const favProcs = PLEJE_PROCS.filter(p => favs.has(p.id));
   const recentCards = recents.map(id => CARD_INDEX[id]).filter(Boolean);
   const activeCatObj = DATA.find(c => c.id === activeCat);
   const akut = DATA.find(c => c.id === "akut");
@@ -20007,6 +21418,7 @@ function Klario() {
     setScreen("plejeprocedurer");
     setProcView(id);
     setTermView(null);
+    setInjView(null);
     scrollTop();
   };
   const openTerm = id => {
@@ -20044,8 +21456,13 @@ function Klario() {
   };
   const inPF = screen === "plejeprocedurer" || screen === "fagligtsprog" || screen === "lommeregnere" || screen === "casetraening" || screen === "quizoversigt" || screen === "dokumenter" || screen === "testviden" || screen === "testkat" || screen === "anatomi" || screen === "farmakologi" || screen === "medicinbibliotek";
   const curCase = caseView ? caseById(caseView) : null;
-  const pfTitle = screen === "plejeprocedurer" ? curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : screen === "anatomi" ? "Anatomi & fysiologi" : screen === "farmakologi" ? farmaSec ? (FARMA_SECTIONS.find(x => x.id === farmaSec) || {}).title || "Farmakologi" : "Farmakologi" : screen === "medicinbibliotek" ? medlibSel ? (MEDLIB.find(x => x.id === medlibSel) || {}).brandName || "Medicinbibliotek" : "Medicinbibliotek" : curTerm ? curTerm.term : "Fagligt sprog";
+  const pfTitle = screen === "plejeprocedurer" ? procView === "p-injektioner" ? injView ? (INJ.modules.find(m => m.id === injView) || {}).title || "Injektioner" : "Injektioner" : curProc ? curProc.title : "Plejeprocedurer" : screen === "lommeregnere" ? calcView ? (CALC_TOOLS.find(t => t.id === calcView) || {}).title : calcGroup === "medicin" ? "Medicinberegner" : "Lommeregnere" : screen === "casetraening" ? curCase ? curCase.title : "Case-træning" : screen === "quizoversigt" ? "Test din viden" : screen === "testkat" ? quizCat ? catTitleById(quizCat) : "Test din viden" : screen === "testviden" ? "Test Viden" : screen === "dokumenter" ? "Mine dokumenter" : screen === "anatomi" ? "Anatomi & fysiologi" : screen === "farmakologi" ? farmaSec ? (FARMA_SECTIONS.find(x => x.id === farmaSec) || {}).title || "Farmakologi" : "Farmakologi" : screen === "medicinbibliotek" ? medlibSel ? (MEDLIB.find(x => x.id === medlibSel) || {}).brandName || "Medicinbibliotek" : "Medicinbibliotek" : curTerm ? curTerm.term : "Fagligt sprog";
   const pfBack = () => {
+    if (screen === "plejeprocedurer" && procView === "p-injektioner" && injView) {
+      setInjView(null);
+      scrollTop();
+      return;
+    }
     if (screen === "plejeprocedurer" && procView) {
       setProcView(null);
       scrollTop();
@@ -22543,9 +23960,10 @@ function Klario() {
     const quizHub = qs2.includes("quiz") || qs2.includes("test din viden") || qs2 === "test";
     const quizCats = DATA.filter(c => makeCategoryQuiz(c.id) && qs2.includes(c.title.toLowerCase()) && (qs2.includes("quiz") || qs2.includes("test") || true)).map(c => c.id);
     const showHub = quizHub && quizCats.length === 0;
+    const procHitsQ = qs2 ? PLEJE_PROCS.filter(p => procText(p).includes(qs2)) : [];
     const anatHitsQ = anatSearch(query);
     const farmaHitsQ = farmaSearch(query);
-    const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0) + anatHitsQ.length + farmaHitsQ.length;
+    const total = results.length + calcSearch(query).length + quizCats.length + (showHub ? 1 : 0) + anatHitsQ.length + farmaHitsQ.length + procHitsQ.length;
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 13,
@@ -22846,6 +24264,57 @@ function Klario() {
         color: C.ink
       }
     }, h.title)), /*#__PURE__*/React.createElement(ChevronRight, {
+      size: 18,
+      color: C.inkFaint
+    }))), procHitsQ.map(p => /*#__PURE__*/React.createElement("button", {
+      key: "pr-" + p.id,
+      onClick: () => openProc(p.id),
+      style: {
+        textAlign: "left",
+        border: `1px solid ${C.line}`,
+        background: C.surface,
+        borderRadius: 18,
+        padding: 13,
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        boxShadow: "0 1px 3px rgba(21,33,43,0.05)"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        background: tint("#2E68E0", "12"),
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(p.Icon, {
+      size: 20,
+      color: "#2257D8",
+      strokeWidth: 2.1
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        fontWeight: 700,
+        color: "#2257D8",
+        marginBottom: 1
+      }
+    }, "Plejeprocedurer"), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 15,
+        fontWeight: 600,
+        color: C.ink
+      }
+    }, p.title)), /*#__PURE__*/React.createElement(ChevronRight, {
       size: 18,
       color: C.inkFaint
     }))), total === 0 && /*#__PURE__*/React.createElement("p", {
@@ -23372,7 +24841,13 @@ function Klario() {
   }, "Ingen procedurer matcher \\u201E", procQuery, "\\u201C."))), !activeCat && screen === "plejeprocedurer" && procView && curProc && /*#__PURE__*/React.createElement("div", {
     key: procView,
     className: "anim"
-  }, /*#__PURE__*/React.createElement(ProcDetail, {
+  }, procView === "p-injektioner" ? /*#__PURE__*/React.createElement(Injektioner, {
+    view: injView,
+    setView: setInjView,
+    onQuiz: () => openTestKat("injektion"),
+    isFav: favs.has("p-injektioner"),
+    onFav: () => toggleFav("p-injektioner")
+  }) : /*#__PURE__*/React.createElement(ProcDetail, {
     p: curProc,
     onTerm: openTerm,
     onQuiz: setActiveQuiz,
@@ -24954,7 +26429,7 @@ function Klario() {
       color: C.ink,
       letterSpacing: -0.5
     }
-  }, "Favoritter"), favCards.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, "Favoritter"), favCards.length === 0 && favProcs.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       padding: "54px 24px",
@@ -24987,7 +26462,11 @@ function Klario() {
       flexDirection: "column",
       gap: 11
     }
-  }, favCards.map(({
+  }, favProcs.map(p => /*#__PURE__*/React.createElement(ProcCard, {
+    key: p.id,
+    p: p,
+    onOpen: () => openProc(p.id)
+  })), favCards.map(({
     card,
     cat
   }) => /*#__PURE__*/React.createElement(ClinCard, {
